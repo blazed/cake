@@ -22,6 +22,3 @@
   age.secrets.wg-home.file = "secrets/freja/wg-home.age"
 
   services.k3s = { role = "agent", tokenFile = "/run/secrets/k3s-token", serverAddr = "https://10.0.2.87:6443" }
-
-[nicolina]
-  publicKey = ""
