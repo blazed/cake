@@ -23,7 +23,7 @@
 
   networking.wireguard.enable = true
   networking.wireguard.interfaces.home = { ips = [ "10.0.149.21/32" ], privateKeyFile = "/run/secrets/wg-home" } 
-  networking.wireguard.interfaces.home.peers = [ { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.0.1:51820" } ]
+  networking.wireguard.interfaces.home.peers = [ { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.0.1:51820", persistentKeepalive = 25 } ]
 
   services.k3s = { role = "agent", tokenFile = "/run/secrets/k3s-token", serverAddr = "https://10.0.2.87:6443" }
 
