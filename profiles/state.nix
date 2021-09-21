@@ -67,7 +67,7 @@ in
           files = [
             # "/home/${userName}/.kube/config"
             "/home/${userName}/.ssh/known_hosts"
-            # "/home/${userName}/.config/gopass/config.yml"
+            "/home/${userName}/.config/gopass/config.yml"
           ];
         }
       ) (filterAttrs (_: user: user.isNormalUser) users);
