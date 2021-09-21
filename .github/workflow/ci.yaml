@@ -1,0 +1,119 @@
+name: Nix Builder
+
+on:
+  pull_request: {}
+  push:
+    branches:
+    - main
+
+jobs:
+  nix_lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v13
+      with:
+        install_url: https://nixos-nix-install-tests.cachix.org/serve/8d8xah1f6ypccpmw9cfsl8ziw1chj4cl/install 
+        install_options: --tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          experimental-features = nix-command flakes
+    - run: |
+        nix shell .#cake-lint -c cake-lint
+
+  create_package_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.job-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v13
+      with:
+        install_url: https://nixos-nix-install-tests.cachix.org/serve/8d8xah1f6ypccpmw9cfsl8ziw1chj4cl/install
+        install_options: --tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          experimental-features = nix-command flakes
+    - id: job-matrix
+      run: |
+        echo "::set-output name=matrix::$(nix eval .#github-actions-package-matrix --json)"
+
+  create_host_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.job-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v13
+      with:
+        install_url: https://nixos-nix-install-tests.cachix.org/serve/8d8xah1f6ypccpmw9cfsl8ziw1chj4cl/install
+        install_options: --tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          experimental-features = nix-command flakes
+    - id: job-matrix
+      run: |
+        echo "::set-output name=matrix::$(nix eval .#github-actions-host-matrix --json)"
+
+  build_package:
+    needs: create_package_matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix: ${{ fromJson(needs.create_package_matrix.outputs.matrix) }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v13
+      with:
+        install_url: https://nixos-nix-install-tests.cachix.org/serve/8d8xah1f6ypccpmw9cfsl8ziw1chj4cl/install
+        install_options: --tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://nixpkgs.cachix.org https://nix-community.cachix.org https://blazed.cachix.org https://cachix.cachix.org https://cache.nixos.org/
+          trusted-public-keys = nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= blazed.cachix.org-1:e9Rx3vtlQSp3nckCdGYpSFJbOb/hi1KuTyvWTBkiwAI= cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          experimental-features = nix-command flakes
+    - uses: cachix/cachix-action@v10
+      if: ${{ matrix.pkg != 'pxebooter' }}
+      with:
+        name: blazed
+        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+    - env:
+        PKG: ${{ matrix.pkg }}
+      run: |
+        nix build .#$PKG -L
+
+  build_host:
+    needs: [create_host_matrix, build_package]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix: ${{ fromJson(needs.create_host_matrix.outputs.matrix) }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v13
+      with:
+        install_url: https://nixos-nix-install-tests.cachix.org/serve/8d8xah1f6ypccpmw9cfsl8ziw1chj4cl/install
+        install_options: --tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://nixpkgs.cachix.org https://nix-community.cachix.org https://blazed.cachix.org https://cachix.cachix.org https://cache.nixos.org/
+          trusted-public-keys = nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= blazed.cachix.org-1:e9Rx3vtlQSp3nckCdGYpSFJbOb/hi1KuTyvWTBkiwAI= cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          experimental-features = nix-command flakes
+    - env:
+        HOST: ${{ matrix.host }}
+      run: |
+        nix build .#nixosConfigurations.$HOST.config.system.build.toplevel -L
+
+  summarize:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Build (matrix)
+    needs: [build_package, build_host, nix_lint]
+    steps:
+      - name: Check linting status
+        if: ${{ needs.nix_lint.result != 'success' }}
+        run: exit 1
+      - name: Check package build matrix status
+        if: ${{ needs.build_package.result != 'success' }}
+        run: exit 1
+      - name: Check host build matrix status
+        if: ${{ needs.build_host.result != 'success' }}
+        run: exit 1
