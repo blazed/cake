@@ -1,0 +1,64 @@
+name: Nix Autoupdater
+
+on:
+  workflow_dispatch: {}
+  schedule:
+  - cron: '0 1 * * *'
+
+jobs:
+  update-packages:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v13
+      with:
+        install_url: https://nixos-nix-install-tests.cachix.org/serve/8d8xah1f6ypccpmw9cfsl8ziw1chj4cl/install
+        install_options: --tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve
+        extra_nix_config: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          substituters = https://nixpkgs.cachix.org https://nix-community.cachix.org https://blazed.cachix.org https://cachix.cachix.org https://cache.nixos.org/
+          trusted-public-keys = nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= blazed.cachix.org-1:e9Rx3vtlQSp3nckCdGYpSFJbOb/hi1KuTyvWTBkiwAI= cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+          experimental-features = nix-command flakes
+    - run: |
+        nix shell nixpkgs#git -c git config user.name 'Boberg'
+        nix shell nixpkgs#git -c git config user.email 'blazed@users.noreply.github.com'
+        (
+          cd packages
+          nix flake update
+          nix develop -c update-all-cargo-vendor-shas
+          nix develop -c update-all-fixed-output-derivation-shas
+        )
+        nix shell nixpkgs#git -c git commit -am "[Auto] update sub flake packages"
+
+        nix flake update
+        nix shell nixpkgs#git -c git commit -am "[Auto] update all inputs"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v3
+      id: cpr
+      with:
+        token: ${{ secrets.MACHINE_USER_TOKEN }}
+        commit-message: '[Auto] Package updates'
+        committer: Boberg <blazed@users.noreply.github.com>
+        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+        signoff: false
+        branch: package-auto-updates
+        delete-branch: true
+        title: '[Auto] Package updates'
+        body: ''
+        labels: |
+          automated pr
+        assignees: blazed
+        reviewers: blazed
+        team-reviewers: |
+          owners
+          maintainers
+
+    - name: Enable Pull Request Automerge
+      if: steps.cpr.outputs.pull-request-operation == 'created'
+      uses: peter-evans/enable-pull-request-automerge@v1
+      with:
+        token: ${{ secrets.MACHINE_USER_TOKEN }}
+        pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+        merge-method: squash
+
