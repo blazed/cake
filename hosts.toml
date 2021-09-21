@@ -1,4 +1,4 @@
-[freja]
+[elsa]
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJpXIyNCgjBi997eFA+gdGOyrPXDQQSgywhRu3/l2/XY"
 
   profiles = [
@@ -21,4 +21,9 @@
   age.secrets.k3s-token.file = "secrets/k3s/token.age"
   age.secrets.wg-home.file = "secrets/freja/wg-home.age"
 
+  networking.wireguard.enable = true
+  networking.wireguard.interfaces.wg0 = { ips = [ "10.0.149.22/24" ], peers = { allowedIPs = [ "10.0.149.0/24" ], privateKeyFile = "/run/secrets/wg-home" } }
+
   services.k3s = { role = "agent", tokenFile = "/run/secrets/k3s-token", serverAddr = "https://10.0.2.87:6443" }
+
+  system.autoUpgrade = { enable = true, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
