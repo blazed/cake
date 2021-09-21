@@ -12,7 +12,7 @@
       [ "subvol=@nix" "rw" "noatime" "compress=zstd" "ssd" "space_cache" ];
   };
 
-  fileSystems."/keey" = {
+  fileSystems."/keep" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
     options =
