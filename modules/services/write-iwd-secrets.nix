@@ -18,7 +18,7 @@ in
       };
       script = ''
         export PATH=${pkgs.jq}/bin/bin''${PATH:+:}$PATH
-        unmask u=rw,g=,o=
+        umask u=rw,g=,o=
         SECRETS=/run/secrets/wifi-networks
         mkdir -p /var/lib/iwd
         if [ ! -e "$SECRETS" ]; then
