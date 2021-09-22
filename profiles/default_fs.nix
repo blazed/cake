@@ -2,7 +2,7 @@
   fileSystems."/" = {
     device = "none";
     fsType = "tmpfs";
-    options = [ "defaults" "size=8G" "mode=775" ];
+    options = [ "defaults" "size=8G" "mode=755" ];
   };
 
   fileSystems."/nix" = {
@@ -12,9 +12,10 @@
       [ "subvol=@nix" "rw" "noatime" "compress=zstd" "ssd" "space_cache" ];
   };
 
-  fileSystems."/keey" = {
+  fileSystems."/keep" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
+    neededForBoot = true;
     options =
       [ "subvol=@keep" "rw" "noatime" "compress=zstd" "ssd" "space_cache" ];
   };
