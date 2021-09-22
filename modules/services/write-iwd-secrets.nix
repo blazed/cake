@@ -17,7 +17,7 @@ in
         RemainAfterExit = "yes";
       };
       script = ''
-        export PATH=${pkgs.jq}/bin/bin''${PATH:+:}$PATH
+        export PATH=${pkgs.jq}/bin''${PATH:+:}$PATH
         umask u=rw,g=,o=
         SECRETS=/run/secrets/wifi-networks
         mkdir -p /var/lib/iwd
