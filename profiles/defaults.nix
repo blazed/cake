@@ -101,7 +101,7 @@
 
   services.btrfs.autoScrub.enable = true;
 
-  security.wrappers.netns-exec.source = {
+  security.wrappers.netns-exec = {
     source = "${pkgs.netns-exec}/bin/netns-exec";
     owner = "root";
     user = "root";
