@@ -106,7 +106,7 @@
     owner = "root";
     user = "root";
     setuid = true;
-  }
+  };
 
   ## This just auto-creates /nix/var/nix/{profiles,gcroots}/per-user/<USER>
   ## for all extraUsers setup on the system. Without this home-manager refuses
