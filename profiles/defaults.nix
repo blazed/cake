@@ -104,7 +104,7 @@
   security.wrappers.netns-exec = {
     source = "${pkgs.netns-exec}/bin/netns-exec";
     owner = "root";
-    user = "root";
+    group = "root";
     setuid = true;
   };
 
