@@ -56,25 +56,7 @@
         inputs = (final: prev: { inherit inputs; });
         my-neovim-config = (final: prev: { my-emacs-config = prev.callPackage ./my-neovim/config.nix { }; });
         scripts = (final: prev: { scripts = prev.callPackage ./scripts { }; });
-      }
-      ##### remove this when meson 0.58.1 is in nixpkgs
-      //
-      {
-        meson-581 = (final: prev: { meson-581 = prev.meson.overrideAttrs
-          (_:
-            rec {
-              pname = "meson";
-              version = "0.58.1";
-              src = prev.python3.pkgs.fetchPypi {
-                inherit pname version;
-                sha256 = "0padn0ykwz8azqiwkhi8p97bl742y8lsjbv0wpqpkkrgcvda6i1i";
-              };
-            }
-          );
-        });
-      }
-      ###############################################
-     ;
+      };
      packages.x86_64-linux = exportedPackages;
      devShell = forAllSystems (system:
        pkgs.${system}.callPackage ./devshell.nix {
