@@ -1,6 +1,7 @@
 publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYGuujsrO9pHLKD6uszuxZNQzOT1qV7GWKJM4Fz4Bjl"
 
 profiles = [
+  "hardware/intel",
   "profiles/default_fs",
   "profiles/nfs",
   "profiles/k3s",
@@ -20,6 +21,15 @@ users.users.blazed.openssh.authorizedKeys.keys = [
 age.secrets.k3s-token.file = "secrets/k3s/token.age"
 age.secrets.wg-home.file = "secrets/sophia/wg-home.age"
 age.secrets.wg-private.file = "secrets/sophia/wg-private.age"
+
+boot.initrd.availableKernelModules = [
+  "xhci_pci",
+  "ahci",
+  "mpt3sas",
+  "usbhid",
+  "usb_storage",
+  "sd_mod",
+]
 
 networking.interfaces.eno1.useDHCP = true
 networking.interfaces.eno2.useDHCP = false
