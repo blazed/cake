@@ -8,5 +8,6 @@
     ./config-from-data.nix
     ./host-config.nix
     ./user-config.nix
+    ./private-wireguard.nix
   ];
 }
