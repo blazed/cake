@@ -4,6 +4,7 @@ let
   inherit (lib) mapAttrsToList listToAttrs splitString concatStringsSep last flatten;
   inherit (builtins) filter match head foldl' replaceStrings;
   bootMode = if config.config.boot.loader.systemd-boot.enable then "UEFI" else "Legacy";
+  encrypted = config.config.boot.initrd.luks == null;
   diskLabels = {
     boot = "boot";
     encCryptkey = "cryptkey";
@@ -17,7 +18,7 @@ let
   efiSpace = "500M";
   luksKeySpace = "20M";
   ramGb = "$(free --giga | tail -n+2 | head -1 | awk '{print $2}')";
-  uuidCryptKey = config.config.boot.initrd.luks.devices.cryptkey.keyFile != null;
+  uuidCryptKey = if config.config.boot.initrd.luks == null then config.config.boot.initrd.luks.devices.cryptkey.keyFile != null else false;
   subvolumes = lib.unique (filter (v: v != null)
         (flatten
             (map (match "^subvol=(.*)")
@@ -65,30 +66,34 @@ in
 
     USER_DISK_PASSWORD=${if uuidCryptKey then "no" else "yes"}
 
-    DISK_PASSWORD=""
-    if [ "$USER_DISK_PASSWORD" = "yes" ]; then
-      while true; do
-        echo -n Disk password:
-        read -r -s DISK_PASSWORD
-        echo
-        echo -n Enter disk password again:
-        read -r -s DISK_PASSWORD2
-        if [ "$DISK_PASSWORD" = "$DISK_PASSWORD2" ]; then
-          if [ -z "$DISK_PASSWORD" ]; then
+    ENCRYPTED=${if encrypted then "yes" else "no"}
+
+    if [ "$ENCRYPTED" = "yes" ]; then
+      DISK_PASSWORD=""
+      if [ "$USER_DISK_PASSWORD" = "yes" ]; then
+        while true; do
+          echo -n Disk password:
+          read -r -s DISK_PASSWORD
+          echo
+          echo -n Enter disk password again:
+          read -r -s DISK_PASSWORD2
+          if [ "$DISK_PASSWORD" = "$DISK_PASSWORD2" ]; then
+            if [ -z "$DISK_PASSWORD" ]; then
+              unset DISK_PASSWORD
+              unset DISK_PASSWORD2
+              echo "Passwords are empty, please enter them again"
+            else
+              unset DISK_PASSWORD2
+              break
+            fi
+          else
             unset DISK_PASSWORD
             unset DISK_PASSWORD2
-            echo "Passwords are empty, please enter them again"
-          else
-            unset DISK_PASSWORD2
-            break
+            echo "Passwords don't match, please enter them again"
           fi
-        else
-          unset DISK_PASSWORD
-          unset DISK_PASSWORD2
-          echo "Passwords don't match, please enter them again"
-        fi
-      done
-    fi
+        done
+      fi
+    fi 
 
     if [ ! -d "/secrets" ]; then
       mkdir -p /secrets
@@ -183,38 +188,53 @@ in
     partprobe "$DISK"
     fdisk -l "$DISK"
 
-    echo Formatting cryptkey disk "$DISK_CRYPTKEY", using keyfile "$CRYPTKEYFILE"
-    cryptsetup luksFormat --label="$ENC_DISK_CRYPTKEY_LABEL" -q --key-file="$CRYPTKEYFILE" "$DISK_CRYPTKEY"
-    DISK_CRYPTKEY=/dev/disk/by-label/"$ENC_DISK_CRYPTKEY_LABEL"
+    if [ "$ENCRYPTED" = "yes" ]; then
+      echo Set up encrypted disks
+      echo Formatting cryptkey disk "$DISK_CRYPTKEY", using keyfile "$CRYPTKEYFILE"
+      cryptsetup luksFormat --label="$ENC_DISK_CRYPTKEY_LABEL" -q --key-file="$CRYPTKEYFILE" "$DISK_CRYPTKEY"
+      DISK_CRYPTKEY=/dev/disk/by-label/"$ENC_DISK_CRYPTKEY_LABEL"
 
-    echo Opening cryptkey disk "$DISK_CRYPTKEY", using keyfile "$CRYPTKEYFILE"
-    cryptsetup luksOpen --key-file="$CRYPTKEYFILE" "$DISK_CRYPTKEY" "$ENC_DISK_CRYPTKEY_LABEL"
+      echo Opening cryptkey disk "$DISK_CRYPTKEY", using keyfile "$CRYPTKEYFILE"
+      cryptsetup luksOpen --key-file="$CRYPTKEYFILE" "$DISK_CRYPTKEY" "$ENC_DISK_CRYPTKEY_LABEL"
 
-    echo Writing random data to /dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL"
-    dd if=$DEVRANDOM of=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" bs=1024 count=14000 || true
+      echo Writing random data to /dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL"
+      dd if=$DEVRANDOM of=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" bs=1024 count=14000 || true
 
-    echo Creating encrypted swap
-    cryptsetup luksFormat --label="$ENC_DISK_SWAP_LABEL" -q --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_SWAP"
+      echo Creating encrypted swap
+      cryptsetup luksFormat --label="$ENC_DISK_SWAP_LABEL" -q --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_SWAP"
 
-    echo Creating encrypted root
-    cryptsetup luksFormat --label="$ENC_DISK_ROOT_LABEL" -q --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT"
+      echo Creating encrypted root
+      cryptsetup luksFormat --label="$ENC_DISK_ROOT_LABEL" -q --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT"
 
-    echo Opening encrypted swap using keyfile
-    cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_SWAP" "$ENC_DISK_SWAP_LABEL"
-    mkswap -L "$DISK_SWAP_LABEL" /dev/mapper/"$ENC_DISK_SWAP_LABEL"
+      echo Opening encrypted swap using keyfile
+      cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_SWAP" "$ENC_DISK_SWAP_LABEL"
+      mkswap -L "$DISK_SWAP_LABEL" /dev/mapper/"$ENC_DISK_SWAP_LABEL"
 
-    echo Opening encrypted root using keyfile
-    cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT" "$ENC_DISK_ROOT_LABEL"
+      echo Opening encrypted root using keyfile
+      cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT" "$ENC_DISK_ROOT_LABEL"
 
-    echo Creating btrfs filesystem on /dev/mapper/"$ENC_DISK_ROOT_LABEL"
-    mkfs.btrfs -f -L "$DISK_ROOT_LABEL" /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+      echo Creating btrfs filesystem on /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+      mkfs.btrfs -f -L "$DISK_ROOT_LABEL" /dev/mapper/"$ENC_DISK_ROOT_LABEL"
 
-    echo Creating vfat disk at "$DISK_EFI"
-    mkfs.vfat -n "$DISK_EFI_LABEL" "$DISK_EFI"
+      echo Creating vfat disk at "$DISK_EFI"
+      mkfs.vfat -n "$DISK_EFI_LABEL" "$DISK_EFI"
 
-    partprobe /dev/mapper/"$ENC_DISK_SWAP_LABEL"
-    partprobe /dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL"
-    partprobe /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+      partprobe /dev/mapper/"$ENC_DISK_SWAP_LABEL"
+      partprobe /dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL"
+      partprobe /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+    else
+      echo Set up unencrypted disks
+      mkswap -L "$DISK_SWAP_LABEL" /dev/mapper/"$DISK_SWAP_LABEL"
+
+      echo Creating btrfs filesystem on /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+      mkfs.btrfs -f -L "$DISK_ROOT_LABEL" /dev/mapper/"$DISK_ROOT_LABEL"
+
+      echo Creating vfat disk at "$DISK_EFI"
+      mkfs.vfat -n "$DISK_EFI_LABEL" "$DISK_EFI"
+
+      partprobe /dev/mapper/"$DISK_SWAP_LABEL"
+      partprobe /dev/mapper/"$DISK_ROOT_LABEL"
+    fi 
 
     mount -t tmpfs none /mnt
     mkdir -p "/mnt/tmproot" ${concatStringsSep " " (map (v: "/mnt/${replaceStrings ["@"] [""] v}") subvolumes)} "/mnt/boot"
