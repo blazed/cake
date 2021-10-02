@@ -2,12 +2,11 @@
 
 profiles = [
   "hardware/intel",
-  "profiles/default_fs",
+  "profiles/unencrypted_fs",
   "profiles/hetzner_cloud",
   # "profiles/k3s",
   "profiles/server",
   "profiles/state",
-  "profiles/uuid_disk_crypt",
 ]
 
 users.groups.blazed.gid = 1447
