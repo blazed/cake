@@ -224,16 +224,16 @@ in
       partprobe /dev/mapper/"$ENC_DISK_ROOT_LABEL"
     else
       echo Set up unencrypted disks
-      mkswap -L "$DISK_SWAP_LABEL" /dev/mapper/"$DISK_SWAP_LABEL"
+      mkswap -L "$DISK_SWAP_LABEL" "$DISK_SWAP"
 
-      echo Creating btrfs filesystem on /dev/mapper/"$ENC_DISK_ROOT_LABEL"
-      mkfs.btrfs -f -L "$DISK_ROOT_LABEL" /dev/mapper/"$DISK_ROOT_LABEL"
+      echo Creating btrfs filesystem on $DISK_ROOT
+      mkfs.btrfs -f -L "$DISK_ROOT_LABEL" $DISK_ROOT
 
       echo Creating vfat disk at "$DISK_EFI"
       mkfs.vfat -n "$DISK_EFI_LABEL" "$DISK_EFI"
 
-      partprobe /dev/mapper/"$DISK_SWAP_LABEL"
-      partprobe /dev/mapper/"$DISK_ROOT_LABEL"
+      partprobe $DISK_SWAP
+      partprobe $DISK_ROOT
     fi 
 
     mount -t tmpfs none /mnt
