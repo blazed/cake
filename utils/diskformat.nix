@@ -68,8 +68,8 @@ in
 
     ENCRYPTED=${if encrypted then "yes" else "no"}
 
+    DISK_PASSWORD=""
     if [ "$ENCRYPTED" = "yes" ]; then
-      DISK_PASSWORD=""
       if [ "$USER_DISK_PASSWORD" = "yes" ]; then
         while true; do
           echo -n Disk password:
