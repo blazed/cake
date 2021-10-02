@@ -1,12 +1,13 @@
-# publicKey = ""
+publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICcPgR1IDyaKKQECpqdoesNahtMWQYi2P0m0FoodPm5d"
 
 profiles = [
   "hardware/intel",
   "profiles/unencrypted_fs",
   "profiles/hetzner_cloud",
-  # "profiles/k3s",
+  "profiles/k3s",
   "profiles/server",
   "profiles/state",
+  "profiles/nfs",
 ]
 
 users.groups.blazed.gid = 1447
@@ -17,15 +18,21 @@ users.users.blazed.openssh.authorizedKeys.keys = [
   "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDd9ZjCyGAjtjM6lCVZ46+c3PZvYDzFxECpa3NRwZG8zGnPcbIsFIyQzOdk0eywHFZikNeTxxxiDYXeTnuHuMkweVw5mYIwb8hXj8ts7qoCOVJP9P+KnnEb4WS/edG+Arv1nVeNIXswjHKjOtUSRtoNlRuY0x4kyF9EAbVTrHrB5HDtr7GTGQAGAEp33jQqHrIqFoWmNm9GQ3jqP0b4AcZVRXjAj+amqUQ2+gRt4r1r1kzLuvmOrTbOxnNB/N2hGNCkTbIqP1tDVq03EY0ISOWG+1+TW79ASkSYIdnmQBoB+x6Eh+9CGe65wjM0Op3Q564ZS3Qde1GzMchx5A4W7rrMAOzLXJaQ8Mi7gjsDjrqxBfDDXUU5JL5xn0PhhI1teXvQ5aR90cSs424PS3Yrbqs/pHsybcB/kh25MlO9rGXA9MHh7LlVCPIvus/SDopVgTgNIvhYbQh9xdogkG1XdkvyzXmvAJ6Gk/TR/KRWURwQyp1WJxJ8nHr/zUWrU55zXrN/5gWbDB5k9zuR5G4EGrZshM3EuNeQtjMlHcLWfoZuwaOmar/NOmaXzrBCZb/jXNhQkh6M94krXWE0DIkwsu+5n14llMo/OCxneIEqx4FqZePC8x8qpqfKRzSetOG5PVdCO/8w1erhkg8uETguiPTK4uCfCgtZ75ISpv+7nEwuQ== cardno:000607191648",
 ]
 
-# age.secrets.k3s-token.file = "secrets/k3s/token.age"
-# age.secrets.wg-home.file = "secrets/elsa/wg-home.age"
+age.secrets.k3s-token.file = "secrets/k3s/token.age"
+age.secrets.wg-home.file = "secrets/angelica/wg-home.age"
 
-# networking.wireguard.enable = true
-# networking.wireguard.interfaces.home = { ips = [ "10.0.149.21/32" ], privateKeyFile = "/run/secrets/wg-home" }
-# networking.wireguard.interfaces.home.peers = [
-#   { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.0.1:51820", persistentKeepalive = 25 }
-# ]
+networking.wireguard.enable = true
+networking.wireguard.interfaces.home = { ips = [ "10.0.149.5/32" ], privateKeyFile = "/run/secrets/wg-home" }
+networking.wireguard.interfaces.home.peers = [
+  { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
+]
 
-# services.k3s = { role = "agent", tokenFile = "/run/secrets/k3s-token", serverAddr = "https://10.0.0.20:6443" }
+services.k3s.role = "server"
+services.k3s.tokenFile = "/run/secrets/k3s-token"
+services.k3s.clusterCIDR = "10.244.0.0/16"
+services.k3s.serviceCIDR = "10.96.0.0/12"
+services.k3s.clusterDNS = "10.96.0.10"
+services.k3s.nodeCIDRMaskSize = 24
+services.k3s.after = [ "mnt-media.mount" ]
 
 system.autoUpgrade = { enable = true, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
