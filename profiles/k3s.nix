@@ -8,7 +8,6 @@ in
     "--node-label hostname=${hostName}"
   ];
   services.k3s.disable = [ "traefik" "metrics-server" "servicelb" ];
-  services.k3s.disableKubeProxy = false;
   networking.firewall.allowedTCPPorts = lib.mkIf (cfg.role == "server") [ 6443 ];
   networking.firewall.trustedInterfaces = [ "cni0" "flannel.1" "calico+" "cilium+" "lxc+" ];
   environment.state."/keep" = {
