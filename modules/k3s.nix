@@ -53,7 +53,7 @@ in
   };
   options.services.k3s.uniqueNodeNames = mkOption {
     type = types.bool;
-    default = false;
+    default = true;
   };
   options.services.k3s.autoDeployList = mkOption {
     type = types.listOf types.path;
