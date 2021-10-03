@@ -22,4 +22,10 @@ in
       "/var/lib/containerd"
     ];
   };
+
+  fileSystems."/sys/fs/bpf" = {
+    device = "bpffs";
+    fsType = "bpf";
+    options = [ "rw" "relatime" ];
+  };
 }
