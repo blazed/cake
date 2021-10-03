@@ -32,5 +32,6 @@ services.k3s.clusterCIDR = "10.244.0.0/16"
 services.k3s.serviceCIDR = "10.96.0.0/12"
 services.k3s.clusterDNS = "10.96.0.10"
 services.k3s.nodeCIDRMaskSize = 24
+services.k3s.disableFlannel = true
 
 system.autoUpgrade = { enable = true, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
