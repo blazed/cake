@@ -23,6 +23,7 @@ age.secrets.k3s-token.file = "secrets/k3s/token.age"
 age.secrets.wg-exsules.file = "secrets/elsa/wg-exsules.age"
 age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
+networking.firewall.trustedInterfaces = [ "exsules" ]
 networking.wireguard.enable = true
 networking.wireguard.interfaces.exsules = { ips = [ "10.0.149.21/32" ], privateKeyFile = "/run/secrets/wg-exsules" }
 networking.wireguard.interfaces.exsules.peers = [
