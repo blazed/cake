@@ -21,6 +21,11 @@ in
     ];
   };
 
+  fileSystems."/mnt/persistentvolume" = {
+    device = "10.0.0.10:/volume1/persistentvolume";
+    fsType = "nfs";
+  };
+
   fileSystems."/sys/fs/bpf" = {
     device = "bpffs";
     fsType = "bpf";
