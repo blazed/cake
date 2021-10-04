@@ -3,7 +3,6 @@ publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMVQi0gFacHkXLTq4pdKHMrE2HF04EQ
 profiles = [
   "hardware/nuc",
   "profiles/default_fs",
-  "profiles/nfs",
   "profiles/k3s",
   "profiles/server",
   "profiles/state",
