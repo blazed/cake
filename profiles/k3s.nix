@@ -1,7 +1,4 @@
-{ lib, config, hostName, ... }:
-let
-  cfg = config.services.k3s;
-in
+{ config, hostName, ... }:
 {
   services.k3s.enable = true;
   services.k3s.extraFlagsList = [
