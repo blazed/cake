@@ -1,15 +1,11 @@
-{ lib, config, hostName, ... }:
-let
-  cfg = config.services.k3s;
-in
+{ hostName, ... }:
 {
   services.k3s.enable = true;
   services.k3s.extraFlagsList = [
     "--node-label hostname=${hostName}"
   ];
   services.k3s.disable = [ "traefik" "metrics-server" "servicelb" ];
-  services.k3s.disableKubeProxy = false;
-  networking.firewall.allowedTCPPorts = lib.mkIf (cfg.role == "server") [ 6443 ];
+  services.k3s.disableNetworkPolicy = true;
   networking.firewall.trustedInterfaces = [ "cni0" "flannel.1" "calico+" "cilium+" "lxc+" ];
   environment.state."/keep" = {
     directories = [
@@ -20,5 +16,16 @@ in
       "/var/lib/cni"
       "/var/lib/containerd"
     ];
+  };
+
+  fileSystems."/mnt/persistentvolume" = {
+    device = "10.0.0.10:/volume1/persistentvolume";
+    fsType = "nfs";
+  };
+
+  fileSystems."/sys/fs/bpf" = {
+    device = "bpffs";
+    fsType = "bpf";
+    options = [ "rw" "relatime" ];
   };
 }
