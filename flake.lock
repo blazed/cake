@@ -23,11 +23,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1631896269,
-        "narHash": "sha256-DAyCxJ8JacayOzGgGSfzrn7ghtsfL/EsCyk1NEUaAR8=",
+        "lastModified": 1634404028,
+        "narHash": "sha256-JyP2Y6JCCYvUcVz7CXX5pXUfTGTU4GX51Yza82BgMfk=",
         "owner": "ryantm",
         "repo": "agenix",
-        "rev": "daf1d773989ac5d949aeef03fce0fe27e583dbca",
+        "rev": "53aa91b4170da35a96fab1577c9a34bc0da44e27",
         "type": "github"
       },
       "original": {
@@ -151,11 +151,11 @@
       },
       "locked": {
         "dir": "contrib",
-        "lastModified": 1634248122,
-        "narHash": "sha256-zjkoPKQfI7BSKnwEa+8VCKn1reAPiuojYhYnIcxM4tE=",
+        "lastModified": 1634342496,
+        "narHash": "sha256-BfACKJRJWyIkZ1HYLa0Yvm3lDcmUEr+RAfy/jbx6OhY=",
         "owner": "neovim",
         "repo": "neovim",
-        "rev": "5fd4557573c73a6b41b702b1ee39151b5bd7e5fd",
+        "rev": "1ced6cf08c1bf819df76e3830ae12f76e987f151",
         "type": "github"
       },
       "original": {
@@ -175,11 +175,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1634285600,
-        "narHash": "sha256-2KE+H+2rGqoj9aOplOvt4nbuRkh5QAWogko8Oleg5mI=",
+        "lastModified": 1634371946,
+        "narHash": "sha256-VCJv+wJJ4Me6nf5Cd5peACjoeKG7vU6U79ved6JPr+g=",
         "owner": "nix-community",
         "repo": "neovim-nightly-overlay",
-        "rev": "7f9f0d39a5c5f87716f3d4e4018bc8f214fa57f8",
+        "rev": "fc9e88db19b449a62e1f4d564c0ad6b84896b022",
         "type": "github"
       },
       "original": {
@@ -323,11 +323,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1634344712,
-        "narHash": "sha256-D8fcmbB6VwFCnyd05QkDG+BHYby4XtbO+2y9kJh9SsE=",
+        "lastModified": 1634412707,
+        "narHash": "sha256-ilPwLh8zo8tR96mH4Rkq/IHOnYnJjvoNqS92ZGHIoQg=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "3aef9ed1e939585535b11173a3a112e91818560b",
+        "rev": "ddfd950ab439c0cbc799896072d0bc28f6a8536f",
         "type": "github"
       },
       "original": {
@@ -356,7 +356,7 @@
         "nixpkgs-fmt": "nixpkgs-fmt"
       },
       "locked": {
-        "narHash": "sha256-b80xPTQmdXbImXVnAIeD1KDLGV5tnNrnJu0wpOG4aOI=",
+        "narHash": "sha256-mGVlMDqQ0xgxYLh3IBeot+bdOSkhIyx+P6tqwRNGu60=",
         "path": "./packages",
         "type": "path"
       },
