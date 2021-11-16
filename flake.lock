@@ -356,7 +356,7 @@
         "nixpkgs-fmt": "nixpkgs-fmt"
       },
       "locked": {
-        "narHash": "sha256-Z1VigkTo/63TQ1Um09sRbPFken+QkIYctVBkftMEVEU=",
+        "narHash": "sha256-S3K6uzRJye8rpHE+u+ofgcN6Gx/ABS0VlcsKzAFhz3k=",
         "path": "./packages",
         "type": "path"
       },
