@@ -412,7 +412,7 @@
         "wlroots": "wlroots"
       },
       "locked": {
-        "narHash": "sha256-k0JWOxeno0SJaJskDGVw4PEx2CtK/x+VpPgueEKNcFc=",
+        "narHash": "sha256-h/7vxgR5hD6CgLgCmpHmANsiDv32Z8bjeJta1THXJgk=",
         "path": "./packages",
         "type": "path"
       },
@@ -471,11 +471,11 @@
     "sway": {
       "flake": false,
       "locked": {
-        "lastModified": 1637254039,
-        "narHash": "sha256-X8TkDMBb7RR1d+qy+yTJTe3z4WiCWxcyVz3VCEEBhCk=",
+        "lastModified": 1636967543,
+        "narHash": "sha256-KbAygU48rDpHQlANJXLYuBVoykYuqhEM2OA+Z6ipfUE=",
         "owner": "swaywm",
         "repo": "sway",
-        "rev": "5865af75cf8029cc703cda36b68daafcb658c97b",
+        "rev": "cbecc5cbaed6b30c995d2c245def458e383b4e38",
         "type": "github"
       },
       "original": {
