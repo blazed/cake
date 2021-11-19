@@ -246,12 +246,12 @@
 
       github-actions-package-matrix-x86-64-linux = {
         os = [ "ubuntu-latest" ];
-        pkg = mapAttrsToList (name: _:  name) exportedPackages;
+        pkg = mapAttrsToList (name: _:  name) exportedPackages.x86_64-linux;
       };
 
-      github-actions-host-matrix = {
+      github-actions-host-matrix-x86-64-linux = {
         os = [ "ubuntu-latest" ];
-        host = mapAttrsToList (name: _:  name) nixosConfigurations;
+        host = mapAttrsToList (name: _:  name) (filterAttrs (_: config: config.specialArgs.system == "x86_64-linux") hosts);
       };
   };
 }
