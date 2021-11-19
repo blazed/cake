@@ -412,7 +412,7 @@
         "wlroots": "wlroots"
       },
       "locked": {
-        "narHash": "sha256-8+5N+BO9ZWrn802tNRE/o0E2LIWv9L/Hxp9+gxx1Z3M=",
+        "narHash": "sha256-k0JWOxeno0SJaJskDGVw4PEx2CtK/x+VpPgueEKNcFc=",
         "path": "./packages",
         "type": "path"
       },
