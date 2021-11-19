@@ -3,12 +3,13 @@ let
   inherit (builtins) mapAttrs;
 in
 {
-  hame-manager.users = mapAttrs (user: conf:
+  home-manager.users = mapAttrs (user: conf:
     { ... }:
     {
       imports = [
         ../users/profiles/home.nix
         ../users/profiles/extra-config.nix
+        ../users/profiles/theme.nix
       ]++ conf.profiles;
 
       home.username = user;
