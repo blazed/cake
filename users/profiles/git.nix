@@ -1,8 +1,8 @@
-{ config }:
+{ config, ... }:
 let
    home = config.home;
 
-  isDesktop = home.extraConfig.hostname == "nicolina";
+  isDesktop = home.extraConfig.hostName == "nicolina";
 
   signing = if isDesktop then
     {

@@ -2,7 +2,7 @@
   description = "NixOS Configurations";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     nur.url = "github:nix-community/NUR";
     fenix = {
@@ -27,26 +27,55 @@
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    devshell.url = "github:johnae/devshell";
   };
 
   outputs = { self, nixpkgs, ...} @ inputs:
     let
       inherit (nixpkgs.lib) genAttrs filterAttrs mkOverride makeOverridable mkIf
         hasSuffix mapAttrs mapAttrs' removeSuffix nameValuePair nixosSystem
-        mkForce mapAttrsToList splitString concatStringsSep last hasAttr;
-      inherit (builtins) replaceStrings attrNames functionArgs substring pathExists fromTOML readFile readDir listToAttrs filter;
+        mkForce mapAttrsToList splitString concatStringsSep last hasAttr recursiveUpdate;
+      inherit (builtins) replaceStrings attrNames functionArgs substring pathExists 
+        fromTOML readFile readDir listToAttrs filter;
 
       supportedSystems = [ "x86_64-linux" ];
-      forAllSystems = genAttrs supportedSystems;
-      pkgs = forAllSystems (system: import nixpkgs {
+
+      overlays = [
+        inputs.nix-misc.overlay
+        inputs.devshell.overlay
+        inputs.nur.overlay
+        inputs.agenix.overlay
+        (final: prev: { tree = prev.tree.overrideAttrs (_:
+            {
+              preConfigure = ''
+                sed -i Makefile -e 's|^OBJS=|OBJS=$(EXTRA_OBJS) |'
+                makeFlags+=("CC=$CC")
+              '';
+              makeFlags = [
+                "prefix=${placeholder "out"}"
+                "MANDIR=${placeholder "out"}/share/man/man1"
+              ];
+            }
+          );
+        })
+        (final: prev: { nix-direnv = prev.nix-direnv.overrideAttrs (oldAttrs:
+          {
+            postPatch = ''
+            ${oldAttrs.postPatch}sed -i "s|sed.*shellHook.*||g" direnvrc
+            '';
+          }
+        );})
+      ] ++ mapAttrsToList (_: value: value) inputs.packages.overlays;
+
+      cakeOverlay = (final: prev: {
+        cake = prev.callPackage ./utils/cake.nix { };
+      });
+
+      forAllSystems = f: genAttrs supportedSystems (system: f (import nixpkgs {
         inherit system;
         config.allowUnfree = true;
-        overlays = [
-          inputs.nix-misc.overlay
-          inputs.nur.overlay
-          inputs.agenix.overlay
-        ] ++ mapAttrsToList (_: value: value) inputs.packages.overlays;
-      });
+        inherit overlays;
+      }));
 
       hostConfigs = mapAttrs' (f: _:
         let hostname = replaceStrings [".toml"] [""] f;
@@ -55,32 +84,34 @@
 
       hosts = mapAttrs (_: config:
         let
+          arch = if hasAttr "arch" config then config.arch else "x86_64-linux";
           profiles = config.profiles;
-          cfg = builtins.removeAttrs config ["profiles"];
+          cfg = builtins.removeAttrs config ["profiles" "arch" ];
         in
         {
+        specialArgs.system = arch;
         specialArgs.hostConfig = cfg;
         specialArgs.hostConfigs = hostConfigs;
         configuration.imports = (map (item:
           if pathExists (toString (./. + "/${item}")) then
             (./. + "/${item}")
           else (./. + "/${item}.nix")
-        ) profiles) ++ [ ./modules ./profiles/disable-users-groups-dry-run.nix ]; ## disable-users-groups-dry-run is a temp fix
+        ) profiles) ++ [ ./modules ];
       }) hostConfigs;
 
       toNixosConfig = hostName: host:
-        let system = "x86_64-linux"; in
         makeOverridable nixosSystem {
-          inherit system;
+          inherit (host.specialArgs) system;
           specialArgs = {
-            pkgs = pkgs.${system};
             inherit hostName inputs;
             userProfiles = import ./users/profiles.nix { lib = inputs.nixpkgs.lib; };
           } // host.specialArgs;
           modules = [
-            { system.configurationRevision = mkIf (self ? rev) self.rev; }
-            { system.nixos.versionSuffix = mkForce "git.${substring 0 11 nixpkgs.rev}"; }
-            { nixpkgs = { pkgs = pkgs.${system}; }; }
+            {
+              system.configurationRevision = mkIf (self ? rev) self.rev;
+              system.nixos.versionSuffix = mkForce "git.${substring 0 11 nixpkgs.rev}";
+              nixpkgs.overlays = overlays;
+            }
             inputs.nixpkgs.nixosModules.notDetected
             inputs.home-manager.nixosModules.home-manager
             inputs.agenix.nixosModules.age
@@ -88,19 +119,19 @@
           ];
         };
 
-      toPxeBootSystemConfig = hostName:
+      toPxeBootSystemConfig = hostName: system:
         let
-          system = "x86_64-linux";
           bootSystem = makeOverridable nixosSystem {
             inherit system;
             specialArgs = {
-              pkgs = pkgs.${system};
               inherit hostName inputs;
             };
             modules = [
-              { system.configurationRevision = mkIf (self ? rev) self.rev; }
-              { system.nixos.versionSuffix = mkForce "git.${substring 0 11 nixpkgs.rev}"; }
-              { nixpkgs = { pkgs = pkgs.${system}; }; }
+              { 
+                system.configurationRevision = mkIf (self ? rev) self.rev;
+                system.nixos.versionSuffix = mkForce "git.${substring 0 11 nixpkgs.rev}";
+                nixpkgs.overlays = overlays;
+              }
               inputs.nixpkgs.nixosModules.notDetected
               ({ modulesPath, pkgs, lib, ... }: {
                  imports = [
@@ -112,7 +143,6 @@
                    extraOptions = ''
                      experimental-features = nix-command flakes ca-references
                    '';
-                   package = pkgs.nixUnstable;
                  };
                  environment.systemPackages = with pkgs; [
                    git curl jq skim
@@ -160,7 +190,7 @@
             ];
           };
           in
-           pkgs.${system}.symlinkJoin {
+           bootSystem.pkgs.symlinkJoin {
              name = "netboot";
              paths = with bootSystem.config.system.build; [
                netbootRamdisk
@@ -170,38 +200,49 @@
              preferLocalBuild = true;
           };
 
-      toDiskFormatter = hostName: config:
+      toDiskFormatter = hostName: config: pkgs:
         inputs.nixpkgs.lib.nameValuePair "${hostName}-diskformat" (
-          pkgs.x86_64-linux.callPackage ./utils/diskformat.nix {
+          pkgs.callPackage ./utils/diskformat.nix {
             inherit hostName config;
           }
         );
 
-      cakeUtils = let
-        f = import ./utils/cake.nix;
-        args = listToAttrs (map (name: { inherit name; value = pkgs.x86_64-linux.${name}; }) (attrNames (functionArgs f)));
-      in f args;
+      nixosConfigurations = mapAttrs toNixosConfig hosts;
 
-      hostConfigurations = mapAttrs toNixosConfig hosts;
+      diskFormatters = forAllSystems (pkgs:
+        (mapAttrs' (hostName: config: toDiskFormatter hostName config pkgs) nixosConfigurations)
+      );
 
-      nixosConfigurations = hostConfigurations;
+      exportedPackages = forAllSystems (pkgs:
+        (mapAttrs (name: _: pkgs.${name})
+          (filterAttrs (name: _: (hasAttr name pkgs) && nixpkgs.lib.isDerivation pkgs.${name}) inputs.packages.overlays)
+        ) // {
+          pxebooter = toPxeBootSystemConfig "pxebooter" pkgs.system;
+        }
+      );
 
-      diskFormatters = mapAttrs' toDiskFormatter hostConfigurations;
-      exportedPackages = (mapAttrs (name: _: pkgs.x86_64-linux.${name}) (filterAttrs (name: _: (hasAttr name pkgs.x86_64-linux) && nixpkgs.lib.isDerivation pkgs.x86_64-linux.${name}) inputs.packages.overlays)) // { pxebooter = toPxeBootSystemConfig "pxebooter"; };
+      cakeUtils = forAllSystems (pkgs:
+        {
+          inherit (pkgs.extend cakeOverlay) cake;
+        }
+      );
 
     in
     {
-      devShell = forAllSystems (system:
-        pkgs.${system}.callPackage ./devshell.nix {
-          inherit cakeUtils;
-          agenix = pkgs.${system}.agenix.override { nix = pkgs.${system}.nixUnstable; };
-          mkDevShell = pkgs.${system}.callPackage inputs.nix-misc.lib.mkSimpleShell { };
+      devShell = forAllSystems (pkgs:
+        let
+          extendedPkgs = pkgs.extend cakeOverlay;
+        in
+        extendedPkgs.devshell.mkShell {
+          imports = [
+            (extendedPkgs.devshell.importTOML ./devshell.toml)
+          ];
         }
       );
 
       inherit nixosConfigurations hostConfigs;
 
-      packages.x86_64-linux = diskFormatters // exportedPackages // cakeUtils;
+      packages = recursiveUpdate (recursiveUpdate diskFormatters exportedPackages) cakeUtils;
 
       github-actions-package-matrix = {
         os = [ "ubuntu-latest" ];
