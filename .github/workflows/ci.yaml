@@ -21,7 +21,7 @@ jobs:
     - run: |
         nix shell .#cake -c cake lint
 
-  create_package_matrix:
+  create_package_matrix_x86_64_linux:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.job-matrix.outputs.matrix }}
@@ -36,9 +36,9 @@ jobs:
           experimental-features = nix-command flakes
     - id: job-matrix
       run: |
-        echo "::set-output name=matrix::$(nix eval .#github-actions-package-matrix --json)"
+        echo "::set-output name=matrix::$(nix eval .#github-actions-package-matrix-x86-64-linux --json)"
 
-  create_host_matrix:
+  create_host_matrix_x86_64_linux:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.job-matrix.outputs.matrix }}
@@ -53,13 +53,13 @@ jobs:
           experimental-features = nix-command flakes
     - id: job-matrix
       run: |
-        echo "::set-output name=matrix::$(nix eval .#github-actions-host-matrix --json)"
+        echo "::set-output name=matrix::$(nix eval .#github-actions-host-matrix-x86-64-linux --json)"
 
-  build_package:
-    needs: create_package_matrix
+  build_package_x86_64_linux:
+    needs: create_package_matrix_x86_64_linux
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix: ${{ fromJson(needs.create_package_matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.create_package_matrix_x86_64_linux.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v2
     - uses: cachix/install-nix-action@v13
@@ -79,13 +79,13 @@ jobs:
     - env:
         PKG: ${{ matrix.pkg }}
       run: |
-        nix build .#$PKG -L
+        nix build .#packages.x86_64.$PKG -L
 
-  build_host:
-    needs: [create_host_matrix, build_package]
+  build_host_x86_64_linux:
+    needs: [create_host_matrix_x86_64_linux, build_package_x86_64_linux]
     runs-on: ${{ matrix.os }}
     strategy:
-      matrix: ${{ fromJson(needs.create_host_matrix.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.create_host_matrix_x86_64_linux.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v2
     - uses: cachix/install-nix-action@v13
@@ -111,9 +111,9 @@ jobs:
       - name: Check linting status
         if: ${{ needs.nix_lint.result != 'success' }}
         run: exit 1
-      - name: Check package build matrix status
-        if: ${{ needs.build_package.result != 'success' }}
+      - name: Check x86_64-linux package build matrix status
+        if: ${{ needs.build_package_x86_64_linux.result != 'success' }}
         run: exit 1
-      - name: Check host build matrix status
-        if: ${{ needs.build_host.result != 'success' }}
+      - name: Check host x86_64-linux build matrix status
+        if: ${{ needs.build_host_x86_64_linux.result != 'success' }}
         run: exit 1
