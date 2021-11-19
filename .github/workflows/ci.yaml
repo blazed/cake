@@ -19,7 +19,7 @@ jobs:
           access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
           experimental-features = nix-command flakes
     - run: |
-        nix shell .#cake -c lint
+        nix shell .#cake -c cake lint
 
   create_package_matrix:
     runs-on: ubuntu-latest
