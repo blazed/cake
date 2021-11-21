@@ -1,0 +1,26 @@
+[devshell]
+name = "packaging"
+
+packages = [
+  "cake-updaters",
+]
+
+[[commands]]
+package = "cake-updaters"
+name = "update-cargo-vendor-sha"
+help = "update the cargo vendor sha of a rust package"
+
+[[commands]]
+package = "cake-updaters"
+name = "update-all-cargo-vendor-shas"
+help = "update all cargo vendor shas of all rust packages"
+
+[[commands]]
+package = "cake-updaters"
+name = "update-fixed-output-derivation-sha"
+help = "update the fixed output derivation sha of a package"
+
+[[commands]]
+package = "cake-updaters"
+name = "update-all-fixed-output-derivation-shas"
+help = "update all fixed output derivation shas in all such packages"

@@ -1,0 +1,14 @@
+[devshell]
+name = "cake"
+
+packages = [
+  "agenix",
+  "yj",
+  "rage",
+  "age-plugin-yubikey",
+  "cake"
+]
+
+[[commands]]
+package = "cake"
+name = "cake"

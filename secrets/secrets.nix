@@ -24,6 +24,7 @@ let
 
   blazed = [
     "age1yubikey1q0k3xmsmjjh5mduf7r588s9g4hhz66ervpgwr9aejcxyxdrea0gg6972h4y"
+    "age1yubikey1q2k0cy4anjwggg5spvjrglyy7jgjclnmjddja460yhaqm6wcc5dhjmuxcqh"
   ];
 
 in

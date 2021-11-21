@@ -21,10 +21,15 @@ in
       pkgs.spotify
     ];
 
-  home.sessionVariables = {
+  home.sessionVariables = rec {
     EDITOR = "nvim";
     VISUAL = EDITOR;
     KUBECONFIG = "/home/${home.username}/.kube/config";
+  };
+
+  xsession.pointerCursor = {
+    package = pkgs.arc-icon-theme;
+    name = "Arc";
   };
 
   xdg.enable = true;
@@ -88,6 +93,13 @@ in
     enableAliases = true;
   };
 
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
+  };
+
+  programs.skim.enable = true;
+
   systemd.user.services.nix-index = {
     Unit.Description = "Nix-index indexes all files in nixpkgs";
     Service.ExecStart = "${pkgs.nix-index}/bin/nix-index";
@@ -96,7 +108,7 @@ in
   systemd.user.timers.nix-index = {
     Unit.Description = "Nix-index indexes all files in nixpkgs";
     Timer = {
-      OnCalander = "daily";
+      OnCalendar = "daily";
       Unit = "nix-index.service";
     };
     Install.WantedBy = [ "timers.target" ];
