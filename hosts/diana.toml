@@ -39,7 +39,6 @@ userConfiguration.blazed.profiles = [
   "git",
   "i3status-laptop",
   "neovim",
-  "picom",
   "rofi-wayland",
   "starship",
   "ssh",

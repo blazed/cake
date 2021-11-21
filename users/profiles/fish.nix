@@ -110,10 +110,6 @@ in
 
       setenv EDITOR nvim
 
-      setenv GPG_TTY (tty)
-      setenv SSH_AUTH_SOCK "/run/user/"(id -u)"/gnupg/S.gpg-agent.ssh"
-      gpg-connect-agent updatestartuptty /bye >/dev/null
-
       # GO STUFF
       setenv GOPATH "$HOME/code/go"
       setenv PATH "$GOPATH/bin:$PATH"
