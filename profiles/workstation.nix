@@ -62,6 +62,7 @@ in
     pkgs.signal-desktop
     pkgs.tdesktop ## Telegrom
     pkgs.lm_sensors
+    pkgs.firefox-devedition-bin
   ];
 
   environment.state."/keep" = {
@@ -82,7 +83,7 @@ in
           "/home/${userName}/.cache/nix"
           "/home/${userName}/.cache/nix-index"
           "/home/${userName}/.cache/vim"
-          "/home/${userName}/.mozilla/firefox/default"
+          "/home/${userName}/.mozilla"
           "/home/${userName}/.gnupg"
           "/home/${userName}/.config/gcloud"
           "/home/${userName}/.config/discord"

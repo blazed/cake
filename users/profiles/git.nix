@@ -1,24 +1,6 @@
 { config, ... }:
 let
    home = config.home;
-
-  isDesktop = home.extraConfig.hostName == "nicolina";
-
-  signing = if isDesktop then
-    {
-      signing = {
-        key = "0x9D2823AB6EE30E83"; ## nicolina key
-        signByDefault = true;
-      };
-    }
-    else
-    {
-      signing = {
-        key = "0x79211A1674B6582A"; ## diana key
-        signByDefault = true;
-      };
-    };
-
 in
 {
   programs.git = {
@@ -65,5 +47,5 @@ in
     ignores = [
       ".nvimlog" # TODO(blazed): find out why this is needed?
     ];
-  } // signing;
+  };
 }

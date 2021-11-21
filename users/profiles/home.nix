@@ -27,6 +27,11 @@ in
     KUBECONFIG = "/home/${home.username}/.kube/config";
   };
 
+  xsession.pointerCursor = {
+    package = pkgs.arc-icon-theme;
+    name = "Arc";
+  };
+
   xdg.enable = true;
   xdg.configFile."mimeapps.list".force = true;
   xdg.mime.enable = true; ## default is true

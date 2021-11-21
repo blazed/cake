@@ -9,22 +9,22 @@ in
 {
   options.base16-theme = {
     enable = mkEnableOption "Enable base16 theme systemwide";
-    base00 = color "#1d1f21";
-    base01 = color "#282a2e";
-    base02 = color "#373b41";
-    base03 = color "#969896";
-    base04 = color "#b4b7b4";
-    base05 = color "#c5c8c6";
-    base06 = color "#e0e0e0";
-    base07 = color "#ffffff";
-    base08 = color "#cc6666";
-    base09 = color "#de935f";
-    base0A = color "#f0c674";
-    base0B = color "#b5bd68";
-    base0C = color "#8abeb7";
-    base0D = color "#81a2be";
-    base0E = color "#b294bb";
-    base0F = color "#a3685a";
+    base00 = color "#1d2021";
+    base01 = color "#3c3836";
+    base02 = color "#504945";
+    base03 = color "#665c54";
+    base04 = color "#bdae93";
+    base05 = color "#d5c4a1";
+    base06 = color "#ebdbb2";
+    base07 = color "#fbf1c7";
+    base08 = color "#fb4934";
+    base09 = color "#fe8019";
+    base0A = color "#fabd2f";
+    base0B = color "#b8bb26";
+    base0C = color "#8ec07c";
+    base0D = color "#83a598";
+    base0E = color "#d3869b";
+    base0F = color "#d65d0e";
   };
 
   config = mkIf cfg.enable (
@@ -84,22 +84,22 @@ in
           bright.white = cnotation cfg.base06;
         };
 
-        programs.i3status-rust.bars.default.settings.theme.overrides = {
-          idle_bg = alpha cfg.base03 "DD";
-          idle_fg = cfg.base05;
+        # programs.i3status-rust.bars.default.settings.theme.overrides = {
+        #   idle_bg = alpha cfg.base03 "DD";
+        #   idle_fg = cfg.base05;
 
-          info_bg = alpha cfg.base06 "DD";
-          info_fg = cfg.base00;
+        #   info_bg = alpha cfg.base06 "DD";
+        #   info_fg = cfg.base00;
 
-          good_bg = alpha cfg.base09 "DD";
-          good_fg = cfg.base00;
+        #   good_bg = alpha cfg.base09 "DD";
+        #   good_fg = cfg.base00;
 
-          warning_bg = alpha cfg.base0D "DD";
-          warning_fg = cfg.base00;
+        #   warning_bg = alpha cfg.base0D "DD";
+        #   warning_fg = cfg.base00;
 
-          critical_bg = alpha cfg.base0B "DD";
-          critical_fg = cfg.base04;
-        };
+        #   critical_bg = alpha cfg.base0B "DD";
+        #   critical_fg = cfg.base04;
+        # };
       })
     ]
   );

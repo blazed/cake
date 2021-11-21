@@ -33,7 +33,7 @@
     swayidle = { url = "github:swaywm/swayidle"; flake = false; };
     swaylock = { url = "github:swaywm/swaylock"; flake = false; };
     wayland-protocols-master = { url = "git+https://gitlab.freedesktop.org/wayland/wayland-protocols?ref=main"; flake = false; };
-    wlroots = { url = "github:swaywm/wlroots"; flake = false; };
+    wlroots = { url = "git+https://gitlab.freedesktop.org/wlroots/wlroots?ref=master"; flake = false; };
     wf-recorder = { url = "github:ammen99/wf-recorder"; flake = false; };
     wl-clipboard = { url = "github:bugaevc/wl-clipboard"; flake = false; };
   };
