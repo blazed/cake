@@ -177,6 +177,29 @@ in
           "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
 
           "${modifier}+Shift+q" = ''kill'';
+
+        };
+
+        keycodebindings = {
+          "${modifier}+Shift+14" = "move container to workspace number 1";
+          "${modifier}+Shift+17" = "move container to workspace number 2";
+          "${modifier}+Shift+13" = "move container to workspace number 3";
+          "${modifier}+Shift+18" = "move container to workspace number 4";
+          "${modifier}+Shift+12" = "move container to workspace number 5";
+          "${modifier}+Shift+19" = "move container to workspace number 6";
+          "${modifier}+Shift+11" = "move container to workspace number 7";
+          "${modifier}+Shift+20" = "move container to workspace number 8";
+          "${modifier}+Shift+15" = "move container to workspace number 9";
+
+          "${modifier}+14" = "workspace number 1";
+          "${modifier}+17" = "workspace number 2";
+          "${modifier}+13" = "workspace number 3";
+          "${modifier}+18" = "workspace number 4";
+          "${modifier}+12" = "workspace number 5";
+          "${modifier}+19" = "workspace number 6";
+          "${modifier}+11" = "workspace number 7";
+          "${modifier}+20" = "workspace number 8";
+          "${modifier}+15" = "workspace number 9";
         };
 
         startup = [
@@ -202,33 +225,34 @@ in
               height 25
             '';
             statusCommand = "${pkgs.i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-default.toml";
+            position = "top";
             colors = {
-              background = "#2E3440AA";
-              statusline = "#88C0D0";
-              separator = "#3B4252";
+              background = "#222222";
+              statusline = "#dddddd";
+              separator = "#666666";
 
               focusedWorkspace = {
-                border = "#88C0D0";
-                background = "#88C0D0";
-                text = "#2E3440";
+                border = "#0088CC";
+                background = "#0088CC";
+                text = "#ffffff";
               };
 
               activeWorkspace = {
-                border = "#4C566ADD";
-                background = "#4C566ADD";
-                text = "#D8DEE9";
+                border = "#333333";
+                background = "#333333";
+                text = "#ffffff";
               };
 
               inactiveWorkspace = {
-                border = "#3B4252DD";
-                background = "#3B4252DD";
-                text = "#E5E9F0";
+                border = "#333333";
+                background = "#333333";
+                text = "#ffffff";
               };
 
               urgentWorkspace = {
-                border = "#B48EAD";
-                background = "#B48EAD";
-                text = "#ECEFF4";
+                border = "#2f343a";
+                background = "#900000";
+                text = "#ffffff";
               };
 
               bindingMode = {

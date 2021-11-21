@@ -16,6 +16,12 @@
     # "vm.swappiness" = lib.mkDefault 1;
   };
 
+   security.pam.services.swaylock = {
+    text = ''
+      auth include login
+    '';
+  };
+
   hardware.opengl.extraPackages = [
     pkgs.intel-media-driver
     pkgs.vaapiIntel
