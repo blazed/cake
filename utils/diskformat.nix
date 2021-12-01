@@ -4,7 +4,7 @@ let
   inherit (lib) mapAttrsToList listToAttrs splitString concatStringsSep last flatten;
   inherit (builtins) filter match head foldl' replaceStrings;
   bootMode = if config.config.boot.loader.systemd-boot.enable then "UEFI" else "Legacy";
-  encrypted = config.config.boot.initrd.luks == null;
+  encrypted = config.config.boot.initrd.luks != null;
   diskLabels = {
     boot = "boot";
     encCryptkey = "cryptkey";
