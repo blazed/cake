@@ -424,7 +424,7 @@
         "wlroots": "wlroots"
       },
       "locked": {
-        "narHash": "sha256-p0AJOJQZU9Zq282483i3XLiy3ZdajC2/Kf4/N0jnETo=",
+        "narHash": "sha256-mWQMr3KdPyOzoUSVe4zN8ABAaV/4DqXT34j7maOumHw=",
         "path": "./packages",
         "type": "path"
       },
