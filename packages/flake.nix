@@ -51,7 +51,7 @@
         })
       );
 
-      extraPkgs = [ "meson-0591" ];
+      extraPkgs = [ "meson-060" ];
       nonFlakePkgList = (filter (elem: ! (inputs.${elem} ? "sourceInfo") && pathExists (toString (./. + "/${elem}"))) (attrNames inputs)) ++ extraPkgs;
       exportedPackages = forAllSystems (pkgs:
         (mapAttrs (name: _: pkgs.${name})
@@ -65,7 +65,7 @@
       )
       //
       (genAttrs nonFlakePkgList (key: (
-        (final: prev: { ${key} = prev.callPackage (./. + "/${key}") { }; })
+        (final: prev: { ${key} = prev.callPackage (./. + "/${key}") { inherit inputs; }; })
       )))
       //
       {
@@ -84,9 +84,9 @@
         netns-dbus-proxy = (final: prev: { netns-dbus-proxy = prev.callPackage ./wl-clipboard-x11 { }; });
       } //
       {
-        wlroots = (final: prev: { wlroots = prev.callPackage ./wlroots { wayland-protocols = final.wayland-protocols-master; meson = prev.meson-0591; }; });
-        sway-unwrapped = (final: prev: { sway-unwrapped = prev.callPackage ./sway { wayland-protocols = final.wayland-protocols-master; meson = prev.meson-0591; }; });
-        swaylock = (final: prev: { swaylock = prev.callPackage ./swaylock { wayland-protocols = final.wayland-protocols-master; meson = prev.meson-0591; }; });
+        wlroots = (final: prev: { wlroots = prev.callPackage ./wlroots { wayland-protocols = final.wayland-protocols-master; meson = prev.meson-060; }; });
+        sway-unwrapped = (final: prev: { sway-unwrapped = prev.callPackage ./sway { wayland-protocols = final.wayland-protocols-master; meson = prev.meson-060; }; });
+        swaylock = (final: prev: { swaylock = prev.callPackage ./swaylock { wayland-protocols = final.wayland-protocols-master; meson = prev.meson-060; }; });
       };
      packages = exportedPackages;
      devShell = forAllSystems (pkgs:

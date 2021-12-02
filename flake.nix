@@ -141,7 +141,7 @@
                  nix = {
                    trustedUsers = [ "root" ];
                    extraOptions = ''
-                     experimental-features = nix-command flakes ca-references
+                     experimental-features = nix-command flakes
                    '';
                  };
                  environment.systemPackages = with pkgs; [
