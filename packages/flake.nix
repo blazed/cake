@@ -65,7 +65,7 @@
       )
       //
       (genAttrs nonFlakePkgList (key: (
-        (final: prev: { ${key} = prev.callPackage (./. + "/${key}") { }; })
+        (final: prev: { ${key} = prev.callPackage (./. + "/${key}") { inherit inputs; }; })
       )))
       //
       {
