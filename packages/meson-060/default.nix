@@ -2,15 +2,16 @@
 , python3
 , substituteAll
 , installShellFiles
+, inputs
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "meson";
-  version = "0.59.1";
+  version = "0.60.2";
 
   src = python3.pkgs.fetchPypi {
     inherit pname version;
-    sha256 = "sha256-21hqRRZQ1Gu+EJhKh7edm83ByuvzjY4Yn4hI+NUCNW0=";
+    sha256 = "sha256-ZOaWhWW/G4FS9PnWyoFU77nhTKqaq/eyLnHmxdBT6SE=";
   };
 
   patches = [
