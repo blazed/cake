@@ -41,7 +41,17 @@ in
       editorconfig-vim
       vim-fugitive
       vim-terraform
-      nvim-treesitter
+      (nvim-treesitter.withPlugins (
+        plugins: with plugins; [
+          tree-sitter-bash
+          tree-sitter-go
+          tree-sitter-json
+          tree-sitter-nix
+          tree-sitter-rust
+          tree-sitter-toml
+          tree-sitter-yaml
+        ]
+      ))
       vimagit
     ];
   };
