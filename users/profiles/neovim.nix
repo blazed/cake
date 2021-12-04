@@ -23,26 +23,49 @@ in
       coc-fzf
       coc-prettier
       coc-rls
+      coc-json
       vim-surround
       vim-rooter
       fzf-vim
-      vim-nix
       vim-toml
       vim-yaml
+      vim-nix
       rust-vim
-      vim-go
       tabular
       vim-markdown
       vim-jsonnet
+      vim-terraform
       neosnippet-vim
       neosnippet-snippets
       vim-commentary
       vim-repeat
       editorconfig-vim
       vim-fugitive
-      vim-terraform
-      nvim-treesitter
+      (nvim-treesitter.withPlugins (
+        plugins: with plugins; [
+          tree-sitter-bash
+          tree-sitter-go
+          tree-sitter-json
+          tree-sitter-nix
+          tree-sitter-rust
+          tree-sitter-toml
+          tree-sitter-yaml
+        ]
+      ))
       vimagit
     ];
   };
+
+  home.file.".config/nvim/coc-settings.json".text = ''
+    {
+
+      "languageserver": {
+        "golang": {
+          "command": "${pkgs.gopls}/bin/gopls",
+          "rootPatterns": ["go.mod"],
+          "filetypes": ["go"]
+        }
+      }
+    }
+  '';
 }

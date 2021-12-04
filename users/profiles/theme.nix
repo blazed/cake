@@ -63,43 +63,26 @@ in
           primary.foreground = "0xd5c4a1";
 
           cursor.text = cnotation cfg.base00;
-          cursor.cursor = cnotation cfg.base04;
+          cursor.cursor = cnotation cfg.base05;
 
           normal.black = cnotation cfg.base01;
-          normal.red = cnotation cfg.base0B;
-          normal.green = cnotation cfg.base0E;
-          normal.yellow = cnotation cfg.base0D;
-          normal.blue = cnotation cfg.base09;
-          normal.magenta = cnotation cfg.base0F;
-          normal.cyan = cnotation cfg.base08;
+          normal.red = cnotation cfg.base08;
+          normal.green = cnotation cfg.base0B;
+          normal.yellow = cnotation cfg.base0A;
+          normal.blue = cnotation cfg.base0D;
+          normal.magenta = cnotation cfg.base0E;
+          normal.cyan = cnotation cfg.base0C;
           normal.white = cnotation cfg.base05;
 
           bright.black = cnotation cfg.base03;
-          bright.red = cnotation cfg.base0B;
-          bright.green = cnotation cfg.base0E;
-          bright.yellow = cnotation cfg.base0D;
-          bright.blue = cnotation cfg.base09;
-          bright.magenta = cnotation cfg.base0F;
-          bright.cyan = cnotation cfg.base07;
-          bright.white = cnotation cfg.base06;
+          bright.red = cnotation cfg.base08;
+          bright.green = cnotation cfg.base0B;
+          bright.yellow = cnotation cfg.base0A;
+          bright.blue = cnotation cfg.base0D;
+          bright.magenta = cnotation cfg.base0E;
+          bright.cyan = cnotation cfg.base0C;
+          bright.white = cnotation cfg.base07;
         };
-
-        # programs.i3status-rust.bars.default.settings.theme.overrides = {
-        #   idle_bg = alpha cfg.base03 "DD";
-        #   idle_fg = cfg.base05;
-
-        #   info_bg = alpha cfg.base06 "DD";
-        #   info_fg = cfg.base00;
-
-        #   good_bg = alpha cfg.base09 "DD";
-        #   good_fg = cfg.base00;
-
-        #   warning_bg = alpha cfg.base0D "DD";
-        #   warning_fg = cfg.base00;
-
-        #   critical_bg = alpha cfg.base0B "DD";
-        #   critical_fg = cfg.base04;
-        # };
       })
     ]
   );

@@ -1,6 +1,6 @@
 { config, ... }:
 let
-   home = config.home;
+   extraConfig = config.home.extraConfig;
 in
 {
   programs.git = {
@@ -10,14 +10,13 @@ in
       options.features = "decorations side-by-side line-numbers";
     };
     userName = "Boberg";
-    userEmail = "blazed@darkstar.se";
+    userEmail = extraConfig.userEmail;
     aliases = {
       co = "checkout";
       cob = "checkout -b";
     };
     extraConfig = {
       core = {
-        excludefile = "/home/${home.username}/.gitignore";
         quotepath = false;
         editor = "nvim";
         whitespace = "cr-at-eol";
