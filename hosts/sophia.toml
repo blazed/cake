@@ -37,7 +37,7 @@ networking.interfaces.eno4.useDHCP = false
 
 networking.wireguard.enable = true
 networking.wireguard.interfaces.home.ips = [ "10.0.149.20/32" ]
-networking.wireguard.interfaces.home.privateKeyFile = "/run/secrets/wg-private"
+networking.wireguard.interfaces.home.privateKeyFile = "/run/agenix/wg-private"
 networking.wireguard.interfaces.home.peers = [
   { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.0.1:51820", persistentKeepalive = 25 }
 ]
@@ -46,7 +46,7 @@ networking.private-wireguard.ips = [
   "10.67.124.179/32",
   "fc00:bbbb:bbbb:bb01::4:7cb2/128",
 ]
-networking.private-wireguard.privateKeyFile = "/run/secrets/wg-private"
+networking.private-wireguard.privateKeyFile = "/run/agenix/wg-private"
 networking.private-wireguard.peers = [
   { publicKey = "CYFNNfntzhRHn0+QHWv2eBOeU/sCZ5f6FLbTMUyIQHk=", allowedIPs = [ "0.0.0.0/0", "::0/0" ], endpoint = "185.204.1.219:51820", persistentKeepalive = 25 }
 ]

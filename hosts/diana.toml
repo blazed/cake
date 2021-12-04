@@ -4,6 +4,7 @@ profiles = [
   "hardware/xps9300",
   "profiles/default_fs",
   "profiles/bluetooth",
+  "profiles/bluez_autoswitch",
   "profiles/extra-hosts",
   "profiles/hidpi",
   "profiles/home-manager",
@@ -16,7 +17,7 @@ age.secrets.wg-home.file = "secrets/diana/wg-home.age"
 age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
 networking.wireguard.enable = true
-networking.wireguard.interfaces.home = { ips = [ "10.0.149.3/32" ], privateKeyFile = "/run/secrets/wg-home" }
+networking.wireguard.interfaces.home = { ips = [ "10.0.149.3/32" ], privateKeyFile = "/run/agenix/wg-home" }
 networking.wireguard.interfaces.home.peers = [
   { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24", "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
 ]
@@ -31,6 +32,7 @@ users.users.blazed.openssh.authorizedKeys.keys = [
 ]
 
 userConfiguration.blazed.fullName = "Pierre Boberg"
+userConfiguration.blazed.email = "blazed@darkstar.se"
 userConfiguration.blazed.githubUser = "blazed"
 userConfiguration.blazed.profiles = [
   "alacritty",
@@ -39,12 +41,14 @@ userConfiguration.blazed.profiles = [
   "git",
   "i3status-laptop",
   "neovim",
+  "rbw",
   "rofi-wayland",
   "starship",
   "ssh",
   "sway",
   "theme",
   "tmux",
+  "wlsunset",
 ]
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }

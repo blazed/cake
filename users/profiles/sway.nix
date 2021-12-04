@@ -28,15 +28,6 @@ let
     "before-sleep '${pkgs.swaylock-dope}/bin/swaylock-dope'"
   ];
 
-  swayFocusWindow = pkgs.writeStrictShellScriptBin "sway-focus-window" ''
-    export SK_OPTS="--no-bold --color=bw  --height=40 --reverse --no-hscroll --no-mouse"
-    window="$(${pkgs.sway}/bin/swaymsg -t get_tree | \
-              ${pkgs.jq}/bin/jq -r '.nodes | .[] | .nodes | . [] | select(.nodes != null) | .nodes | .[] | select(.name != null) | "\(.id?) \(.name?)"' | \
-              ${pkgs.scripts}/bin/sk-sk | \
-              awk '{print $1}')"
-    ${pkgs.sway}/bin/swaymsg "[con_id=$window] focus"
-  '';
-
   swayOnReload = pkgs.writeStrictShellScriptBin "sway-on-reload" ''
     LID=/proc/acpi/button/lid/LID
     if [ ! -e "$LID" ]; then
@@ -100,7 +91,7 @@ in
         in
         {
           titlebar = false;
-          border = 3;
+          border = 1;
           hideEdgeBorders = "smart";
           commands = [
             { inherit command; criteria.class = "scripts"; }
@@ -115,7 +106,7 @@ in
 
         floating = {
           titlebar = false;
-          border = 3;
+          border = 1;
         };
 
         input = {
@@ -154,6 +145,16 @@ in
             Return = "mode default";
             Escape = "mode default";
           };
+        };
+
+        assigns = {
+          "2" = [{ app_id = "firefox"; }];
+          "4" = [
+            { app_id = "telegramdesktop"; }
+            { class = "Signal"; }
+          ];
+          "6" = [{ class = "^discord$"; }];
+          "7" = [{ class = "^Spotify$"; }];
         };
 
         keybindings = lib.mkOptionDefault {
