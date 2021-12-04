@@ -281,7 +281,7 @@ in
     mount -t tmpfs none /mnt
     mkdir -p "/mnt/tmproot" ${concatStringsSep " " (map (v: "/mnt/${replaceStrings ["@"] [""] v}") subvolumes)} "/mnt/boot"
 
-    echo Temporarily mounting root btrfs volume from "/dev/disk/by-label/$DISK_ROOT_LABEL" to /mnt/tmproot
+    echo Temporarily mounting root btrfs volume from /dev/disk/by-label/${diskLabels.root} to /mnt/tmproot
     retryDefault mount -o rw,noatime,compress=zstd,ssd,space_cache /dev/disk/by-label/${diskLabels.root} /mnt/tmproot
 
     # now create the btrfs subvolumes we're interested in having
@@ -305,6 +305,6 @@ in
 
     # and mount the boot partition
     echo Mounting boot partition
-    mount /dev/disk/by-label/"$DISK_EFI_LABEL" /mnt/boot
+    mount /dev/disk/by-label/${diskLabels.boot} /mnt/boot
  ''
 
