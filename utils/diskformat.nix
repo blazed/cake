@@ -183,6 +183,7 @@ in
         sgdisk -n 0:0:+20M -t 0:ef02 -c 0:"biosboot" -u 0:"21686148-6449-6E6F-744E-656564454649" "$DISK" # 1
       fi
       sgdisk -n 0:0:+$efi_space -t 0:ef00 -c 0:"efi" "$DISK2" # 1
+      sgdisk -n 0:0:+$luks_key_space -t 0:8300 -c 0:"cryptkey" "$DISK2" # 2
       sgdisk -n 0:0:+$swap_space -t 0:8300 -c 0:"swap" "$DISK2" # 3
       sgdisk -n 0:0:0 -t 0:8300 -c 0:"root" "$DISK2" # 4
       partprobe "$DISK2"
@@ -203,7 +204,7 @@ in
     DISK_ROOT_LABEL=${diskLabels.root}
     if [ -b "$DISK2" ]; then
       ENC_DISK_ROOT2_LABEL=${diskLabels.encRoot}2
-      DISK_ROOT2=${diskLabels.root}2
+      DISK_ROOT2="$DISK2$PARTITION_PREFIX$partnum"
     fi
     ENC_DISK_ROOT_LABEL=${diskLabels.encRoot}
     partnum=$((partnum + 1))
