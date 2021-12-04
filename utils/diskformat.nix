@@ -4,7 +4,7 @@ let
   inherit (lib) mapAttrsToList listToAttrs splitString concatStringsSep last flatten;
   inherit (builtins) filter match head foldl' replaceStrings;
   bootMode = if config.config.boot.loader.systemd-boot.enable then "UEFI" else "Legacy";
-  encrypted = config.config.boot.initrd.luks == null;
+  encrypted = config.config.boot.initrd.luks != null;
   diskLabels = {
     boot = "boot";
     encCryptkey = "cryptkey";
@@ -18,7 +18,7 @@ let
   efiSpace = "500M";
   luksKeySpace = "20M";
   ramGb = "$(free --giga | tail -n+2 | head -1 | awk '{print $2}')";
-  uuidCryptKey = if config.config.boot.initrd.luks == null then config.config.boot.initrd.luks.devices.cryptkey.keyFile != null else false;
+  uuidCryptKey = if config.config.boot.initrd.luks != null then config.config.boot.initrd.luks.devices.cryptkey.keyFile != null else false;
   subvolumes = lib.unique (filter (v: v != null)
         (flatten
             (map (match "^subvol=(.*)")
@@ -111,6 +111,7 @@ in
     fi
 
     DISK=/dev/nvme0n1
+    DISK2=/dev/sdb
     PARTITION_PREFIX="p"
 
     if [ ! -b "$DISK" ]; then
@@ -139,6 +140,12 @@ in
     sgdisk -z "$DISK"
     partprobe "$DISK"
 
+    if [ -b "$DISK2" ]; then
+      wipefs -fa "$DISK2"
+      sgdisk -z "$DISK2"
+      partprobe "$DISK2"
+    fi
+
     efi_space="${efiSpace}"
     luks_key_space="${luksKeySpace}"
     ramgb="${ramGb}"
@@ -154,6 +161,11 @@ in
     sgdisk -og "$DISK"
     partprobe "$DISK"
 
+    if [ -b "$DISK2" ]; then
+      sgdisk -og "$DISK2"
+      partprobe "$DISK2"
+    fi
+
     partnum=0
 
     if [ "$BOOTMODE" = "Legacy" ]; then
@@ -165,6 +177,16 @@ in
     sgdisk -n 0:0:+$swap_space -t 0:8300 -c 0:"swap" "$DISK" # 3
     sgdisk -n 0:0:0 -t 0:8300 -c 0:"root" "$DISK" # 4
     partprobe "$DISK"
+
+    if [ -b "$DISK2" ]; then
+      if [ "$BOOTMODE" = "Legacy" ]; then
+        sgdisk -n 0:0:+20M -t 0:ef02 -c 0:"biosboot" -u 0:"21686148-6449-6E6F-744E-656564454649" "$DISK" # 1
+      fi
+      sgdisk -n 0:0:+$efi_space -t 0:ef00 -c 0:"efi" "$DISK2" # 1
+      sgdisk -n 0:0:+$swap_space -t 0:8300 -c 0:"swap" "$DISK2" # 3
+      sgdisk -n 0:0:0 -t 0:8300 -c 0:"root" "$DISK2" # 4
+      partprobe "$DISK2"
+    fi
 
     echo "PREFIX: $PARTITION_PREFIX"
 
@@ -179,6 +201,10 @@ in
     partnum=$((partnum + 1))
     DISK_SWAP="$DISK$PARTITION_PREFIX$partnum"
     DISK_ROOT_LABEL=${diskLabels.root}
+    if [ -b "$DISK2" ]; then
+      ENC_DISK_ROOT2_LABEL=${diskLabels.encRoot}2
+      DISK_ROOT2=${diskLabels.root}2
+    fi
     ENC_DISK_ROOT_LABEL=${diskLabels.encRoot}
     partnum=$((partnum + 1))
     DISK_ROOT="$DISK$PARTITION_PREFIX$partnum"
@@ -187,6 +213,12 @@ in
 
     partprobe "$DISK"
     fdisk -l "$DISK"
+
+    if [ -b "$DISK2" ]; then
+      sgdisk -p "$DISK2"
+      partprobe "$DISK2"
+      fdisk -l "$DISK2"
+    fi
 
     if [ "$ENCRYPTED" = "yes" ]; then
       echo Set up encrypted disks
@@ -206,6 +238,11 @@ in
       echo Creating encrypted root
       cryptsetup luksFormat --label="$ENC_DISK_ROOT_LABEL" -q --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT"
 
+      if [ -b "$DISK2" ]; then
+        echo Creating encrypted root 2
+        cryptsetup luksFormat --label="$ENC_DISK_ROOT2_LABEL" -q --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT2"
+      fi
+
       echo Opening encrypted swap using keyfile
       cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_SWAP" "$ENC_DISK_SWAP_LABEL"
       mkswap -L "$DISK_SWAP_LABEL" /dev/mapper/"$ENC_DISK_SWAP_LABEL"
@@ -213,8 +250,18 @@ in
       echo Opening encrypted root using keyfile
       cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT" "$ENC_DISK_ROOT_LABEL"
 
-      echo Creating btrfs filesystem on /dev/mapper/"$ENC_DISK_ROOT_LABEL"
-      mkfs.btrfs -f -L "$DISK_ROOT_LABEL" /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+      if [ -b "$DISK2" ]; then
+        echo Opening encrypted root2 using keyfile
+        cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT"2 "$ENC_DISK_ROOT2_LABEL"
+      fi
+
+      if [ -b "$DISK2" ]; then
+        echo Creating btrfs RAID0 filesystem on /dev/mapper/"$ENC_DISK_ROOT_LABEL" and /dev/mapper/"$ENC_DISK_ROOT2_LABEL"
+        mkfs.btrfs -f -L "$DISK_ROOT_LABEL" -d raid0 /dev/mapper/"$ENC_DISK_ROOT_LABEL" /dev/mapper/"$ENC_DISK_ROOT2_LABEL"
+      else
+        echo Creating btrfs filesystem on /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+        mkfs.btrfs -f -L "$DISK_ROOT_LABEL" /dev/mapper/"$ENC_DISK_ROOT_LABEL"
+      fi
 
       echo Creating vfat disk at "$DISK_EFI"
       mkfs.vfat -n "$DISK_EFI_LABEL" "$DISK_EFI"
