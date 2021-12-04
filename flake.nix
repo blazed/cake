@@ -176,6 +176,7 @@
                      export _INSTALLER_HAS_RUN
                      git clone https://github.com/blazed/cake /tmp/cake
                      cd /tmp/cake
+                     git checkout sophia-fixes
                      echo 'Which config should be installed?'
                      host="$(nix eval --apply builtins.attrNames .#nixosConfigurations --json | jq -r '.[]' | sk)"
                      nix build .#"$host"-diskformat

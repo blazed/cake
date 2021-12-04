@@ -1,12 +1,13 @@
-publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYGuujsrO9pHLKD6uszuxZNQzOT1qV7GWKJM4Fz4Bjl"
+# publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYGuujsrO9pHLKD6uszuxZNQzOT1qV7GWKJM4Fz4Bjl"
 
 profiles = [
   "hardware/intel",
   "profiles/default_fs",
-  "profiles/nfs",
+  # "profiles/download_station",
+  # "profiles/nfs",
   "profiles/server",
   "profiles/state",
-  "profiles/download_station",
+  "profiles/uuid_disk_crypt",
 ]
 
 users.groups.blazed.gid = 1447
@@ -51,4 +52,4 @@ networking.private-wireguard.peers = [
   { publicKey = "CYFNNfntzhRHn0+QHWv2eBOeU/sCZ5f6FLbTMUyIQHk=", allowedIPs = [ "0.0.0.0/0", "::0/0" ], endpoint = "185.204.1.219:51820", persistentKeepalive = 25 }
 ]
 
-system.autoUpgrade = { enable = true, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
+system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
