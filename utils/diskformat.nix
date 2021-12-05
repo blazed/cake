@@ -202,12 +202,12 @@ in
     partnum=$((partnum + 1))
     DISK_SWAP="$DISK$PARTITION_PREFIX$partnum"
     DISK_ROOT_LABEL=${diskLabels.root}
-    ENC_DISK_ROOT_LABEL=${diskLabels.encRoot}
-    partnum=$((partnum + 1))
     if [ -b "$DISK2" ]; then
       ENC_DISK_ROOT2_LABEL=${diskLabels.encRoot}2
       DISK_ROOT2="$DISK2$PARTITION_PREFIX$partnum"
     fi
+    ENC_DISK_ROOT_LABEL=${diskLabels.encRoot}
+    partnum=$((partnum + 1))
     DISK_ROOT="$DISK$PARTITION_PREFIX$partnum"
 
     sgdisk -p "$DISK"
@@ -253,7 +253,7 @@ in
 
       if [ -b "$DISK2" ]; then
         echo Opening encrypted root2 using keyfile
-        cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT2" "$ENC_DISK_ROOT2_LABEL"
+        cryptsetup luksOpen --key-file=/dev/mapper/"$ENC_DISK_CRYPTKEY_LABEL" "$DISK_ROOT"2 "$ENC_DISK_ROOT2_LABEL"
       fi
 
       if [ -b "$DISK2" ]; then
