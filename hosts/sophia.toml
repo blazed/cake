@@ -53,6 +53,3 @@ networking.private-wireguard.peers = [
 ]
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
-
-boot.initrd.luks.devices.encrypted_root2.device = "/dev/disk/by-label/encrypted_root2"
-boot.initrd.luks.devices.encrypted_root2.keyFile = "/dev/mapper/cryptkey"
