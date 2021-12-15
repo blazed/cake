@@ -14,6 +14,9 @@ let
       publicKey = mkOption {
         type = types.str;
       };
+      persistentKeepalive = mkOption {
+        type = types.int;
+      };
     };
   };
 in
@@ -40,6 +43,7 @@ in
       inherit (cfg) privateKeyFile interfaceNamespace peers ips;
       preSetup = ''
         ${pkgs.iproute2}/bin/ip netns add ${cfg.interfaceNamespace}
+        ${pkgs.iproute2}/bin/ip netns exec private ip link set dev lo up
       '';
     };
   };

@@ -4,7 +4,7 @@ let
   inherit (lib) mapAttrsToList listToAttrs splitString concatStringsSep last flatten;
   inherit (builtins) filter match head foldl' replaceStrings;
   bootMode = if config.config.boot.loader.systemd-boot.enable then "UEFI" else "Legacy";
-  encrypted = config.config.boot.initrd.luks == null;
+  encrypted = config.config.boot.initrd.luks != null;
   diskLabels = {
     boot = "boot";
     encCryptkey = "cryptkey";
@@ -18,7 +18,7 @@ let
   efiSpace = "500M";
   luksKeySpace = "20M";
   ramGb = "$(free --giga | tail -n+2 | head -1 | awk '{print $2}')";
-  uuidCryptKey = if config.config.boot.initrd.luks == null then config.config.boot.initrd.luks.devices.cryptkey.keyFile != null else false;
+  uuidCryptKey = if config.config.boot.initrd.luks != null then config.config.boot.initrd.luks.devices.cryptkey.keyFile != null else false;
   subvolumes = lib.unique (filter (v: v != null)
         (flatten
             (map (match "^subvol=(.*)")
