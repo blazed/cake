@@ -147,7 +147,7 @@
                  environment.systemPackages = with pkgs; [
                    git curl jq skim
                  ];
-                 boot.supportedFilesystems = lib.mkForce [ "btrfs" "vfat" "nfs" ];
+                 boot.supportedFilesystems = lib.mkForce [ "btrfs" "vfat" ];
                  boot.kernelPackages = pkgs.linuxPackages_latest;
                  services.getty.autologinUser = mkForce "root";
                  hardware.video.hidpi.enable = true;

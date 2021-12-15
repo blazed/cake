@@ -9,6 +9,7 @@ in
     authFile = "/var/lib/deluge/auth";
     openFirewall = true;
     web.enable = true;
+    web.openFirewall = true;
     config = {
       download_location = "/mnt/media/torrents/incomplete";
       dht = false;
@@ -53,7 +54,7 @@ in
     bindsTo = [ "deluged.service" ];
     wantedBy = [ "multi-user.target" ];
     script = ''
-      ${pkgs.socat}/bin/socat tcp-listen:55846,fork,reuseaddr,bind=127.0.0.1 exec:'/run/wrappers/bin/netns-exec private ${pkgs.socat}/bin/socat STDIO "tcp-connect:127.0.0.1:55846"',nofork
+      ${pkgs.socat}/bin/socat tcp-listen:58846,fork,reuseaddr,bind=127.0.0.1  exec:'/run/wrappers/bin/netns-exec private ${pkgs.socat}/bin/socat STDIO "tcp-connect:127.0.0.1:58846"',nofork
     '';
   };
 

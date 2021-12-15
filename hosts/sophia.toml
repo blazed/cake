@@ -1,12 +1,14 @@
-publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJYGuujsrO9pHLKD6uszuxZNQzOT1qV7GWKJM4Fz4Bjl"
+publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEAjXIyhYMnnH2fJMA/Lr1JgZecxstafNSGHMe8UkIlc"
 
 profiles = [
   "hardware/intel",
   "profiles/default_fs",
+  "profiles/download_station",
   "profiles/nfs",
+  "profiles/k3s",
   "profiles/server",
   "profiles/state",
-  "profiles/download_station",
+  "profiles/uuid_disk_crypt",
 ]
 
 users.groups.blazed.gid = 1447
@@ -18,6 +20,7 @@ users.users.blazed.openssh.authorizedKeys.keys = [
   "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo="
 ]
 
+age.secrets.k3s-token.file = "secrets/k3s/token.age"
 age.secrets.wg-home.file = "secrets/sophia/wg-home.age"
 age.secrets.wg-private.file = "secrets/sophia/wg-private.age"
 
@@ -35,13 +38,15 @@ networking.interfaces.eno2.useDHCP = false
 networking.interfaces.eno3.useDHCP = false
 networking.interfaces.eno4.useDHCP = false
 
+networking.firewall.trustedInterfaces = [ "home" ]
 networking.wireguard.enable = true
 networking.wireguard.interfaces.home.ips = [ "10.0.149.20/32" ]
-networking.wireguard.interfaces.home.privateKeyFile = "/run/agenix/wg-private"
+networking.wireguard.interfaces.home.privateKeyFile = "/run/agenix/wg-home"
 networking.wireguard.interfaces.home.peers = [
   { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.0.1:51820", persistentKeepalive = 25 }
 ]
 
+networking.private-wireguard.enable = true
 networking.private-wireguard.ips = [
   "10.67.124.179/32",
   "fc00:bbbb:bbbb:bb01::4:7cb2/128",
@@ -51,4 +56,12 @@ networking.private-wireguard.peers = [
   { publicKey = "CYFNNfntzhRHn0+QHWv2eBOeU/sCZ5f6FLbTMUyIQHk=", allowedIPs = [ "0.0.0.0/0", "::0/0" ], endpoint = "185.204.1.219:51820", persistentKeepalive = 25 }
 ]
 
-system.autoUpgrade = { enable = true, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
+services.k3s.role = "agent"
+services.k3s.tokenFile = "/run/agenix/k3s-token"
+services.k3s.serverAddr = "https://10.0.149.5:6443"
+services.k3s.flannelIface = "home"
+services.k3s.nodeIP = "10.0.149.20"
+services.k3s.nodeExternalIP = "10.0.0.20"
+services.k3s.after = [ "wireguard-home.service" ]
+
+system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
