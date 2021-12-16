@@ -1,6 +1,19 @@
 { pkgs, ... }:
 let
   initConfig = import ../files/nvim/init.nix { inherit pkgs; };
+
+  customPlugins = {
+    vim-copilot = pkgs.vimUtils.buildVimPlugin {
+      name = "vim-copilot";
+      meta.homepage = "https://github.com/github/copilot.vim";
+      src = pkgs.fetchFromGitHub {
+        owner = "github";
+        repo = "copilot.vim";
+        rev = "c01314840b94da0b9767b52f8a4bbc579214e509";
+        sha256 = "sha256-gnFiuXpKF55cWxCXNXe3zqQaVmGoUV5aRBGIlyUUfIM=";
+      };
+    };
+  };
 in
 {
   programs.neovim = {
@@ -53,6 +66,7 @@ in
         ]
       ))
       vimagit
+      customPlugins.vim-copilot
     ];
   };
 
