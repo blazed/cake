@@ -177,6 +177,12 @@ in
           "${modifier}+Return" = '' exec ${pkgs.alacritty}/bin/alacritty'';
           "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
 
+          XF86AudioRaiseVolume = ''exec ${pkgs.pulseaudioLight}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%'';
+          XF86AudioLowerVolume = "exec ${pkgs.pulseaudioLight}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
+          XF86AudioMute = "exec ${pkgs.pulseaudioLight}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
+          XF86MonBrightnessUp = "exec light -A 5";
+          XF86MonBrightnessDown = "exec light -U 5";
+
           "${modifier}+Shift+q" = ''kill'';
 
         };

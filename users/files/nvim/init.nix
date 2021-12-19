@@ -75,13 +75,14 @@
     endif
 
     nnoremap <silent> K :call <SID>show_documentation()<cr>
-    nnoremap <silent> gd <Plug>(coc-definition)
-    nnoremap <silent> gy <Plug>(coc-type-definition)
-    nnoremap <silent> gi <Plug>(coc-implementation)
-    nnoremap <silent> gr <Plug>(coc-references)
+    nmap <silent> gd <Plug>(coc-definition)
+    nmap <silent> gy <Plug>(coc-type-definition)
+    nmap <silent> gi <Plug>(coc-implementation)
+    nmap <silent> gr <Plug>(coc-references)
     nmap <leader>ar <Plug>(coc-rename)
     inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<cr>"
-    nmap <silent> <c-k> <Plug>(coc-diagnostic-prev)
+    nmap <silent> [g <Plug>(coc-diagnostic-prev)
+    nmap <silent> ]g <Plug>(coc-diagnostic-next)
 
     " Highlight symbol under cursor on CursorHold
     autocmd CursorHold * silent call CocActionAsync('highlight')
@@ -112,34 +113,10 @@
     let g:rust_clip_command = '${pkgs.xclip}/bin/xclip -selection clipboard'
 
     " golang
-     " Run goimports when running gofmt
-    let g:go_fmt_command = "goimports"
-    let g:go_snippet_engine = "neosnippet"
-    let g:go_def_mode='gopls'
-    let g:go_info_mode='gopls'
+    autocmd BufWritePre *.go :silent call CocAction('runCommand', 'editor.action.organizeImport')
 
     " terraform
     let g:terraform_fmt_on_save=1
-
-    "" Enable syntax highlighting per default
-    let g:go_highlight_types = 1
-    let g:go_highlight_fields = 1
-    let g:go_highlight_functions = 1
-    let g:go_highlight_methods = 1
-    let g:go_highlight_operators = 1
-    let g:go_highlight_build_constraints = 1
-    let g:go_highlight_structs = 1
-    let g:go_highlight_generate_tags = 1
-    let g:go_highlight_space_tab_error = 0
-    let g:go_highlight_array_whitespace_error = 0
-    let g:go_highlight_trailing_whitespace_error = 0
-    let g:go_highlight_extra_types = 1
-
-    "" Show type information
-    let g:go_auto_type_info = 1
-
-    "" Fix for location list when vim-go is used together with Syntastic
-    let g:go_list_type = "quickfix"
 
     filetype plugin indent on
     set autoindent
