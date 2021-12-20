@@ -17,17 +17,32 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    packages = {
-      url = "path:./packages";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.fenix.follows = "fenix";
-      inputs.nix-misc.follows = "nix-misc";
-    };
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     devshell.url = "github:johnae/devshell";
+
+    neovim-nightly-overlay =  {
+      url = "github:nix-community/neovim-nightly-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    ## non flakes
+    age-plugin-yubikey = { url = "github:str4d/age-plugin-yubikey"; flake = false; };
+    blur = { url = "github:johnae/blur"; flake = false; };
+    rofi-wayland = { url = "github:lbonn/rofi/wayland"; flake = false; };
+    fish-kubectl-completions = { url = "github:evanlucas/fish-kubectl-completions"; flake = false; };
+    google-cloud-sdk-fish-completion = { url = "github:Doctusoft/google-cloud-sdk-fish-completion"; flake = false; };
+    nixpkgs-fmt = { url = "github:nix-community/nixpkgs-fmt"; flake = false; };
+    netns-exec = { url = "github:johnae/netns-exec"; flake = false; };
+    sway = { url = "github:swaywm/sway"; flake = false; };
+    swayidle = { url = "github:swaywm/swayidle"; flake = false; };
+    swaylock = { url = "github:swaywm/swaylock"; flake = false; };
+    wayland-protocols-master = { url = "git+https://gitlab.freedesktop.org/wayland/wayland-protocols?ref=main"; flake = false; };
+    wlroots = { url = "git+https://gitlab.freedesktop.org/wlroots/wlroots?ref=master"; flake = false; };
+    wf-recorder = { url = "github:ammen99/wf-recorder"; flake = false; };
+    wl-clipboard = { url = "github:bugaevc/wl-clipboard"; flake = false; };
   };
 
   outputs = { self, nixpkgs, ...} @ inputs:
@@ -40,24 +55,15 @@
 
       supportedSystems = [ "x86_64-linux" ];
 
+      packageOverlays = import ./packages/overlays.nix { inherit inputs; lib = nixpkgs.lib; };
+
       overlays = [
         inputs.nix-misc.overlay
         inputs.devshell.overlay
         inputs.nur.overlay
         inputs.agenix.overlay
-        (final: prev: { tree = prev.tree.overrideAttrs (_:
-            {
-              preConfigure = ''
-                sed -i Makefile -e 's|^OBJS=|OBJS=$(EXTRA_OBJS) |'
-                makeFlags+=("CC=$CC")
-              '';
-              makeFlags = [
-                "prefix=${placeholder "out"}"
-                "MANDIR=${placeholder "out"}/share/man/man1"
-              ];
-            }
-          );
-        })
+        inputs.neovim-nightly-overlay.overlay
+        inputs.fenix.overlay
         (final: prev: { nix-direnv = prev.nix-direnv.overrideAttrs (oldAttrs:
           {
             postPatch = ''
@@ -65,7 +71,7 @@
             '';
           }
         );})
-      ] ++ mapAttrsToList (_: value: value) inputs.packages.overlays;
+      ] ++ mapAttrsToList (_: value: value) packageOverlays;
 
       cakeOverlay = (final: prev: {
         cake = prev.callPackage ./utils/cake.nix { };
@@ -216,7 +222,7 @@
 
       exportedPackages = forAllSystems (pkgs:
         (mapAttrs (name: _: pkgs.${name})
-          (filterAttrs (name: _: (hasAttr name pkgs) && nixpkgs.lib.isDerivation pkgs.${name}) inputs.packages.overlays)
+          (filterAttrs (name: _: (hasAttr name pkgs) && nixpkgs.lib.isDerivation pkgs.${name}) packageOverlays)
         ) // {
           pxebooter = toPxeBootSystemConfig "pxebooter" pkgs.system;
         }
