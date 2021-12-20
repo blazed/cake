@@ -20,6 +20,7 @@
 , libpng
 , libuuid
 , libseat
+, libdrm
 , ffmpeg
 , xwayland
 , vulkan-headers

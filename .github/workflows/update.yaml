@@ -12,8 +12,6 @@ jobs:
     - uses: actions/checkout@v2
     - uses: cachix/install-nix-action@v16
       with:
-        install_url: https://nixos-nix-install-tests.cachix.org/serve/8d8xah1f6ypccpmw9cfsl8ziw1chj4cl/install
-        install_options: --tarball-url-prefix https://nixos-nix-install-tests.cachix.org/serve
         extra_nix_config: |
           access-tokens = github.com=${{ secrets.GH_ACCESS_TOKEN }}
           substituters = https://nixpkgs.cachix.org https://nix-community.cachix.org https://blazed.cachix.org https://cachix.cachix.org https://cache.nixos.org/
@@ -22,15 +20,12 @@ jobs:
     - run: |
         nix shell nixpkgs#git -c git config user.name 'Boberg'
         nix shell nixpkgs#git -c git config user.email 'blazed@users.noreply.github.com'
-        (
-          cd packages
-          nix flake update
-          nix develop -c update-all-cargo-vendor-shas
-          nix develop -c update-all-fixed-output-derivation-shas
-        )
-        nix shell nixpkgs#git -c git commit -am "[Auto] update sub flake packages"
 
         nix flake update
+
+        nix develop -c update-all-cargo-vendor-shas
+        nix develop -c update-all-fixed-output-derivation-shas
+
         nix shell nixpkgs#git -c git commit -am "[Auto] update all inputs"
 
     - name: Create Pull Request
