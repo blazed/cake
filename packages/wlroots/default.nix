@@ -54,6 +54,7 @@ stdenv.mkDerivation {
     libX11
     libcap
     libseat
+    libdrm
     xcbutilimage
     xcbutilerrors
     xcbutilrenderutil
