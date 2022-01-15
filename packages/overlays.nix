@@ -82,6 +82,7 @@ in
   rust-analyzer-bin = (final: prev: { rust-analyzer-bin = prev.callPackage ./wl-clipboard-x11 { }; });
   netns-dbus-proxy = (final: prev: { netns-dbus-proxy = prev.callPackage ./wl-clipboard-x11 { }; });
   scripts = (final: prev: { scripts = prev.callPackage ./scripts { }; });
+  k3s-io = (final: prev: { k3s-io = prev.callPackage ./k3s-io { }; });
 }
 
 //
