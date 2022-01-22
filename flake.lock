@@ -75,11 +75,11 @@
         "rust-analyzer-src": "rust-analyzer-src"
       },
       "locked": {
-        "lastModified": 1642746228,
-        "narHash": "sha256-H17bCeS39UVsUxn3qq/zZ3WuxsJPsTgh5YK+rpgg/ug=",
+        "lastModified": 1642832576,
+        "narHash": "sha256-/noCFXTcs1OPfGhMEuw0LYVgGHB+3r3p+C0P8H0mMGo=",
         "owner": "nix-community",
         "repo": "fenix",
-        "rev": "55acc3d46535c2732d96dd439aa76a9ad3f0f0d2",
+        "rev": "72ca04b80987a985753a64ea39632757652cd729",
         "type": "github"
       },
       "original": {
@@ -178,11 +178,11 @@
       },
       "locked": {
         "dir": "contrib",
-        "lastModified": 1642750848,
-        "narHash": "sha256-op95Sjfyuexq/tfQyD0GxekzmNX2ozXRCmsLSkTJ6Oc=",
+        "lastModified": 1642784680,
+        "narHash": "sha256-nU4vyFC0BYzv47McYsNJYDu/8ttPgPHTmowueukxpoA=",
         "owner": "neovim",
         "repo": "neovim",
-        "rev": "c977d8b43cd6ecf7ad756f9b064eadea79fbd604",
+        "rev": "e07a4b97f6552674f6038d15c0767bbfea082bf2",
         "type": "github"
       },
       "original": {
@@ -201,11 +201,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1642752827,
-        "narHash": "sha256-AnZ6VOGuPVg3SyUPy29JR1NxHPBLTRISIcI4ryoq06c=",
+        "lastModified": 1642839161,
+        "narHash": "sha256-d2DVBjVh9cA6MWAXs+ayUncmY2VnXSLwIS2o9EnIZeQ=",
         "owner": "nix-community",
         "repo": "neovim-nightly-overlay",
-        "rev": "0e702802325cb5edd812af4f30e4bf016600c1ac",
+        "rev": "ca9465259e268b343b9875b17fd3a97a1c72c242",
         "type": "github"
       },
       "original": {
@@ -328,11 +328,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1642760709,
-        "narHash": "sha256-zNvSizqY7aC5m4ohtFlz4hiuWmrCTWfYAKYYa6nDkRo=",
+        "lastModified": 1642847262,
+        "narHash": "sha256-Aaxc1x3OVTAomETfHt7MmS6DtXKXDgUwApCe+QKKfiE=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "2db6c562f13dfa2297a21c49a73825bd3d3bcebb",
+        "rev": "2bae8b4712115af6c96af425a845cfaf08b16c87",
         "type": "github"
       },
       "original": {
@@ -388,11 +388,11 @@
     "rust-analyzer-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1642622501,
-        "narHash": "sha256-FUd86eWQuu2k4S9hA1/6km4dfGtWs0TgT8AkT1oNjTs=",
+        "lastModified": 1642787528,
+        "narHash": "sha256-EGZ1Tpl7Xi/ip2mIxzAm4++CoddpV94mcYCrGAn7u3w=",
         "owner": "rust-analyzer",
         "repo": "rust-analyzer",
-        "rev": "df5340386365b2b16c4e9bbae546504b97564c41",
+        "rev": "1d563133b548f3e677464a9e50d1927d0df9f9ff",
         "type": "github"
       },
       "original": {
@@ -453,11 +453,11 @@
     "wayland-protocols-master": {
       "flake": false,
       "locked": {
-        "lastModified": 1642582462,
-        "narHash": "sha256-OV3kvqd5bG1nY81tx4MpSs2rBJbmf2lwsF58UAkkcSc=",
+        "lastModified": 1642623606,
+        "narHash": "sha256-2igVKPtv2ExauL9LKkbFpLzhBK6hNxjFuZaU3DdSyjU=",
         "ref": "main",
-        "rev": "344048614ad4a3887e431f63b6f12208edce51f9",
-        "revCount": 261,
+        "rev": "220efff93a4b449885149101de7d10446e1f217c",
+        "revCount": 262,
         "type": "git",
         "url": "https://gitlab.freedesktop.org/wayland/wayland-protocols"
       },
@@ -502,11 +502,11 @@
     "wlroots": {
       "flake": false,
       "locked": {
-        "lastModified": 1642691890,
-        "narHash": "sha256-nNqLicPwdkzHXJToX+fb0F+rCg/lYnMSOhoZ7FOA7mw=",
+        "lastModified": 1642842588,
+        "narHash": "sha256-euNBhTur+fTsCocCIEKPlGMW7Lo0ycjiZHCH5KOONzk=",
         "ref": "master",
-        "rev": "1d1b84541015d7b2914bdc69013f2a04548f4321",
-        "revCount": 5336,
+        "rev": "da2491d4163e1d8e627d00c8ae594c7f8003472e",
+        "revCount": 5337,
         "type": "git",
         "url": "https://gitlab.freedesktop.org/wlroots/wlroots"
       },
