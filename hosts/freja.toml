@@ -21,12 +21,14 @@ users.users.blazed.openssh.authorizedKeys.keys = [
 ]
 
 age.secrets.k3s-token.file = "secrets/k3s/token.age"
-age.secrets.wg-home.file = "secrets/freja/wg-home.age"
+age.secrets.wg-exsules.file = "secrets/freja/wg-exsules.age"
 age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
+networking.firewall.trustedInterfaces = [ "exsules" ]
 networking.wireguard.enable = true
-networking.wireguard.interfaces.home = { ips = [ "10.0.149.22/32" ], privateKeyFile = "/run/agenix/wg-home" }
-networking.wireguard.interfaces.home.peers = [
+networking.wireguard.interfaces.exsules.ips = [ "10.0.149.22/32" ]
+networking.wireguard.interfaces.exsules.privateKeyFile = "/run/agenix/wg-exsules"
+networking.wireguard.interfaces.exsules.peers = [
   { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.0.1:51820", persistentKeepalive = 25 }
 ]
 
