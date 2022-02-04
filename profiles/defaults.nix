@@ -4,7 +4,7 @@
     ../cachix.nix
   ];
   nix = {
-    trustedUsers = [ "root" ];
+    settings.trusted-users = [ "root" ];
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
