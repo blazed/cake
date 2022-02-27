@@ -177,9 +177,9 @@ in
           "${modifier}+Return" = '' exec ${pkgs.alacritty}/bin/alacritty'';
           "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
 
-          XF86AudioRaiseVolume = ''exec ${pkgs.pulseaudioLight}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%'';
-          XF86AudioLowerVolume = "exec ${pkgs.pulseaudioLight}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
-          XF86AudioMute = "exec ${pkgs.pulseaudioLight}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
+          XF86AudioRaiseVolume = ''exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%'';
+          XF86AudioLowerVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
+          XF86AudioMute = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
           XF86MonBrightnessUp = "exec light -A 5";
           XF86MonBrightnessDown = "exec light -U 5";
 
@@ -217,7 +217,7 @@ in
             command = "${pkgs.gnome3.gnome-settings-daemon}/libexec/gsd-xsettings";
           }
           {
-            command = "${pkgs.dbus_tools}/bin/dbus-update-activation-environment 2>/dev/null && ${pkgs.dbus_tools}/bin/dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK";
+            command = "${pkgs.dbus.out}/bin/dbus-update-activation-environment 2>/dev/null && ${pkgs.dbus.out}/bin/dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK";
           }
           {
             command = "${swayOnReload}/bin/sway-on-reload";
