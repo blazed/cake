@@ -59,7 +59,7 @@
     pkgs.tmux
     pkgs.pavucontrol
     pkgs.fd
-    pkgs.wireguard
+    pkgs.wireguard-tools
     pkgs.hyperfine
     pkgs.procs
     pkgs.sd
