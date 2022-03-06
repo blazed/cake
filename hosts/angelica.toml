@@ -25,7 +25,7 @@ networking.wireguard.enable = true
 networking.wireguard.interfaces.exsules.ips = [ "10.0.149.5/32" ]
 networking.wireguard.interfaces.exsules.privateKeyFile = "/run/agenix/wg-exsules"
 networking.wireguard.interfaces.exsules.peers = [
-  { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24", "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
+  { publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4=", allowedIPs = [ "10.0.149.0/24", "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
 ]
 networking.firewall.trustedInterfaces = [ "exsules" ]
 
