@@ -75,7 +75,9 @@ in {
       bars = [
         {
           statusCommand = "${pkgs.i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-default.toml";
-          fonts = ["DejaVu Sans Mono" "FontAwesome 12"];
+          fonts = {
+            names = ["DejaVu Sans Mono" "FontAwesome 12" ];
+          };
           position = "top";
           colors = {
             background = "#222222";
