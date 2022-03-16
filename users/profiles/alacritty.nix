@@ -13,6 +13,7 @@
         dynamic_padding = false;
         decorations = "full";
         startup_mode = "Windowed";
+        opacity = 1.0;
       };
       scrolling = {
         history = 10000;
@@ -28,7 +29,6 @@
         glyph_offset.y = 0;
         use_thin_strokes = true;
       };
-      background_opacity = 1.0;
       mouse.hide_when_typing = true;
     };
   };

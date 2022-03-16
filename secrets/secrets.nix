@@ -10,7 +10,7 @@ let
 
   hasAttrsFilter = attrsList: filter (attr: all (key: hasAttr key attr) attrsList);
 
-  hostConfigsList = map (host: host.config) (attrValues (getFlake (toString ../.)).hostConfigurations);
+  hostConfigsList = attrValues (getFlake (toString ../.)).hostConfigs;
 
   hostsWithSecrets = hasAttrsFilter [ "publicKey" "age" ] hostConfigsList;
 
