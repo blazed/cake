@@ -123,6 +123,7 @@ in
           "/home/${userName}/.config/spotify"
           "/home/${userName}/.backup/undo"
           "/home/${userName}/.local/state/pipewire/media-session.d"
+          "/home/${userName}/.local/state/wireplumber"
           "/home/${userName}/.terraform.d"
           "/home/${userName}/code"
         ];
