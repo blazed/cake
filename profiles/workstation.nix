@@ -84,7 +84,7 @@ in
 
   environment.systemPackages = [
     pkgs.gitAndTools.hub
-    pkgs.go
+    pkgs.go_1_18
     pkgs.discord
     pkgs.signal-desktop
     pkgs.tdesktop ## Telegrom
