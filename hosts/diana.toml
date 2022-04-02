@@ -14,6 +14,7 @@ profiles = [
 ]
 
 age.secrets.wg-home.file = "secrets/diana/wg-home.age"
+age.secrets.wg-private.file = "secrets/diana/wg-private.age"
 age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
 networking.wireguard.enable = true
@@ -21,6 +22,16 @@ networking.wireguard.interfaces.home.ips = [ "10.0.149.3/32" ]
 networking.wireguard.interfaces.home.privateKeyFile = "/run/agenix/wg-home"
 networking.wireguard.interfaces.home.peers = [
   { publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4=", allowedIPs = [ "10.0.149.0/24", "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
+]
+
+networking.private-wireguard.enable = true
+networking.private-wireguard.ips = [
+  "10.68.41.158/32",
+  "fc00:bbbb:bbbb:bb01::5:299d/128",
+]
+networking.private-wireguard.privateKeyFile = "/run/agenix/wg-private"
+networking.private-wireguard.peers = [
+  { publicKey = "pKcMMeC4jMUxSU5pH1orvp4//GrY8is+y9JRfVP3+BY=", allowedIPs = [ "0.0.0.0/0", "::0/0" ], endpoint = "185.65.135.222:51820", persistentKeepalive = 25 }
 ]
 
 users.groups.blazed.gid = 1000
