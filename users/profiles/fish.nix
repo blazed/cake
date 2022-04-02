@@ -23,16 +23,6 @@ let
     '';
   };
 
-  genLauncher = optionList: ''
-    clear
-    set RUN (echo -e "${genLaunchOptions optionList}" | \
-        ${pkgs.skim}/bin/sk -p "start >> " --inline-info --margin 40%,40% \
-                            --color=bw --height=40 --no-hscroll --no-mouse \
-                            --reverse --delimiter='\t' --with-nth 1 | \
-                                 ${pkgs.gawk}/bin/awk -F'\t' '{print $2}')
-    eval "$RUN"
-  '';
-
   privateSway = withinNetNS "${sway}/bin/sway" { };
   privateFish = withinNetNS "${pkgs.fish}/bin/fish" { };
 
@@ -44,6 +34,16 @@ let
         )
         optionList
     ));
+
+  genLauncher = optionList: ''
+    clear
+    set RUN (echo -e "${genLaunchOptions optionList}" | \
+        ${pkgs.skim}/bin/sk -p "start >> " --inline-info --margin 40%,40% \
+                            --color=bw --height=40 --no-hscroll --no-mouse \
+                            --reverse --delimiter='\t' --with-nth 1 | \
+                                 ${pkgs.gawk}/bin/awk -F'\t' '{print $2}')
+    eval "$RUN"
+  '';
 
   swayDrmDebug = pkgs.writeStrictShellScriptBin "sway-drm-debug" ''
     echo 0xFE | sudo tee /sys/module/drm/parameters/debug # Enable verbose DRM logging
