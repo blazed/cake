@@ -23,11 +23,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1646845404,
-        "narHash": "sha256-JENXFCI2HVqi0whBzt7MAW9PX3ziEaYqBhMux+4g+VM=",
+        "lastModified": 1648942457,
+        "narHash": "sha256-i29Z1t3sVfCNfpp+KAfeExvpqHQSbLO1KWylTtfradU=",
         "owner": "ryantm",
         "repo": "agenix",
-        "rev": "764c975e74bce2f89a5106b68ec48e2b586f893c",
+        "rev": "0d5e59ed645e4c7b60174bc6f6aac6a203dc0b01",
         "type": "github"
       },
       "original": {
@@ -75,11 +75,11 @@
         "rust-analyzer-src": "rust-analyzer-src"
       },
       "locked": {
-        "lastModified": 1648880748,
-        "narHash": "sha256-hnAMSvol04FXS2HZ3syhhHewPO1AR/yRGhuF4enDoOo=",
+        "lastModified": 1648967141,
+        "narHash": "sha256-x+mUpovucQ3slsj+8Y6WV1prJf7+yJyCqoofdgtG9FE=",
         "owner": "nix-community",
         "repo": "fenix",
-        "rev": "815db84bb0e7363acc28cc9419fe2c4c1d2a88a2",
+        "rev": "30cd38e6358ac9026edcf8f5b7ee1809bc972425",
         "type": "github"
       },
       "original": {
@@ -158,11 +158,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1648847985,
-        "narHash": "sha256-Uj4y08YLm1eogzEZAtyzdgbAPilPCxmNwgWm4XP2Nno=",
+        "lastModified": 1648917498,
+        "narHash": "sha256-fdyVHsP6XeyCk9FRyjV6Wv+7qiOzWxykGXdNixadvyg=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "38156bd4ede9b5b92a7313033e000c1cad767553",
+        "rev": "cfab869fcebc56710be6ec3aca76036b25c04a0d",
         "type": "github"
       },
       "original": {
@@ -181,11 +181,11 @@
       },
       "locked": {
         "dir": "contrib",
-        "lastModified": 1648816665,
-        "narHash": "sha256-QtM3pcXo6c7rw2gigetLe5DvG7pomdzH8U4P1efLYvY=",
+        "lastModified": 1648949219,
+        "narHash": "sha256-gJrYhdeC7wuNMWJtILUqm+FjzaBock+RHhgMCHL6IwQ=",
         "owner": "neovim",
         "repo": "neovim",
-        "rev": "fce0d54eb2bcfff6903649ab093603dcd8f21f23",
+        "rev": "6786b6afade97771027fda3c1438969def320cc5",
         "type": "github"
       },
       "original": {
@@ -204,11 +204,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1648887303,
-        "narHash": "sha256-wdBMr6egGBWmdFj2P2QHatPwP5AM/uZKVmxyDuXlUiE=",
+        "lastModified": 1648973670,
+        "narHash": "sha256-MJNofHXSKFMGwHe4P4zE+u/4wijTOEABg2dQ82Uj4xI=",
         "owner": "nix-community",
         "repo": "neovim-nightly-overlay",
-        "rev": "6ece11030f78fcf71338b468008c87855900291b",
+        "rev": "89d60799d43d847d7a88a8485e96731d1fe2d685",
         "type": "github"
       },
       "original": {
@@ -315,11 +315,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1648891336,
-        "narHash": "sha256-q/DC/cuLZl9HcL7zu/c1LjSn2Nm7nfGOryI37ECi+6A=",
+        "lastModified": 1648978659,
+        "narHash": "sha256-mHR7KtlfClcDlrie2DgSqgEkfhB4540tQljp/AJmIds=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "e43de7ab75106995fa3d927d1bdfa3a2c6c3dd67",
+        "rev": "8ab53f1c96e363f827e03298700afa52549494e0",
         "type": "github"
       },
       "original": {
@@ -375,11 +375,11 @@
     "rust-analyzer-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1648856608,
-        "narHash": "sha256-7WYCv/dDUbllLrtdAiJ5R/CK79xNF0NIsLWfGxH8ZwM=",
+        "lastModified": 1648937579,
+        "narHash": "sha256-JNDtvw4oS81ocgjDo3AtMqB7XH+sCRXbM1cF10rlPkc=",
         "owner": "rust-analyzer",
         "repo": "rust-analyzer",
-        "rev": "0fe74175e2844316193afbd99d2e26f3b6376045",
+        "rev": "ba9aed19c7e2fd95b337f27acddaae3c82bc8939",
         "type": "github"
       },
       "original": {
@@ -440,11 +440,11 @@
     "wayland-protocols-master": {
       "flake": false,
       "locked": {
-        "lastModified": 1648539218,
-        "narHash": "sha256-CaGCQs2f123yo9uMz0gB79LbYYfEplQNIe4IYhsq0ug=",
+        "lastModified": 1648544206,
+        "narHash": "sha256-vOmb3a9JeBPLWS5QT92NtCU0RnI1iHGXe/oZaYk94TY=",
         "ref": "main",
-        "rev": "37fa0f4a4e0358455645cd1d07d63c4bdd6d1cee",
-        "revCount": 272,
+        "rev": "db85bc1467e5f7f24e34f19f743abe15384edf3b",
+        "revCount": 273,
         "type": "git",
         "url": "https://gitlab.freedesktop.org/wayland/wayland-protocols"
       },
