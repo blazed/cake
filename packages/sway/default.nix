@@ -17,6 +17,7 @@
 , libinput
 , libcap
 , libdrm
+, xcbutilwm
 , pam
 , gdk-pixbuf
 , libevdev
@@ -60,6 +61,7 @@ stdenv.mkDerivation rec {
     scdoc
     librsvg
     libdrm
+    xcbutilwm
     wlroots
   ];
 
