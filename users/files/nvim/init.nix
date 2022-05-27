@@ -58,7 +58,7 @@
           \   'cocstatus': 'coc#status',
           \   'cocfunction': 'CocCurrentFunction',
           \   'filename': 'LightlineFilename',
-          \   'gitbranch': 'fugitive#head',
+          \   'gitbranch': 'FugitiveHead',
           \ },
     \ }
 
