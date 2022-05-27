@@ -28,7 +28,7 @@ in
     KUBECONFIG = "/home/${home.username}/.kube/config";
   };
 
-  xsession.pointerCursor = {
+  home.pointerCursor = {
     package = pkgs.arc-icon-theme;
     name = "Arc";
   };
