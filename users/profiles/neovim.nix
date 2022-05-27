@@ -12,17 +12,17 @@ let
         rev = "c01314840b94da0b9767b52f8a4bbc579214e509";
         sha256 = "sha256-gnFiuXpKF55cWxCXNXe3zqQaVmGoUV5aRBGIlyUUfIM=";
       };
-      coc-nvim = pkgs.vimUtils.buildVimPluginFrom2Nix {
-        pname = "coc.nvim";
-        version = "2022-05-21";
-        src = pkgs.fetchFromGitHub {
-          owner = "neoclide";
-          repo = "coc.nvim";
-          rev = "791c9f673b882768486450e73d8bda10e391401d";
-          sha256 = "sha256-MobgwhFQ1Ld7pFknsurSFAsN5v+vGbEFojTAYD/kI9c=";
-        };
-        meta.homepage = "https://github.com/neoclide/coc.nvim/";
+    };
+    coc-nvim = pkgs.vimUtils.buildVimPluginFrom2Nix {
+      pname = "coc.nvim";
+      version = "2022-05-21";
+      src = pkgs.fetchFromGitHub {
+        owner = "neoclide";
+        repo = "coc.nvim";
+        rev = "791c9f673b882768486450e73d8bda10e391401d";
+        sha256 = "sha256-MobgwhFQ1Ld7pFknsurSFAsN5v+vGbEFojTAYD/kI9c=";
       };
+      meta.homepage = "https://github.com/neoclide/coc.nvim/";
     };
   };
 in
