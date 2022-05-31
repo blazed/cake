@@ -69,7 +69,6 @@ stdenv.mkDerivation {
   ];
 
   meta = {
-    inherit (inputs.wlroots) description homepage;
     license = lib.licenses.mit;
     platforms = lib.platforms.linux;
   };
