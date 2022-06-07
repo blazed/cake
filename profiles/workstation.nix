@@ -26,9 +26,7 @@ in
   powerManagement.enable = true;
   powerManagement.powertop.enable = true;
 
-  virtualisation.docker.enable = false;
-  virtualisation.podman.enable = true;
-  virtualisation.podman.dockerCompat = true;
+  virtualisation.docker.enable = true;
 
   programs.ssh.startAgent = true;
   programs.dconf.enable = true;
@@ -41,6 +39,10 @@ in
 
   services.dbus.packages = with pkgs; [ gcr dconf gnome3.sushi ];
   services.udev.packages = with pkgs; [ gnome3.gnome-settings-daemon ];
+  services.udev.extraRules = ''
+    ## ledger
+    SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0005|5000|5001|5002|5003|5004|5005|5006|5007|5008|5009|500a|500b|500c|500d|500e|500f|5010|5011|5012|5013|5014|5015|5016|5017|5018|5019|501a|501b|501c|501d|501e|501f", TAG+="uaccess", TAG+="udev-acl", OWNER="blazed"
+  '';
 
   environment.etc."systemd/sleep.conf".text = "HibernateDelaySec=8h";
 
@@ -91,6 +93,7 @@ in
     pkgs.lm_sensors
     pkgs.firefox-devedition-bin
     pkgs.lutris
+	pkgs.ledger-live-desktop
   ];
 
   programs.steam.enable = true;
@@ -121,6 +124,7 @@ in
           "/home/${userName}/.config/pulse"
           "/home/${userName}/.config/Signal"
           "/home/${userName}/.config/spotify"
+          # "/home/${userName}/.config/Ledger Live"
           "/home/${userName}/.backup/undo"
           "/home/${userName}/.local/state/pipewire/media-session.d"
           "/home/${userName}/.local/state/wireplumber"

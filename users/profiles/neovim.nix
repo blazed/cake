@@ -83,7 +83,11 @@ in
 
   home.file.".config/nvim/coc-settings.json".text = ''
     {
-
+      "coc.preferences.formatOnSaveFiletypes": [
+        "go",
+        "json",
+        "rust"
+      ],
       "languageserver": {
         "golang": {
           "command": "${pkgs.gopls}/bin/gopls",
