@@ -15,7 +15,7 @@ let
         else pkgs.bash;
         extraGroups = if hasAttr "extraGroups" value then
           value.extraGroups
-        else [ "wheel" "docker" "video" "audio" "kvm" "libvirtd" ];
+        else [ "wheel" "docker" "video" "audio" "kvm" "libvirtd" "podman" ];
         isNormalUser = true;
       }
     );
