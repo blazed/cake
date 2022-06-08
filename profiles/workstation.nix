@@ -7,7 +7,7 @@
 }: let
   inherit (lib) mapAttrs' nameValuePair filterAttrs;
   inherit (builtins) toString;
-  users = config.users.users;
+  inherit (config.users) users;
 in {
   imports = [
     ./defaults.nix

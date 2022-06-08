@@ -284,11 +284,7 @@
             // (filterAttrs (name: _: hasPrefix "images/" name) pkgs)
             // cakeOverlays
             // {
-              spotnix = true;
-              persway = true;
-              fluxcd-yaml = true;
               kured-yaml = true;
-              notracking = true;
             }));
       }
     );
@@ -424,11 +420,7 @@
 
       overlays =
         packageOverlays
-        // cakeOverlays
-        // {
-          spotnix = inputs.spotnix.overlay;
-          persway = inputs.persway.overlay;
-        };
+        // cakeOverlays;
 
       github-actions-package-matrix-x86-64-linux = let
         pkgs = pkgsFor "x86_64-linux";

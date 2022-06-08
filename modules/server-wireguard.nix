@@ -49,7 +49,7 @@ in {
     };
   };
 
-  config = mkIf (cfg.enable) {
+  config = mkIf cfg.enable {
     networking.wireguard.interfaces.exsules = {
       inherit (cfg) privateKeyFile peers ips listenPort;
       postSetup = ''

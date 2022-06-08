@@ -3,7 +3,7 @@
   inputs,
   ...
 }: let
-  nixos-hardware = inputs.nixos-hardware;
+  inherit (inputs) nixos-hardware;
 in {
   imports = [
     "${nixos-hardware}/common/pc/ssd"

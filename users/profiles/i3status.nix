@@ -1,5 +1,5 @@
 {config}: let
-  home = config.home;
+  inherit (config) home;
 
   isDesktop = home.extraConfig.hostname == "nicolina";
 in {

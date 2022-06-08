@@ -20,19 +20,19 @@
   bindMounts = let
     eachStateRoot = stateRoot: let
       sysDirs = cfg.${stateRoot}.directories;
-      userDirs = (
+      userDirs =
         flatten
         (
           map (u: u.directories)
           (mapAttrsToList (_: v: v) cfg.${stateRoot}.users)
-        )
-      );
-    in (map
+        );
+    in
+      map
       (where: {
         what = "${stateRoot}/${where}";
         inherit where;
       })
-      (sysDirs ++ userDirs));
+      (sysDirs ++ userDirs);
   in
     flatten (map eachStateRoot stateStoragePaths);
 
