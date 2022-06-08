@@ -1,4 +1,4 @@
-{ 
+{
   writeScriptBin,
   writeStrictShellScriptBin,
   gopass,
@@ -7,9 +7,7 @@
   hostname,
   buildEnv,
   lib,
-}:
-let
-
+}: let
   addToBinPath = pkgs: ''
     export PATH=${lib.makeBinPath pkgs}''${PATH:+:''${PATH}}
   '';
@@ -47,7 +45,7 @@ let
   '';
 
   update-wifi-networks = writeStrictShellScriptBin "update-wifi-networks" ''
-    ${addToBinPath [ gopass ]}
+    ${addToBinPath [gopass]}
     IFS=$'\n'
     for NET in $(find /home/blazed/code/blazed/gopass-store/wifi/networks/ -type f -print0 | xargs -0 -I{} basename {}); do
       NETNAME=$(basename "$NET" .gpg)
@@ -57,7 +55,7 @@ let
   '';
 
   add-wifi-network = writeStrictShellScriptBin "add-wifi-network" ''
-    ${addToBinPath [ gopass ]}
+    ${addToBinPath [gopass]}
     NET=''${1:-}
     PASS=''${2:-}
     if [ -z "$NET" ]; then
@@ -82,7 +80,7 @@ let
   '';
 
   update-wireguard-keys = writeStrictShellScriptBin "update-wireguard-keys" ''
-    ${addToBinPath [ hostname gopass ]}
+    ${addToBinPath [hostname gopass]}
     IFS=$'\n'
     HN="$(hostname)"
     for KEY in $(find "$PASSWORD_STORE_DIR"/vpn/wireguard/"$HN"/ -type f -print0 | xargs -0 -I{} basename {}); do
@@ -93,10 +91,13 @@ let
     done
   '';
 in
-buildEnv {
-  name = "scripts";
-  paths = [
-    add-wifi-network update-wifi-networks
-    update-wireguard-keys compress tm
-  ];
-}
+  buildEnv {
+    name = "scripts";
+    paths = [
+      add-wifi-network
+      update-wifi-networks
+      update-wireguard-keys
+      compress
+      tm
+    ];
+  }

@@ -1,9 +1,16 @@
-{ config, lib, writeStrictShellScriptBin, writeShellScriptBin, ... }:
-
-let
+{
+  config,
+  lib,
+  writeStrictShellScriptBin,
+  writeShellScriptBin,
+  ...
+}: let
   inherit (lib) mapAttrsToList listToAttrs splitString concatStringsSep last flatten;
   inherit (builtins) filter match head foldl' replaceStrings hasAttr;
-  bootMode = if config.config.boot.loader.systemd-boot.enable then "UEFI" else "Legacy";
+  bootMode =
+    if config.config.boot.loader.systemd-boot.enable
+    then "UEFI"
+    else "Legacy";
   encrypted = config.config.boot.initrd.luks != null;
   diskLabels = {
     boot = "boot";
@@ -18,15 +25,22 @@ let
   efiSpace = "500M";
   luksKeySpace = "20M";
   ramGb = "$(free --giga | tail -n+2 | head -1 | awk '{print $2}')";
-  uuidCryptKey = if hasAttr "cryptkey" config.config.boot.initrd.luks.devices then config.config.boot.initrd.luks.devices.cryptkey.keyFile != null else false;
-  subvolumes = lib.unique (filter (v: v != null)
-        (flatten
-            (map (match "^subvol=(.*)")
-              (foldl' (a: b: a ++ b.options) []
-                (filter (v: v.fsType == "btrfs") (mapAttrsToList (_: v: v) config.config.fileSystems))
-              )
-            )
+  uuidCryptKey =
+    if hasAttr "cryptkey" config.config.boot.initrd.luks.devices
+    then config.config.boot.initrd.luks.devices.cryptkey.keyFile != null
+    else false;
+  subvolumes = lib.unique (
+    filter (v: v != null)
+    (
+      flatten
+      (
+        map (match "^subvol=(.*)")
+        (
+          foldl' (a: b: a ++ b.options) []
+          (filter (v: v.fsType == "btrfs") (mapAttrsToList (_: v: v) config.config.fileSystems))
         )
+      )
+    )
   );
 in
   writeStrictShellScriptBin "diskformat" ''
@@ -64,9 +78,17 @@ in
       CRYPTKEYFILE="''${CRYPTKEYFILE:-/sys/class/dmi/id/product_version}"
     fi
 
-    USER_DISK_PASSWORD=${if uuidCryptKey then "no" else "yes"}
+    USER_DISK_PASSWORD=${
+      if uuidCryptKey
+      then "no"
+      else "yes"
+    }
 
-    ENCRYPTED=${if encrypted then "yes" else "no"}
+    ENCRYPTED=${
+      if encrypted
+      then "yes"
+      else "no"
+    }
 
     DISK_PASSWORD=""
     if [ "$ENCRYPTED" = "yes" ]; then
@@ -93,7 +115,7 @@ in
           fi
         done
       fi
-    fi 
+    fi
 
     if [ ! -d "/secrets" ]; then
       mkdir -p /secrets
@@ -234,7 +256,7 @@ in
 
       partprobe $DISK_SWAP
       partprobe $DISK_ROOT
-    fi 
+    fi
 
     mount -t tmpfs none /mnt
     mkdir -p "/mnt/tmproot" ${concatStringsSep " " (map (v: "/mnt/${replaceStrings ["@"] [""] v}") subvolumes)} "/mnt/boot"
@@ -264,5 +286,4 @@ in
     # and mount the boot partition
     echo Mounting boot partition
     mount /dev/disk/by-label/"$DISK_EFI_LABEL" /mnt/boot
- ''
-
+  ''

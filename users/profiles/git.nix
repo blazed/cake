@@ -1,8 +1,6 @@
-{ config, ... }:
-let
-   extraConfig = config.home.extraConfig;
-in
-{
+{config, pkgs, lib, ...}: let
+  inherit (config) userinfo;
+in {
   programs.git = {
     enable = true;
     delta = {
@@ -10,7 +8,7 @@ in
       options.features = "decorations side-by-side line-numbers";
     };
     userName = "Boberg";
-    userEmail = extraConfig.userEmail;
+    userEmail = userinfo.email;
     aliases = {
       co = "checkout";
       cob = "checkout -b";

@@ -1,6 +1,9 @@
-{ pkgs, config, lib, ... }:
-
-let
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}: let
   inherit (lib) mkEnableOption mkOption mkIf types;
   cfg = config.networking.private-wireguard;
   peers = types.submodule {
@@ -19,8 +22,7 @@ let
       };
     };
   };
-in
-{
+in {
   options.networking.private-wireguard = {
     enable = mkEnableOption "Enable private wireguard";
     privateKeyFile = mkOption {

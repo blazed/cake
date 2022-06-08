@@ -1,7 +1,10 @@
+system = "x86_64-linux"
+
+[config]
 publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJBxEP+n5Nwmgv8Q36CeUTWEPELMC39AN0He3zjaKYvE"
 
 profiles = [
-  "hardware/nuc",
+  "profiles/hardware/nuc",
   "profiles/default_fs",
   "profiles/nfs",
   "profiles/k3s",

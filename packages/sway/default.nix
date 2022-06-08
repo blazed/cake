@@ -1,31 +1,32 @@
-{ stdenv
-, lib
-, meson
-, ninja
-, pkgconfig
-, substituteAll
-, scdoc
-, wayland
-, wayland-protocols
-, libxkbcommon
-, swaybg
-, pcre2
-, json_c
-, dbus
-, pango
-, cairo
-, libinput
-, libcap
-, libdrm
-, xcbutilwm
-, pam
-, gdk-pixbuf
-, libevdev
-, librsvg
-, wlroots
-, inputs
-, isNixOS ? true
-, enableXWayland ? true
+{
+  stdenv,
+  lib,
+  meson,
+  ninja,
+  pkgconfig,
+  substituteAll,
+  scdoc,
+  wayland,
+  wayland-protocols,
+  libxkbcommon,
+  swaybg,
+  pcre2,
+  json_c,
+  dbus,
+  pango,
+  cairo,
+  libinput,
+  libcap,
+  libdrm,
+  xcbutilwm,
+  pam,
+  gdk-pixbuf,
+  libevdev,
+  librsvg,
+  wlroots,
+  inputs,
+  isNixOS ? true,
+  enableXWayland ? true,
 }:
 stdenv.mkDerivation rec {
   pname = "sway-unwrapped";
@@ -42,7 +43,7 @@ stdenv.mkDerivation rec {
     })
   ];
 
-  nativeBuildInputs = [ pkgconfig meson ninja scdoc ];
+  nativeBuildInputs = [pkgconfig meson ninja scdoc];
 
   buildInputs = [
     wayland

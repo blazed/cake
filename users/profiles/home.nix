@@ -1,26 +1,27 @@
-{ pkgs, config, ... }:
-let
-  home = config.home;
-in
 {
-  home.packages = 
-    [
-      pkgs.alacritty
-      pkgs.nix-index
-      pkgs.scripts
-      pkgs.fzf
-      pkgs.nodejs
-      pkgs.kubectl
-      pkgs.kustomize
-      pkgs.scrot
-      pkgs.xclip
-      pkgs.ruby
-      pkgs.virt-manager
-      pkgs.pwgen
-      pkgs.google-cloud-sdk
-      pkgs.spotify
-      pkgs.netns-dbus-proxy
-    ];
+  pkgs,
+  config,
+  ...
+}: let
+  home = config.home;
+in {
+  home.packages = [
+    pkgs.alacritty
+    pkgs.nix-index
+    pkgs.scripts
+    pkgs.fzf
+    pkgs.nodejs
+    pkgs.kubectl
+    pkgs.kustomize
+    pkgs.scrot
+    pkgs.xclip
+    pkgs.ruby
+    pkgs.virt-manager
+    pkgs.pwgen
+    pkgs.google-cloud-sdk
+    pkgs.spotify
+    pkgs.netns-dbus-proxy
+  ];
 
   home.sessionVariables = rec {
     EDITOR = "nvim";
@@ -112,8 +113,6 @@ in
       OnCalendar = "daily";
       Unit = "nix-index.service";
     };
-    Install.WantedBy = [ "timers.target" ];
+    Install.WantedBy = ["timers.target"];
   };
-
-  home.stateVersion = "21.05";
 }

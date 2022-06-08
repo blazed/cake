@@ -1,5 +1,8 @@
-{ lib, pkgs, ... }:
 {
+  lib,
+  pkgs,
+  ...
+}: {
   imports = [
     ./workstation.nix
     ./wifi.nix
@@ -16,7 +19,7 @@
     # "vm.swappiness" = lib.mkDefault 1;
   };
 
-   security.pam.services.swaylock = {
+  security.pam.services.swaylock = {
     text = ''
       auth include login
     '';

@@ -1,6 +1,5 @@
-{ pkgs, ... }:
-let
-  initConfig = import ../files/nvim/init.nix { inherit pkgs; };
+{pkgs, ...}: let
+  initConfig = import ../files/nvim/init.nix {inherit pkgs;};
 
   customPlugins = {
     vim-copilot = pkgs.vimUtils.buildVimPlugin {
@@ -14,8 +13,7 @@ let
       };
     };
   };
-in
-{
+in {
   programs.neovim = {
     enable = true;
     extraConfig = initConfig.config;
@@ -55,15 +53,16 @@ in
       editorconfig-vim
       vim-fugitive
       (nvim-treesitter.withPlugins (
-        plugins: with plugins; [
-          tree-sitter-bash
-          tree-sitter-go
-          tree-sitter-json
-          tree-sitter-nix
-          tree-sitter-rust
-          tree-sitter-toml
-          tree-sitter-yaml
-        ]
+        plugins:
+          with plugins; [
+            tree-sitter-bash
+            tree-sitter-go
+            tree-sitter-json
+            tree-sitter-nix
+            tree-sitter-rust
+            tree-sitter-toml
+            tree-sitter-yaml
+          ]
       ))
       vimagit
       customPlugins.vim-copilot

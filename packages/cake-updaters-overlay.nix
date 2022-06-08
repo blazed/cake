@@ -1,6 +1,4 @@
-final: prev:
-
-let
+final: prev: let
   inherit (final) writeStrictShellScriptBin ripgrep buildEnv;
 
   update-cargo-vendor-sha = writeStrictShellScriptBin "update-cargo-vendor-sha" ''
@@ -56,10 +54,7 @@ let
       ${update-fixed-output-derivation-sha}/bin/update-fixed-output-derivation-sha "$fopkg"
     done
   '';
-
-in
-
-{
+in {
   cake-updaters = buildEnv {
     name = "cake-updaters";
     paths = [
@@ -70,4 +65,3 @@ in
     ];
   };
 }
-
