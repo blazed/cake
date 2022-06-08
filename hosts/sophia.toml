@@ -1,7 +1,10 @@
+system = "x86_64-linux"
+
+[config]
 publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEAjXIyhYMnnH2fJMA/Lr1JgZecxstafNSGHMe8UkIlc"
 
 profiles = [
-  "hardware/intel",
+  "profiles/hardware/intel",
   "profiles/default_fs",
   "profiles/download_station",
   "profiles/nfs",
@@ -59,9 +62,12 @@ networking.private-wireguard.peers = [
 services.k3s.role = "agent"
 services.k3s.tokenFile = "/run/agenix/k3s-token"
 services.k3s.serverAddr = "https://10.0.149.5:6443"
-services.k3s.flannelIface = "home"
-services.k3s.nodeIP = "10.0.149.20"
-services.k3s.nodeExternalIP = "10.0.0.20"
+services.k3s.settings.flannel-iface = "home"
+services.k3s.settings.node-ip = "10.0.149.20"
+services.k3s.settings.node-external-ip = "10.0.0.20"
 services.k3s.after = [ "wireguard-home.service" ]
+services.k3s.settings.secrets-encryption = true
+
+services.k3s.autoDeploy.kured = "pkg:kured-yaml/kured.yaml"
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }

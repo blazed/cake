@@ -1,7 +1,10 @@
+system = "x86_64-linux"
+
+[config]
 publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMVQi0gFacHkXLTq4pdKHMrE2HF04EQ0SLJoNK4eMC0j"
 
 profiles = [
-  "hardware/nuc",
+  "profiles/hardware/nuc",
   "profiles/default_fs",
   "profiles/k3s",
   "profiles/server",
@@ -45,9 +48,12 @@ networking.server-wireguard.peers = [
 services.k3s.role = "agent"
 services.k3s.tokenFile = "/run/agenix/k3s-token"
 services.k3s.serverAddr = "https://10.0.149.5:6443"
-services.k3s.flannelIface = "exsules"
-services.k3s.nodeIP = "10.0.149.1"
-services.k3s.nodeExternalIP = "10.0.1.121"
+services.k3s.settings.flannel-iface = "exsules"
+services.k3s.settings.node-ip = "10.0.149.1"
+services.k3s.settings.node-external-ip = "10.0.1.121"
 services.k3s.after = [ "wireguard-exsules.service" ]
+services.k3s.settings.secrets-encryption = true
+
+services.k3s.autoDeploy.kured = "pkg:kured-yaml/kured.yaml"
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }

@@ -1,9 +1,7 @@
-{lib, ...}:
-let
+{lib, ...}: let
   inherit (lib) mkOption;
   inherit (lib.types) str nullOr;
-in
-{
+in {
   options = {
     publicKey = mkOption {
       type = str;

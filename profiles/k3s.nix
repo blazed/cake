@@ -1,12 +1,18 @@
-{ hostName, ... }:
 {
+  hostName,
+  lib,
+  pkgs,
+  config,
+  ...
+}: let
+  inherit (lib) options mkIf;
+  cfg = config.services.k3s;
+in {
   services.k3s.enable = true;
-  services.k3s.extraFlagsList = [
-    "--node-label hostname=${hostName}"
-  ];
-  services.k3s.disable = [ "traefik" "metrics-server" "servicelb" ];
-  services.k3s.disableNetworkPolicy = true;
-  networking.firewall.trustedInterfaces = [ "cni0" "flannel.1" "calico+" "cilium+" "lxc+" ];
+  services.k3s.settings.node-label.hostname = hostName;
+  services.k3s.disable = ["traefik" "metrics-server" "servicelb"];
+
+  networking.firewall.trustedInterfaces = ["cni0" "flannel.1" "calico+" "cilium+" "lxc+"];
   environment.state."/keep" = {
     directories = [
       "/etc/rancher"
@@ -26,6 +32,6 @@
   fileSystems."/sys/fs/bpf" = {
     device = "bpffs";
     fsType = "bpf";
-    options = [ "rw" "relatime" ];
+    options = ["rw" "relatime"];
   };
 }

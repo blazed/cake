@@ -1,11 +1,9 @@
-{ config, ... }:
-let
-  extraConfig = config.home.extraConfig;
-in
-{
+{config, ...}: let
+  inherit (config) userinfo;
+in {
   programs.rbw.enable = true;
   programs.rbw.settings = {
-    email = extraConfig.userEmail;
+    inherit (userinfo) email;
     lock_timeout = 3600;
     pinentry = "gnome3";
   };

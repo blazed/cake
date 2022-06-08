@@ -1,12 +1,18 @@
-{ config, lib, ... }:
-let
+{
+  config,
+  lib,
+  ...
+}: let
   inherit (lib) mkOption mkMerge mkIf mkEnableOption types;
   cfg = config.base16-theme;
-  cnotation = builtins.replaceStrings [ "#" ] [ "0x" ];
-  color = default: mkOption { inherit default; type = types.str; };
+  cnotation = builtins.replaceStrings ["#"] ["0x"];
+  color = default:
+    mkOption {
+      inherit default;
+      type = types.str;
+    };
   alpha = clr: a: "${clr}${a}";
-in
-{
+in {
   options.base16-theme = {
     enable = mkEnableOption "Enable base16 theme systemwide";
     base00 = color "#1d2021";
@@ -29,7 +35,7 @@ in
 
   config = mkIf cfg.enable (
     mkMerge [
-      ({
+      {
         wayland.windowManager.sway.config.colors = rec {
           focused = {
             border = cfg.base0A;
@@ -83,7 +89,7 @@ in
           bright.cyan = cnotation cfg.base0C;
           bright.white = cnotation cfg.base07;
         };
-      })
+      }
     ]
   );
 }
