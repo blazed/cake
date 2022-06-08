@@ -53,4 +53,4 @@ services.k3s.settings.node-ip = "10.0.149.1"
 services.k3s.settings.node-external-ip = "10.0.1.121"
 services.k3s.after = [ "wireguard-exsules.service" ]
 
-system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min", enableSentinel = true }
+system.autoUpgrade = { enable = true, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min", enableSentinel = true }
