@@ -52,6 +52,5 @@ services.k3s.settings.flannel-iface = "exsules"
 services.k3s.settings.node-ip = "10.0.149.1"
 services.k3s.settings.node-external-ip = "10.0.1.121"
 services.k3s.after = [ "wireguard-exsules.service" ]
-services.k3s.settings.secrets-encryption = true
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min", enableSentinel = true }
