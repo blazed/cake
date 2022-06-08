@@ -138,6 +138,21 @@
     },
     "flake-utils": {
       "locked": {
+        "lastModified": 1653893745,
+        "narHash": "sha256-0jntwV3Z8//YwuOjzhV2sgJJPt+HY6KhU7VZUL0fKZQ=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "1ed9fb1935d260de5fe1c2f7ee0ebaae17ed2fa1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_2": {
+      "locked": {
         "lastModified": 1644229661,
         "narHash": "sha256-1YdnJAsNy69bpcjuoKdOYQX0YxZBiCYZo4Twxerqv7k=",
         "owner": "numtide",
@@ -191,9 +206,25 @@
         "type": "github"
       }
     },
+    "kured": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1654583016,
+        "narHash": "sha256-7+JNDiooemvmOXxo6kk44JhpyfZjAf9OpWk+al4QbJs=",
+        "owner": "weaveworks",
+        "repo": "kured",
+        "rev": "641c319eb8dbb503b27c512f2db96fbbaf0da955",
+        "type": "github"
+      },
+      "original": {
+        "owner": "weaveworks",
+        "repo": "kured",
+        "type": "github"
+      }
+    },
     "neovim-flake": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": [
           "neovim-nightly-overlay",
           "nixpkgs"
@@ -405,8 +436,10 @@
         "devshell": "devshell",
         "fenix": "fenix",
         "fish-kubectl-completions": "fish-kubectl-completions",
+        "flake-utils": "flake-utils",
         "google-cloud-sdk-fish-completion": "google-cloud-sdk-fish-completion",
         "home-manager": "home-manager",
+        "kured": "kured",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "netns-exec": "netns-exec",
         "nix-misc": "nix-misc",

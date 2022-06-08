@@ -1,7 +1,10 @@
+system = "x86_64-linux"
+
+[config]
 publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINS32enSwJ3QsudwfrRcerKR/2zLZwERJhimbgBcye67"
 
 profiles = [
-  "hardware/xps9300",
+  "profiles/hardware/xps9300",
   "profiles/default_fs",
   "profiles/bluetooth",
   "profiles/bluez_autoswitch",
@@ -43,24 +46,24 @@ users.users.blazed.openssh.authorizedKeys.keys = [
   "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDd9ZjCyGAjtjM6lCVZ46+c3PZvYDzFxECpa3NRwZG8zGnPcbIsFIyQzOdk0eywHFZikNeTxxxiDYXeTnuHuMkweVw5mYIwb8hXj8ts7qoCOVJP9P+KnnEb4WS/edG+Arv1nVeNIXswjHKjOtUSRtoNlRuY0x4kyF9EAbVTrHrB5HDtr7GTGQAGAEp33jQqHrIqFoWmNm9GQ3jqP0b4AcZVRXjAj+amqUQ2+gRt4r1r1kzLuvmOrTbOxnNB/N2hGNCkTbIqP1tDVq03EY0ISOWG+1+TW79ASkSYIdnmQBoB+x6Eh+9CGe65wjM0Op3Q564ZS3Qde1GzMchx5A4W7rrMAOzLXJaQ8Mi7gjsDjrqxBfDDXUU5JL5xn0PhhI1teXvQ5aR90cSs424PS3Yrbqs/pHsybcB/kh25MlO9rGXA9MHh7LlVCPIvus/SDopVgTgNIvhYbQh9xdogkG1XdkvyzXmvAJ6Gk/TR/KRWURwQyp1WJxJ8nHr/zUWrU55zXrN/5gWbDB5k9zuR5G4EGrZshM3EuNeQtjMlHcLWfoZuwaOmar/NOmaXzrBCZb/jXNhQkh6M94krXWE0DIkwsu+5n14llMo/OCxneIEqx4FqZePC8x8qpqfKRzSetOG5PVdCO/8w1erhkg8uETguiPTK4uCfCgtZ75ISpv+7nEwuQ== cardno:000607191648",
 ]
 
-userConfiguration.blazed.fullName = "Pierre Boberg"
-userConfiguration.blazed.email = "blazed@darkstar.se"
-userConfiguration.blazed.githubUser = "blazed"
-userConfiguration.blazed.profiles = [
-  "alacritty",
-  "dunst",
-  "fish",
-  "git",
-  "i3status-laptop",
-  "neovim",
-  "rbw",
-  "rofi-wayland",
-  "starship",
-  "ssh",
-  "sway",
-  "theme",
-  "tmux",
-  "wlsunset",
+home-manager.users.blazed.userinfo.fullName = "Pierre Boberg"
+home-manager.users.blazed.userinfo.email = "blazed@darkstar.se"
+home-manager.users.blazed.userinfo.githubUser = "blazed"
+
+home-manager.users.blazed.profiles = [
+  "users/profiles/alacritty",
+  "users/profiles/dunst",
+  "users/profiles/fish",
+  "users/profiles/git",
+  "users/profiles/i3status-laptop",
+  "users/profiles/neovim",
+  "users/profiles/rbw",
+  "users/profiles/rofi-wayland",
+  "users/profiles/starship",
+  "users/profiles/ssh",
+  "users/profiles/sway",
+  "users/profiles/tmux",
+  "users/profiles/wlsunset",
 ]
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }

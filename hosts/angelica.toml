@@ -1,7 +1,10 @@
+system = "x86_64-linux"
+
+[config]
 publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICcPgR1IDyaKKQECpqdoesNahtMWQYi2P0m0FoodPm5d"
 
 profiles = [
-  "hardware/intel",
+  "profiles/hardware/intel",
   "profiles/unencrypted_fs",
   "profiles/hetzner_cloud",
   "profiles/k3s",
@@ -31,14 +34,17 @@ networking.firewall.trustedInterfaces = [ "exsules" ]
 
 services.k3s.role = "server"
 services.k3s.tokenFile = "/run/agenix/k3s-token"
-services.k3s.clusterCIDR = "10.244.0.0/16"
-services.k3s.serviceCIDR = "10.96.0.0/12"
-services.k3s.clusterDNS = "10.96.0.10"
-services.k3s.nodeIP = "10.0.149.5"
-services.k3s.nodeExternalIP = "65.108.84.164"
-services.k3s.advertiseAddress = "10.0.149.5"
-services.k3s.nodeCIDRMaskSize = 24
-services.k3s.flannelIface = "exsules"
+services.k3s.settings.cluster-cidr = "10.244.0.0/16"
+services.k3s.settings.service-cidr = "10.96.0.0/12"
+services.k3s.settings.cluster-dns = "10.96.0.10"
+services.k3s.settings.node-ip = "10.0.149.5"
+services.k3s.settings.node-external-ip = "65.108.84.164"
+services.k3s.settings.advertiseAddress = "10.0.149.5"
+services.k3s.settings.flannel-iface = "exsules"
+services.k3s.settings.kube-controller-manager-arg.node-cidr-mask-size = 24
 services.k3s.after = [ "wireguard-exsules.service" ]
+services.k3s.settings.secrets-encryption = true
+
+services.k3s.autoDeploy.kured = "pkg:kured-yaml/kured.yaml"
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }

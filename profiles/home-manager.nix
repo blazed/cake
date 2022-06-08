@@ -1,22 +1,22 @@
-{ hostName, config, ... }:
-let
-  inherit (builtins) mapAttrs;
-in
 {
-  home-manager.users = mapAttrs (user: conf:
-    { ... }:
-    {
-      imports = [
-        ../users/profiles/home.nix
-        ../users/profiles/extra-config.nix
-        ../users/profiles/theme.nix
-      ]++ conf.profiles;
-
-      home.username = user;
-      home.extraConfig.hostName = hostName;
-      home.extraConfig.userEmail = conf.email;
-      home.extraConfig.userFullName = conf.fullName;
-      home.extraConfig.gitHubUser = conf.gitHubUser;
-    }
-  ) config.userConfiguration;
+  hostName,
+  userProfiles,
+  ...
+}: let
+  inherit (builtins) mapAttrs;
+in {
+  home-manager.extraSpecialArgs = {inherit hostName;};
+  home-manager.sharedModules = [
+    ../users/modules/theme.nix
+    ../users/modules/userinfo.nix
+  ];
+  home-manager.users =
+    mapAttrs (
+      user: profiles: {...}: {
+        imports = [../users/profiles/home.nix] ++ profiles;
+        home.stateVersion = "22.11";
+        home.username = user;
+      }
+    )
+    userProfiles;
 }

@@ -1,6 +1,9 @@
-{ pkgs, config, lib, ... }:
-
-let
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}: let
   inherit (lib) mkEnableOption mkOption mkIf types;
   cfg = config.networking.server-wireguard;
   peers = types.submodule {
@@ -21,8 +24,7 @@ let
       };
     };
   };
-in
-{
+in {
   options.networking.server-wireguard = {
     enable = mkEnableOption "Enable server-wireguard";
     privateKeyFile = mkOption {
@@ -47,7 +49,7 @@ in
     };
   };
 
-  config = mkIf (cfg.enable) {
+  config = mkIf cfg.enable {
     networking.wireguard.interfaces.exsules = {
       inherit (cfg) privateKeyFile peers ips listenPort;
       postSetup = ''

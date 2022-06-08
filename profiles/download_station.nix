@@ -1,8 +1,11 @@
-{ pkgs, lib, config, ... }:
-let
-  inherit (lib) mkForce;
-in
 {
+  pkgs,
+  lib,
+  config,
+  ...
+}: let
+  inherit (lib) mkForce;
+in {
   services.deluge = {
     enable = true;
     declarative = true;
@@ -22,8 +25,8 @@ in
       move_completed = true;
       move_completed_path = "/mnt/media/torrents/finished";
       random_port = false;
-      listen_ports = [ 57788 57788 ];
-      enabled_plugins = [ "Label" "Stats" "SimpleExtractor" ];
+      listen_ports = [57788 57788];
+      enabled_plugins = ["Label" "Stats" "SimpleExtractor"];
       max_active_seeding = -1;
       max_active_downloading = 5;
       max_active_limit = -1;
@@ -41,8 +44,8 @@ in
   };
 
   systemd.services.deluged = {
-    bindsTo = [ "wireguard-private.service" ];
-    after = [ "wireguard-private.service" "mnt-media.mount" ];
+    bindsTo = ["wireguard-private.service"];
+    after = ["wireguard-private.service" "mnt-media.mount"];
     serviceConfig = {
       ExecStart = mkForce "/run/wrappers/bin/netns-exec private ${pkgs.deluge}/bin/deluged --do-not-daemonize --config ${config.services.deluge.dataDir}/.config/deluge";
     };
@@ -50,9 +53,9 @@ in
 
   systemd.services.deluged-forwarder = {
     enable = true;
-    after = [ "deluged.service" ];
-    bindsTo = [ "deluged.service" ];
-    wantedBy = [ "multi-user.target" ];
+    after = ["deluged.service"];
+    bindsTo = ["deluged.service"];
+    wantedBy = ["multi-user.target"];
     script = ''
       ${pkgs.socat}/bin/socat tcp-listen:58846,fork,reuseaddr,bind=127.0.0.1  exec:'/run/wrappers/bin/netns-exec private ${pkgs.socat}/bin/socat STDIO "tcp-connect:127.0.0.1:58846"',nofork
     '';
@@ -66,7 +69,7 @@ in
   };
 
   systemd.services.plex = {
-    after = [ "mnt-media.mount" ];
+    after = ["mnt-media.mount"];
   };
 
   services.sonarr = {

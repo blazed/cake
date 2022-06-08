@@ -1,22 +1,25 @@
-{ lib, ... }:
-{
+{lib, ...}: {
   options.home.extraConfig = {
-    hostName = lib.mkOption
+    hostName =
+      lib.mkOption
       {
         type = lib.types.str;
         example = "hostname";
       };
-    userFullName = lib.mkOption
+    userFullName =
+      lib.mkOption
       {
         type = lib.types.str;
         example = "Some name";
       };
-    userEmail = lib.mkOption
+    userEmail =
+      lib.mkOption
       {
         type = lib.types.str;
         example = "email@example.org";
       };
-    gitHubUser = lib.mkOption
+    gitHubUser =
+      lib.mkOption
       {
         type = lib.types.str;
         example = "handle";
