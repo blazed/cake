@@ -10,7 +10,7 @@
 in {
   services.k3s.enable = true;
   services.k3s.settings.node-label.hostname = hostName;
-  services.k3s.disable = ["traefik" "metrics-server" "servicelb"];
+  services.k3s.disable = ["traefik" "metrics-server"];
 
   networking.firewall.trustedInterfaces = ["cni0" "flannel.1" "calico+" "cilium+" "lxc+"];
   environment.state."/keep" = {

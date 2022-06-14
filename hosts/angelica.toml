@@ -43,6 +43,10 @@ services.k3s.settings.advertise-address = "10.0.149.5"
 services.k3s.settings.flannel-iface = "exsules"
 services.k3s.settings.kube-controller-manager-arg.node-cidr-mask-size = 24
 services.k3s.after = [ "wireguard-exsules.service" ]
+services.k3s.settings.node-label."svccontroller.k3s.cattle.io/enablelb" = "true"
+services.k3s.settings.node-label."topology.kubernetes.io/region" = "hetzner"
+services.k3s.settings.node-label."topology.kubernetes.io/zone" = "hetzner-fi"
+
 services.k3s.settings.secrets-encryption = true
 
 services.k3s.autoDeploy.kured = "pkg:kured-yaml/kured.yaml"
