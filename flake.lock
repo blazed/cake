@@ -36,6 +36,18 @@
         "type": "github"
       }
     },
+    "argocd-install": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-oe0rq8H7kpnDLuKBWHUAez1H6fm3yRS7QgYnWgoGlpg=",
+        "type": "file",
+        "url": "https://raw.githubusercontent.com/argoproj/argo-cd/v2.4.3/manifests/install.yaml"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://raw.githubusercontent.com/argoproj/argo-cd/v2.4.3/manifests/install.yaml"
+      }
+    },
     "blur": {
       "flake": false,
       "locked": {
@@ -432,6 +444,7 @@
       "inputs": {
         "age-plugin-yubikey": "age-plugin-yubikey",
         "agenix": "agenix",
+        "argocd-install": "argocd-install",
         "blur": "blur",
         "devshell": "devshell",
         "fenix": "fenix",
