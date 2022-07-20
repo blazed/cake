@@ -69,7 +69,7 @@
         set grepprg=ag\ --nogroup\ --nocolor
     endif
     if executable('rg')
-        set grepprg=rg\ --no-heading\ --vimgrep\ --smart-case
+        set grepprg=rg\ --no-heading\ --vimgrep\ --smart-case\ --glob="\!vendor" 
         set grepformat=%f:%l:%c:%m
     endif
 
