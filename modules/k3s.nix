@@ -99,7 +99,11 @@
     [plugins.cri.containerd.runtimes.runc]
       runtime_type = "io.containerd.runc.v2"
     [plugins.cri.containerd.runtimes.runc.options]
-      SystemdCgroup = true
+      SystemdCgroup = ${
+      if enableUnifiedCgroupHierarchy
+      then "true"
+      else "false"
+    }
     {{ if .PrivateRegistryConfig }}
     {{ if .PrivateRegistryConfig.Mirrors }}
     [plugins.cri.registry.mirrors]{{end}}
