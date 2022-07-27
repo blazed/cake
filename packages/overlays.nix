@@ -24,7 +24,7 @@ in
     };
     sway-unwrapped = final: prev: {
       sway-unwrapped = prev.callPackage ./sway {
-        wayland = final.wlroots-master;
+        wlroots = final.wlroots-master;
         wayland-protocols = final.wayland-protocols-master;
       };
     };

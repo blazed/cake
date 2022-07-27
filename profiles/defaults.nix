@@ -68,7 +68,6 @@
     pkgs.procs
     pkgs.sd
     pkgs.bottom
-    pkgs.gopass
   ];
 
   home-manager.useUserPackages = true;
