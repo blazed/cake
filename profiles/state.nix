@@ -35,7 +35,6 @@ in {
 
           files = [
             "/home/${userName}/.ssh/known_hosts"
-            "/home/${userName}/.config/gopass/config.yml"
           ];
         }
     ) (filterAttrs (_: user: user.isNormalUser) users);
