@@ -46,9 +46,6 @@ in
   buildEnv {
     name = "scripts";
     paths = [
-      add-wifi-network
-      update-wifi-networks
-      update-wireguard-keys
       compress
       tm
     ];
