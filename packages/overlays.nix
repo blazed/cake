@@ -13,17 +13,17 @@ in
     genAttrs pkgList (key: (final: prev: {${key} = prev.callPackage (./. + "/${key}") {inherit inputs;};}))
   )
   // {
-    wayland-protocols-master = final: prev: {wayland-protocols-master = prev.callPackage ./wayland-protocols-master {wayland = final.wayland120;};};
+    wayland-protocols-master = final: prev: {wayland-protocols-master = prev.callPackage ./wayland-protocols-master {};};
   }
   // {
     cake-updaters = import ./cake-updaters-overlay.nix;
     wlroots-master = final: prev: {
-      wlroots-master = prev.callpackage ./wlroots {
+      wlroots-master = prev.callPackage ./wlroots {
         wayland-protocols = final.wayland-protocols-master;
       };
     };
     sway-unwrapped = final: prev: {
-      sway-unwrapped = prev.callpackage ./sway {
+      sway-unwrapped = prev.callPackage ./sway {
         wayland = final.wlroots-master;
         wayland-protocols = final.wayland-protocols-master;
       };
