@@ -8,7 +8,7 @@
       src = pkgs.fetchFromGitHub {
         owner = "github";
         repo = "copilot.vim";
-        rev = "c01314840b94da0b9767b52f8a4bbc579214e509";
+        rev = "c2e75a3a7519c126c6fdb35984976df9ae13f564";
         sha256 = "sha256-gnFiuXpKF55cWxCXNXe3zqQaVmGoUV5aRBGIlyUUfIM=";
       };
     };
