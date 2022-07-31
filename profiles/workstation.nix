@@ -84,7 +84,6 @@ in {
   };
 
   xdg.portal.enable = true;
-  xdg.portal.gtkUsePortal = true;
   xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-wlr pkgs.xdg-desktop-portal-gtk];
 
   environment.systemPackages = [
