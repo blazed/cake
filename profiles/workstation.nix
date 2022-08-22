@@ -107,11 +107,13 @@ in {
           directories = [
             "/home/${userName}/Downloads"
             "/home/${userName}/Documents"
+            "/home/${userName}/Games"
             "/home/${userName}/Photos"
             "/home/${userName}/Pictures"
             "/home/${userName}/.local/share/direnv"
             "/home/${userName}/.local/share/fish"
             "/home/${userName}/.local/share/containers"
+            "/home/${userName}/.local/share/lutris"
             "/home/${userName}/.local/share/Steam"
             "/home/${userName}/.local/share/TelegramDesktop"
             "/home/${userName}/.mail"
@@ -124,6 +126,7 @@ in {
             "/home/${userName}/.gnupg"
             "/home/${userName}/.config/gcloud"
             "/home/${userName}/.config/discord"
+            "/home/${userName}/.config/lutris"
             "/home/${userName}/.config/pulse"
             "/home/${userName}/.config/Signal"
             "/home/${userName}/.config/spotify"
@@ -132,6 +135,7 @@ in {
             "/home/${userName}/.local/state/pipewire/media-session.d"
             "/home/${userName}/.local/state/wireplumber"
             "/home/${userName}/.terraform.d"
+            "/home/${userName}/.wine"
             "/home/${userName}/code"
           ];
 
