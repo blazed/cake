@@ -21,6 +21,7 @@ in {
     pkgs.google-cloud-sdk
     pkgs.spotify
     pkgs.netns-dbus-proxy
+    pkgs.xdg_utils
   ];
 
   home.sessionVariables = rec {
