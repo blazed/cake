@@ -96,6 +96,7 @@ in {
     pkgs.firefox-devedition-bin
     pkgs.lutris
     pkgs.ledger-live-desktop
+    pkgs.entr
   ];
 
   programs.steam.enable = true;
