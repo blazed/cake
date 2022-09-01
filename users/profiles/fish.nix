@@ -96,7 +96,7 @@ in {
       gd = "git diff";
       glol = "git log --graph --pretty='%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
       glola = "git log --graph --pretty='%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --all";
-      gunwip = "git log -n 1 | grep -q -c \"\-\-wip\-\-\" && git reset HEAD~1";
+      gunwip = ''git log -n 1 | grep -q -c "\-\-wip\-\-" && git reset HEAD~1'';
       gwip = "git add -A; git rm (git ls-files --deleted) 2> /dev/null; git commit -m \"--wip--\"";
       gss = "git status -s";
       "..." = "../..";

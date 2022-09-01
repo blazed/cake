@@ -12,6 +12,7 @@ in {
     pkgs.fzf
     pkgs.nodejs
     pkgs.kubectl
+    pkgs.kubectx
     pkgs.kustomize
     pkgs.scrot
     pkgs.xclip
