@@ -65,16 +65,24 @@
       }
     },
     "devshell": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
       "locked": {
-        "lastModified": 1642188207,
-        "narHash": "sha256-5S19MG4S27pe/x3xmnzLGqVp6Eu1rr3LOSxrav4h0EA=",
-        "owner": "johnae",
+        "lastModified": 1660811669,
+        "narHash": "sha256-V6lmsaLNFz41myppL0yxglta92ijkSvpZ+XVygAh+bU=",
+        "owner": "numtide",
         "repo": "devshell",
-        "rev": "dbde51ab8009de6422c9520bb7a22f03f0caa70f",
+        "rev": "c2feacb46ee69949124c835419861143c4016fb5",
         "type": "github"
       },
       "original": {
-        "owner": "johnae",
+        "owner": "numtide",
         "repo": "devshell",
         "type": "github"
       }

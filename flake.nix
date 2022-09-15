@@ -36,7 +36,9 @@
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    devshell.url = "github:johnae/devshell";
+    devshell.url = "github:numtide/devshell";
+	devshell.inputs.flake-utils.follows = "flake-utils";
+    devshell.inputs.nixpkgs.follows = "nixpkgs";
 
     neovim-nightly-overlay = {
       url = "github:nix-community/neovim-nightly-overlay";
