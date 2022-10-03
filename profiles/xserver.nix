@@ -23,5 +23,21 @@ in {
     layout = "us";
     xkbVariant = "dvp";
     xkbOptions = "caps:escape,compose:ralt";
+
+    serverLayoutSection = ''
+      Option         "Xinerama" "0"
+    '';
+
+    screenSection = ''
+      DefaultDepth    24
+      Option         "Stereo" "0"
+      Option         "nvidiaXineramaInfoOrder" "DFP-6"
+      Option         "SLI" "Off"
+      Option         "MultiGPU" "Off"
+      Option         "BaseMosaic" "off"
+      SubSection     "Display"
+          Depth       24
+      EndSubSection
+    '';
   };
 }

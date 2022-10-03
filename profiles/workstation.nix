@@ -41,6 +41,8 @@ in {
 
   services.fwupd.enable = true;
 
+  services.flatpak.enable = true;
+
   services.dbus.packages = with pkgs; [gcr dconf gnome.sushi];
   services.udev.packages = with pkgs; [gnome.gnome-settings-daemon];
   services.udev.extraRules = ''
@@ -121,6 +123,7 @@ in {
             "/home/${userName}/.config/discord"
             "/home/${userName}/.config/gcloud"
             "/home/${userName}/.config/lutris"
+            "/home/${userName}/.config/obs-studio"
             "/home/${userName}/.config/pipewire"
             "/home/${userName}/.config/pulse"
             "/home/${userName}/.config/spotify"
@@ -139,7 +142,6 @@ in {
             "/home/${userName}/.local/state/wireplumber"
             "/home/${userName}/.mail"
             "/home/${userName}/.mozilla"
-            "/home/${userName}/.obs-studio"
             "/home/${userName}/.steam"
             "/home/${userName}/.terraform.d"
             "/home/${userName}/.var"

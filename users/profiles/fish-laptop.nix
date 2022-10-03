@@ -8,6 +8,69 @@
     source ${pkgs.nix-index}/etc/profile.d/command-not-found.sh
     command_not_found_handle "$@"
   '';
+
+  withinNetNS = executable: {netns ? "private"}:
+    lib.concatStringsSep " " [
+      "${pkgs.dbus}/bin/dbus-run-session" ## sway is actually wrapped and does this, but fish doesn't for example. No harm doing it even for sway.
+      "${pkgs.netns-dbus-proxy}/bin/netns-dbus-proxy"
+      "netns-exec"
+      netns
+      executable
+    ];
+
+  sway = pkgs.callPackage (pkgs.path + "/pkgs/applications/window-managers/sway/wrapper.nix") {
+    extraSessionCommands = ''
+      export XDG_SESSION_TYPE=wayland
+      export XDG_CURRENT_DESKTOP=sway
+      export XDG_SESSION_DESKTOP=sway
+    '';
+  };
+
+  privateSway = withinNetNS "${sway}/bin/sway" {};
+  privateFish = withinNetNS "${pkgs.fish}/bin/fish" {};
+
+  genLaunchOptions = optionList:
+    lib.concatStringsSep "\\n" (lib.flatten (
+      map
+      (
+        lib.mapAttrsToList (k: v: "${k}\\texec ${v}")
+      )
+      optionList
+    ));
+
+  genLauncher = optionList: ''
+    clear
+    set RUN (echo -e "${genLaunchOptions optionList}" | \
+        ${pkgs.skim}/bin/sk -p "start >> " --inline-info --margin 40%,40% \
+                            --color=bw --height=40 --no-hscroll --no-mouse \
+                            --reverse --delimiter='\t' --with-nth 1 | \
+                                 ${pkgs.gawk}/bin/awk -F'\t' '{print $2}')
+    eval "$RUN"
+  '';
+
+  swayDrmDebug = pkgs.writeStrictShellScriptBin "sway-drm-debug" ''
+    echo 0xFE | sudo tee /sys/module/drm/parameters/debug # Enable verbose DRM logging
+    sudo dmesg -C
+    dmesg -w >dmesg.log & # Continuously write DRM logs to a file
+    sway -d >sway.log 2>&1 # Reproduce the bug, then exit sway
+    fg # Kill dmesg with Ctrl+C
+    echo 0x00 | sudo tee /sys/module/drm/parameters/debug
+  '';
+
+  drmDebugLaunch = pkgs.writeStrictShellScriptBin "drm-debug-launch" ''
+    ln -s ${swayDrmDebug}/bin/sway-drm-debug ~/sway-drm-debug
+    echo Please execute ~/sway-drm-debug
+    ${pkgs.fish}/bin/fish
+  '';
+
+  launcher = genLauncher [
+    {"sway" = "${pkgs.udev}/bin/systemd-cat --identifier=sway ${sway}/bin/sway";}
+    {"sway private" = "${pkgs.udev}/bin/systemd-cat --identifier=sway ${privateSway}";}
+    {"fish" = "${pkgs.dbus}/bin/dbus-run-session ${pkgs.fish}/bin/fish";}
+    {"fish private" = privateFish;}
+    {"sway debug" = "${sway}/bin/sway -d 2> ~/sway.log";}
+    {"sway drm debug" = "${drmDebugLaunch}/bin/drm-debug-launch";}
+  ];
 in {
   programs.autojump = {
     enable = true;
@@ -92,6 +155,12 @@ in {
 
       function git --wraps hub --description 'Alias for hub, which wraps git to provide extra functionality with GitHub.'
           hub $argv
+      end
+    '';
+
+    loginShellInit = ''
+      if test "$DISPLAY" = ""; and test (tty) = /dev/tty1 || test (tty) = /dev/tty2; and test "$XDG_SESSION_TYPE" = "tty"
+        ${launcher}
       end
     '';
   };

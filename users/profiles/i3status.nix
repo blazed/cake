@@ -2,8 +2,8 @@
   programs.i3status-rust = {
     enable = true;
     bars.default = {
-      icons = "solarized-dark";
-      theme = "awesome5";
+      theme = "solarized-dark";
+      icons = "awesome5";
       blocks = [
         {
           block = "disk_space";

@@ -9,15 +9,15 @@ in {
     enable = true;
 
     extraConfig = ''
-      workspace 1 output DP-0
-      workspace 3 output DP-0
-      workspace 5 output DP-0
+      workspace 1 output DP-4
+      workspace 3 output DP-4
+      workspace 5 output DP-4
 
       workspace 2 output DP-2
       workspace 4 output DP-2
       workspace 6 output DP-2
 
-      workspace 7 output DP-4
+      workspace 7 output DP-0
     '';
 
     config = {
