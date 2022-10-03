@@ -37,7 +37,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     devshell.url = "github:numtide/devshell";
-	devshell.inputs.flake-utils.follows = "flake-utils";
+    devshell.inputs.flake-utils.follows = "flake-utils";
     devshell.inputs.nixpkgs.follows = "nixpkgs";
 
     neovim-nightly-overlay = {

@@ -88,7 +88,7 @@ in {
 
   environment.systemPackages = [
     pkgs.gitAndTools.hub
-    pkgs.go_1_18
+    pkgs.go_1_19
     pkgs.discord
     pkgs.signal-desktop
     pkgs.tdesktop ## Telegrom
@@ -106,44 +106,52 @@ in {
       userName: conf:
         nameValuePair (toString conf.uid) {
           directories = [
-            "/home/${userName}/Downloads"
-            "/home/${userName}/Documents"
-            "/home/${userName}/Games"
-            "/home/${userName}/Photos"
-            "/home/${userName}/Pictures"
-            "/home/${userName}/.local/share/direnv"
-            "/home/${userName}/.local/share/fish"
-            "/home/${userName}/.local/share/containers"
-            "/home/${userName}/.local/share/lutris"
-            "/home/${userName}/.local/share/Steam"
-            "/home/${userName}/.local/share/TelegramDesktop"
-            "/home/${userName}/.mail"
+            "/home/${userName}/.backup/undo"
             "/home/${userName}/.cache/mu"
             "/home/${userName}/.cache/nix"
             "/home/${userName}/.cache/nix-index"
-            "/home/${userName}/.cache/vim"
             "/home/${userName}/.cache/rbw"
-            "/home/${userName}/.mozilla"
-            "/home/${userName}/.gnupg"
-            "/home/${userName}/.config/gcloud"
-            "/home/${userName}/.config/discord"
-            "/home/${userName}/.config/lutris"
-            "/home/${userName}/.config/pulse"
+            "/home/${userName}/.cache/vim"
             "/home/${userName}/.config/Signal"
+            "/home/${userName}/.config/discord"
+            "/home/${userName}/.config/gcloud"
+            "/home/${userName}/.config/lutris"
+            "/home/${userName}/.config/pipewire"
+            "/home/${userName}/.config/pulse"
             "/home/${userName}/.config/spotify"
-            # "/home/${userName}/.config/Ledger Live"
-            "/home/${userName}/.backup/undo"
+            "/home/${userName}/.config/warcraftlogs"
+            "/home/${userName}/.factorio"
+            "/home/${userName}/.gnupg"
+            "/home/${userName}/.local/share/Steam"
+            "/home/${userName}/.local/share/TelegramDesktop"
+            "/home/${userName}/.local/share/containers"
+            "/home/${userName}/.local/share/direnv"
+            "/home/${userName}/.local/share/fish"
+            "/home/${userName}/.local/share/flatpak"
+            "/home/${userName}/.local/share/lutris"
+            "/home/${userName}/.local/share/vulkan"
             "/home/${userName}/.local/state/pipewire/media-session.d"
             "/home/${userName}/.local/state/wireplumber"
+            "/home/${userName}/.mail"
+            "/home/${userName}/.mozilla"
+            "/home/${userName}/.obs-studio"
+            "/home/${userName}/.steam"
             "/home/${userName}/.terraform.d"
+            "/home/${userName}/.var"
             "/home/${userName}/.wine"
+            "/home/${userName}/Documents"
+            "/home/${userName}/Downloads"
+            "/home/${userName}/Games"
+            "/home/${userName}/Photos"
+            "/home/${userName}/Pictures"
             "/home/${userName}/code"
+            # "/home/${userName}/.config/Ledger Live"
           ];
 
           files = [
+            "/home/${userName}/.config/gopass/config.yml"
             "/home/${userName}/.kube/config"
             "/home/${userName}/.ssh/known_hosts"
-            "/home/${userName}/.config/gopass/config.yml"
           ];
         }
     ) (filterAttrs (_: user: user.isNormalUser) users);
