@@ -20,6 +20,7 @@ in {
 
   hardware.opengl.enable = true;
   hardware.opengl.driSupport = true;
+  hardware.opengl.driSupport32Bit = true;
 
   sound.enable = false;
   security.rtkit.enable = true;
@@ -40,8 +41,8 @@ in {
 
   services.fwupd.enable = true;
 
-  services.dbus.packages = with pkgs; [gcr dconf gnome3.sushi];
-  services.udev.packages = with pkgs; [gnome3.gnome-settings-daemon];
+  services.dbus.packages = with pkgs; [gcr dconf gnome.sushi];
+  services.udev.packages = with pkgs; [gnome.gnome-settings-daemon];
   services.udev.extraRules = ''
     ## ledger
     SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0005|5000|5001|5002|5003|5004|5005|5006|5007|5008|5009|500a|500b|500c|500d|500e|500f|5010|5011|5012|5013|5014|5015|5016|5017|5018|5019|501a|501b|501c|501d|501e|501f", TAG+="uaccess", TAG+="udev-acl", OWNER="blazed"
@@ -87,21 +88,25 @@ in {
   xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-wlr pkgs.xdg-desktop-portal-gtk];
 
   environment.systemPackages = [
+    pkgs.discord
+    pkgs.entr
+    pkgs.firefox-devedition-bin
     pkgs.gitAndTools.hub
     pkgs.go_1_19
-    pkgs.discord
+    pkgs.ledger-live-desktop
+    pkgs.lm_sensors
+    pkgs.lutris
     pkgs.signal-desktop
     pkgs.tdesktop ## Telegrom
-    pkgs.lm_sensors
-    pkgs.firefox-devedition-bin
-    pkgs.lutris
-    pkgs.ledger-live-desktop
-    pkgs.entr
+    pkgs.vulkan-loader
   ];
 
   programs.steam.enable = true;
 
   environment.state."/keep" = {
+    directories = [
+      "/var/lib/flatpak"
+    ];
     users = mapAttrs' (
       userName: conf:
         nameValuePair (toString conf.uid) {

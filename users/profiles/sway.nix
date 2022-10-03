@@ -235,7 +235,7 @@ in {
           command = "${pkgs.xorg.xrdb}/bin/xrdb -merge ~/.Xresources";
         }
         {
-          command = "${pkgs.gnome3.gnome-settings-daemon}/libexec/gsd-xsettings";
+          command = "${pkgs.gnome.gnome-settings-daemon}/libexec/gsd-xsettings";
         }
         {
           command = "${pkgs.dbus.out}/bin/dbus-update-activation-environment 2>/dev/null && ${pkgs.dbus.out}/bin/dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK";

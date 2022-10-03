@@ -4,7 +4,7 @@ system = "x86_64-linux"
 publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFqgNL9JxTIJBPk/O3WOmy+Amh+r8LxOkdIKmYBLHPnR"
 
 profiles = [
-  "profiles/hardware/intel",
+  "profiles/hardware/x570",
   "profiles/default_fs",
   "profiles/extra-hosts",
   "profiles/home-manager",

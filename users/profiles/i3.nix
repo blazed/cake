@@ -31,7 +31,10 @@ in {
       };
       assigns = {
         "2" = [{class = "Firefox Developer Edition";}];
-        "3" = [{class = "Lutris";}];
+        "3" = [
+          {class = "Lutris";}
+          {class = "bottles";}
+        ];
         "4" = [
           {class = "TelegramDesktop";}
           {class = "Signal";}

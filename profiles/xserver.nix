@@ -11,7 +11,7 @@ in {
       gdm.wayland = false;
       defaultSession = "none+i3";
       sessionCommands = ''
-        ${pkgs.xorg.xrandr}/bin/xrandr --output DVI-D-0 --off --output HDMI-0 --off --output DP-0 --primary --refresh 144 --mode 2560x1440 --pos 1440x630 --rotate normal --output DP-1 --off --output DP-2 --mode 2560x1440 --pos 4000x630 --rotate normal --output DP-3 --off --output DP-4 --mode 2560x1440 --pos 0x0 --rotate left --output DP-5 --off
+        ${pkgs.xorg.xrandr}/bin/xrandr --output DVI-D-4 --off --output HDMI-4 --off --output DP-4 --primary --refresh 144 --mode 2560x1440 --pos 1440x630 --rotate normal --output DP-1 --off --output DP-2 --mode 2560x1440 --pos 4000x630 --rotate normal --output DP-0 --off --output DP-0 --mode 2560x1440 --pos 0x0 --rotate left --output DP-5 --off
         ${pkgs.xorg.xmodmap}/bin/xmodmap ${myCustomLayout}
       '';
     };

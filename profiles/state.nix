@@ -9,21 +9,21 @@
 in {
   environment.state."/keep" = {
     directories = [
-      "/var/log"
-      "/var/lib/containers"
-      "/var/lib/wireguard"
-      "/var/lib/tailscale"
-      "/var/lib/libvirt"
-      "/var/lib/docker"
       "/root"
+      "/var/lib/containers"
+      "/var/lib/docker"
+      "/var/lib/libvirt"
+      "/var/lib/tailscale"
+      "/var/lib/wireguard"
+      "/var/log"
     ];
 
     files = [
       "/etc/machine-id"
-      "/etc/ssh/ssh_host_rsa_key"
       "/etc/ssh/ssh_host_ed25519_key"
-      "/etc/ssh/ssh_host_rsa_key.pub"
       "/etc/ssh/ssh_host_ed25519_key.pub"
+      "/etc/ssh/ssh_host_rsa_key"
+      "/etc/ssh/ssh_host_rsa_key.pub"
     ];
 
     users = mapAttrs' (
