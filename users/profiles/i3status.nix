@@ -30,7 +30,7 @@
           collapsed = false;
           interval = 5;
           format = "{average}";
-          inputs = ["Tdie"];
+          inputs = ["CPU"];
         }
         {
           block = "load";
