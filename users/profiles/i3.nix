@@ -18,6 +18,9 @@ in {
       workspace 6 output DP-2
 
       workspace 7 output DP-0
+
+      for_window [class="^.*"] border pixel 1
+      new_window 1pixel
     '';
 
     config = {
@@ -26,6 +29,7 @@ in {
       terminal = "${pkgs.alacritty}/bin/alacritty";
       workspaceAutoBackAndForth = true;
       window = {
+        border = 1;
         hideEdgeBorders = "none";
         titlebar = false;
       };
