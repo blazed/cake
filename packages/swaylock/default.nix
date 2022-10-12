@@ -3,7 +3,7 @@
   lib,
   meson,
   ninja,
-  pkgconfig,
+  pkg-config,
   git,
   asciidoc,
   libxslt,
@@ -27,7 +27,7 @@ in
     src = inputs.swaylock;
 
     nativeBuildInputs =
-      [meson ninja pkgconfig git]
+      [meson ninja pkg-config git]
       ++ lib.optional buildDocs [scdoc asciidoc libxslt docbook_xsl];
     buildInputs = [wayland wayland-protocols cairo pam gdk-pixbuf libxkbcommon];
 

@@ -1,7 +1,7 @@
 {
   lib,
   rustPlatform,
-  pkgconfig,
+  pkg-config,
   pcsclite,
   inputs,
 }:
@@ -12,7 +12,7 @@ rustPlatform.buildRustPackage {
   src = inputs.age-plugin-yubikey;
   cargoSha256 = "sha256-6J+xogL5t/FxStUz/hPrifhoGM95hyfTwJGntxRZ4U4=";
 
-  nativeBuildInputs = [pkgconfig];
+  nativeBuildInputs = [pkg-config];
   buildInputs = [pcsclite];
 
   doCheck = false;

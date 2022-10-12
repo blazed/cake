@@ -9,15 +9,18 @@ in {
     enable = true;
 
     extraConfig = ''
-      workspace 1 output DP-0
-      workspace 3 output DP-0
-      workspace 5 output DP-0
+      workspace 1 output DP-4
+      workspace 3 output DP-4
+      workspace 5 output DP-4
 
       workspace 2 output DP-2
       workspace 4 output DP-2
       workspace 6 output DP-2
 
-      workspace 7 output DP-4
+      workspace 7 output DP-0
+
+      for_window [class="^.*"] border pixel 1
+      new_window 1pixel
     '';
 
     config = {
@@ -26,12 +29,16 @@ in {
       terminal = "${pkgs.alacritty}/bin/alacritty";
       workspaceAutoBackAndForth = true;
       window = {
+        border = 1;
         hideEdgeBorders = "none";
         titlebar = false;
       };
       assigns = {
         "2" = [{class = "Firefox Developer Edition";}];
-        "3" = [{class = "Lutris";}];
+        "3" = [
+          {class = "Lutris";}
+          {class = "bottles";}
+        ];
         "4" = [
           {class = "TelegramDesktop";}
           {class = "Signal";}
@@ -75,7 +82,10 @@ in {
       bars = [
         {
           statusCommand = "${pkgs.i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-default.toml";
-          fonts = ["DejaVu Sans Mono" "FontAwesome 12"];
+          fonts = {
+            names = ["DejaVu Sans Mono" "FontAwesome"];
+            size = 12.0;
+          };
           position = "top";
           colors = {
             background = "#222222";

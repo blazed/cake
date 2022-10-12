@@ -1,52 +1,37 @@
 system = "x86_64-linux"
 
 [config]
-publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINS32enSwJ3QsudwfrRcerKR/2zLZwERJhimbgBcye67"
+publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFqgNL9JxTIJBPk/O3WOmy+Amh+r8LxOkdIKmYBLHPnR"
 
 profiles = [
-  "profiles/hardware/xps9300",
+  "profiles/hardware/usbcore",
+  "profiles/hardware/x570",
   "profiles/default_fs",
-  "profiles/bluetooth",
-  "profiles/bluez_autoswitch",
   "profiles/extra-hosts",
-  "profiles/hidpi",
   "profiles/home-manager",
-  "profiles/laptop",
+  "profiles/workstation",
   "profiles/pcscd",
   "profiles/state",
+  "profiles/xserver",
 ]
 
-age.secrets.wg-home.file = "secrets/diana/wg-home.age"
-age.secrets.wg-private.file = "secrets/diana/wg-private.age"
-age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
+age.secrets.wg-home.file = "secrets/nicolina/wg-home.age"
 
 networking.wireguard.enable = true
-networking.wireguard.interfaces.home.ips = [ "10.0.149.3/32" ]
+networking.wireguard.interfaces.home.ips = [ "10.0.149.6/32" ]
 networking.wireguard.interfaces.home.privateKeyFile = "/run/agenix/wg-home"
 networking.wireguard.interfaces.home.peers = [
-  { publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4=", allowedIPs = [ "10.0.149.0/24", "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
+  { publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.1.121:51820", persistentKeepalive = 25 }
 ]
 
-networking.private-wireguard.enable = true
-networking.private-wireguard.ips = [
-  "10.0.149.3/32",
-  "10.68.41.158/32",
-  "fc00:bbbb:bbbb:bb01::5:299d/128",
-]
-networking.private-wireguard.privateKeyFile = "/run/agenix/wg-private"
-networking.private-wireguard.peers = [
-  { publicKey = "pKcMMeC4jMUxSU5pH1orvp4//GrY8is+y9JRfVP3+BY=", allowedIPs = [ "0.0.0.0/0", "::0/0" ], endpoint = "185.65.135.222:51820", persistentKeepalive = 25 },
-  { publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4=", allowedIPs = [ "10.0.149.0/24", "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
-]
-
-users.groups.blazed.gid = 1000
-users.users.blazed.uid = 1000
+users.groups.blazed.gid = 1447
+users.users.blazed.uid = 1447
 users.users.blazed.shell = "fish"
-users.users.blazed.hashedPassword = "$6$HST/IcrwobvqZd$8D7oml6RozVpXaAw/WjjcYJOfSd7HJ2DqC6jNrEBKs5bz7t0O7EgrYj33XBTcrAbOgsn3T2PS4ofd8S77Jc8X0"
+users.users.blazed.hashedPassword = "$6$ai8pClNbaHvh4dHp$DFfY7kC5vIgL8dWPzv24rd60FgmYSSfUu5dbLz623QTeIChQ.hnxoGbJfILKx2jDfqkGGei6ocdF4SUBupyHE/"
 users.users.blazed.openssh.authorizedKeys.keys = [
   "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7jrwDFcxP329CNp2kUlGH3cvvrY5DHTJdB6ZsjhpnK1yEVpRrG87TOkxrdBOX+s8bVL/8vR3xgvkaKl67zav9JG1xk9HOYKnAHJ7laLX0WJSHsdL9MHblUbVHnn7rXXQvzwmTUacQlF8h8LiTfGAcSNmj9hrehOzkU1v+mpeOsga7yAMuJWI1Tb7AJ+gzHO/72dEeA5VG0JC43KGMW4yYd12pG/58d9RkaT0Et/rXK7zpYhzaPSl1JlCxYYl12OcjQCoWTz5Bq5jS2cW5dup6/N6kuGdanTGxI4yUIWlUyLPjHUZ5g7EcyBuAE2/v33QUFiwhQjNvHdvhoaoil/T1hye2YJfZ6i+ghrN+jW4Prw2znZ+txRhFlIIXmeEMCBN4aLx5oTWH6qXHRGYjCSPhoU+P8jcagBKTApC0gzNK8jH4nJ8VhGs+g+N2337u5pjjCy9IAN9E8wiODgAvsButF+dFkHXEEzJ9pOrin4/MFUpVQklFwVTTCYP2mXa66zkI+JqoTNCkY5uJPxraxKdq0+0aWjh3KApr5vGA6ZFbkHX3tZdOAWTFZkM46Z3ZxohzWJfJg+eLyAmBbRjJjYU6X5lvb697aksAaqjV2NlkEBxmQTFf9QgrrzfTQubP1Nxj1wnrJd/ytofMIiVMVZ5JLAVIatetV9ZICmxF4j6Tiw== cardno:000606444817",
   "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDd9ZjCyGAjtjM6lCVZ46+c3PZvYDzFxECpa3NRwZG8zGnPcbIsFIyQzOdk0eywHFZikNeTxxxiDYXeTnuHuMkweVw5mYIwb8hXj8ts7qoCOVJP9P+KnnEb4WS/edG+Arv1nVeNIXswjHKjOtUSRtoNlRuY0x4kyF9EAbVTrHrB5HDtr7GTGQAGAEp33jQqHrIqFoWmNm9GQ3jqP0b4AcZVRXjAj+amqUQ2+gRt4r1r1kzLuvmOrTbOxnNB/N2hGNCkTbIqP1tDVq03EY0ISOWG+1+TW79ASkSYIdnmQBoB+x6Eh+9CGe65wjM0Op3Q564ZS3Qde1GzMchx5A4W7rrMAOzLXJaQ8Mi7gjsDjrqxBfDDXUU5JL5xn0PhhI1teXvQ5aR90cSs424PS3Yrbqs/pHsybcB/kh25MlO9rGXA9MHh7LlVCPIvus/SDopVgTgNIvhYbQh9xdogkG1XdkvyzXmvAJ6Gk/TR/KRWURwQyp1WJxJ8nHr/zUWrU55zXrN/5gWbDB5k9zuR5G4EGrZshM3EuNeQtjMlHcLWfoZuwaOmar/NOmaXzrBCZb/jXNhQkh6M94krXWE0DIkwsu+5n14llMo/OCxneIEqx4FqZePC8x8qpqfKRzSetOG5PVdCO/8w1erhkg8uETguiPTK4uCfCgtZ75ISpv+7nEwuQ== cardno:000607191648",
-  "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=",
+  "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo=",
 ]
 
 home-manager.users.blazed.userinfo.fullName = "Pierre Boberg"
@@ -56,17 +41,22 @@ home-manager.users.blazed.userinfo.githubUser = "blazed"
 home-manager.users.blazed.profiles = [
   "users/profiles/alacritty",
   "users/profiles/dunst",
-  "users/profiles/fish-laptop",
+  "users/profiles/fish",
   "users/profiles/git",
-  "users/profiles/i3status-laptop",
+  "users/profiles/i3",
+  "users/profiles/i3status",
   "users/profiles/neovim",
-  "users/profiles/rbw",
-  "users/profiles/rofi-wayland",
-  "users/profiles/starship",
+  "users/profiles/rofi",
   "users/profiles/ssh",
-  "users/profiles/sway",
+  "users/profiles/starship",
   "users/profiles/tmux",
-  "users/profiles/wlsunset",
+  "users/profiles/xinitrc",
+  "users/profiles/xresources",
 ]
+
+home-manager.users.blazed.programs.git.extraConfig.user.signingKey = "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo="
+home-manager.users.blazed.programs.git.extraConfig.gpg.format = "ssh"
+home-manager.users.blazed.programs.git.extraConfig.commit.gpgSign = true
+home-manager.users.blazed.programs.git.extraConfig.tag.forceSignAnnotated = true
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
