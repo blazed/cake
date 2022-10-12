@@ -1,10 +1,10 @@
-{pkgs}: {
+{pkgs, ...}: {
   xresources.extraConfig = builtins.readFile (
     pkgs.fetchFromGitHub {
-      owner = "base16-templates";
+      owner = "pinpox";
       repo = "base16-xresources";
-      rev = "d762461de45e00c73a514408988345691f727632";
-      sha256 = "08msc3mgf1qzz6j82gi10fin12iwl2zh5annfgbp6nkig63j6fcx";
+      rev = "fa0fe50d23c57515cf75c014044df3daf76f8d6f";
+      sha256 = "sha256-G9n4+xpo4/FC2ixvec1z1FOTs+IlsFd32oeT5/pfrNo=";
     }
     + "/xresources/base16-onedark-256.Xresources"
   );

@@ -22,7 +22,7 @@ in {
     pkgs.google-cloud-sdk
     pkgs.spotify
     pkgs.netns-dbus-proxy
-    pkgs.xdg_utils
+    pkgs.xdg-utils
   ];
 
   home.sessionVariables = rec {
@@ -31,10 +31,10 @@ in {
     KUBECONFIG = "/home/${home.username}/.kube/config";
   };
 
-  home.pointerCursor = {
-    package = pkgs.arc-icon-theme;
-    name = "Arc";
-  };
+  # home.pointerCursor = {
+  #   package = pkgs.arc-icon-theme;
+  #   name = "Arc";
+  # };
 
   xdg.enable = true;
   xdg.configFile."mimeapps.list".force = true;
@@ -112,7 +112,7 @@ in {
   systemd.user.timers.nix-index = {
     Unit.Description = "Nix-index indexes all files in nixpkgs";
     Timer = {
-      OnCalendar = "daily";
+      OnCalendar = "*-*-* 4:00:00";
       Unit = "nix-index.service";
     };
     Install.WantedBy = ["timers.target"];

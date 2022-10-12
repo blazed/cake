@@ -13,6 +13,9 @@
   programs.light.enable = true;
   services.upower.enable = true;
 
+  powerManagement.enable = true;
+  powerManagement.powertop.enable = true;
+
   boot.kernel.sysctl = {
     "vm.dirty_writeback_centisecs" = lib.mkDefault 1500;
     "vm.laptop_mode" = lib.mkDefault 5;

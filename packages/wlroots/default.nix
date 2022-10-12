@@ -3,7 +3,7 @@
   lib,
   meson,
   ninja,
-  pkgconfig,
+  pkg-config,
   wayland,
   libGL,
   wayland-protocols,
@@ -20,7 +20,7 @@
   libglvnd,
   libpng,
   libuuid,
-  libseat,
+  seatd,
   libdrm,
   ffmpeg,
   xwayland,
@@ -38,7 +38,7 @@ stdenv.mkDerivation {
 
   outputs = ["out"];
 
-  nativeBuildInputs = [meson ninja pkgconfig xwayland];
+  nativeBuildInputs = [meson ninja pkg-config xwayland];
 
   mesonFlags =
     lib.optional (!enableXWayland) "-Dxwayland=disabled";
@@ -53,7 +53,7 @@ stdenv.mkDerivation {
     xcbutilwm
     libX11
     libcap
-    libseat
+    seatd
     libdrm
     xcbutilimage
     xcbutilerrors

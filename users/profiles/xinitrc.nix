@@ -1,4 +1,4 @@
-{pkgs}: {
+{pkgs, ...}: {
   home.file.".xinitrc".text = ''
     #!/usr/bin/env sh
 
