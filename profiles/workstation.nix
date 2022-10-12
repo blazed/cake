@@ -27,9 +27,6 @@ in {
 
   environment.pathsToLink = ["/etc/gconf"];
 
-  powerManagement.enable = true;
-  powerManagement.powertop.enable = true;
-
   virtualisation.docker.enable = true;
 
   programs.ssh.startAgent = true;
