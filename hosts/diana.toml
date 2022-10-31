@@ -69,4 +69,9 @@ home-manager.users.blazed.profiles = [
   "users/profiles/wlsunset",
 ]
 
+home-manager.users.blazed.programs.git.extraConfig.user.signingKey = "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo="
+home-manager.users.blazed.programs.git.extraConfig.gpg.format = "ssh"
+home-manager.users.blazed.programs.git.extraConfig.commit.gpgSign = true
+home-manager.users.blazed.programs.git.extraConfig.tag.forceSignAnnotated = true
+
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
