@@ -29,6 +29,11 @@ in
       };
     };
     sway = final: prev: {sway = prev.callPackage (prev.path + "/pkgs/applications/window-managers/sway/wrapper.nix") {};};
+    swayidle = final: prev: {
+      swayidle = prev.callPackage ./swayidle {
+        wayland-protocols = final.wayland-protocols-master;
+      };
+    };
     inputs = final: prev: {inherit inputs;};
     swaylock-dope = final: prev: {swaylock-dope = prev.callPackage ./swaylock-dope {};};
     wl-clipboard-x11 = final: prev: {wl-clipboard-x11 = prev.callPackage ./wl-clipboard-x11 {};};
