@@ -18,7 +18,7 @@ in
   // {
     cake-updaters = import ./cake-updaters-overlay.nix;
     wlroots-master = final: prev: {
-      wlroots-master = prev.callPackage ./wlroots {
+      wlroots-master = prev.callPackage ./wlroots-master {
         wayland-protocols = final.wayland-protocols-master;
       };
     };
