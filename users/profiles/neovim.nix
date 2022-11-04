@@ -37,7 +37,7 @@ in {
       neosnippet-snippets
       vim-commentary
       vim-repeat
-      editorconfig-vim
+      # editorconfig-vim
       vim-fugitive
       (nvim-treesitter.withPlugins (
         plugins:
