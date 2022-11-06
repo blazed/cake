@@ -67,6 +67,12 @@ in {
           "command": "${pkgs.gopls}/bin/gopls",
           "rootPatterns": ["go.mod"],
           "filetypes": ["go"]
+        },
+        "jsonnet": {
+          "command": "${pkgs.jsonnet-language-server}/bin/jsonnet-language-server",
+          "args": ["-t"],
+          "rootPatterns": [".git/", "jsonnetfile.json"],
+          "filetypes": ["jsonnet", "libsonnet"]
         }
       }
     }
