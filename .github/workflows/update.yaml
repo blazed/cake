@@ -27,23 +27,23 @@ jobs:
         ./result/bin/update-all-cargo-vendor-shas
         ./result/bin/update-all-fixed-output-derivation-shas
 
-        nix shell nixpkgs#git -c git commit -am "[Auto] update all inputs"
+        nix shell nixpkgs#git -c git commit -am "Update inputs"
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v4
       id: cpr
       with:
         token: ${{ secrets.GH_ACCESS_TOKEN }}
-        commit-message: '[Auto] Package updates'
+        commit-message: 'Update packages'
         committer: Boberg <blazed@users.noreply.github.com>
         author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
         signoff: false
         branch: package-auto-updates
         delete-branch: true
-        title: '[Auto] Package updates'
+        title: 'Update packages'
         body: ''
         labels: |
-          automated pr
+          packages
         assignees: blazed
         reviewers: blazed
         team-reviewers: |
