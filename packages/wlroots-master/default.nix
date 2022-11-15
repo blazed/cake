@@ -1,5 +1,6 @@
 {
   stdenv,
+  cmake,
   lib,
   meson,
   ninja,
@@ -29,6 +30,7 @@
   glslang,
   enableXWayland ? true,
   inputs,
+  hwdata,
 }:
 stdenv.mkDerivation {
   name = "wlroots-${inputs.wlroots.rev}";
@@ -38,12 +40,13 @@ stdenv.mkDerivation {
 
   outputs = ["out"];
 
-  nativeBuildInputs = [meson ninja pkg-config xwayland];
+  nativeBuildInputs = [meson cmake ninja pkg-config xwayland];
 
   mesonFlags =
     lib.optional (!enableXWayland) "-Dxwayland=disabled";
 
   buildInputs = [
+    hwdata
     wayland
     libGL
     wayland-protocols

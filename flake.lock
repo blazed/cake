@@ -207,6 +207,22 @@
         "type": "github"
       }
     },
+    "hwdata": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1668158462,
+        "narHash": "sha256-wkKOc8NlhR/RQV6IRrXmrD2lyWkc9rthqSEpUMgkGWg=",
+        "owner": "vcrhonek",
+        "repo": "hwdata",
+        "rev": "f1e2eeb482abf7345c4f7926f82d97612de9ce42",
+        "type": "github"
+      },
+      "original": {
+        "owner": "vcrhonek",
+        "repo": "hwdata",
+        "type": "github"
+      }
+    },
     "kured": {
       "flake": false,
       "locked": {
@@ -409,6 +425,7 @@
         "flake-utils": "flake-utils",
         "google-cloud-sdk-fish-completion": "google-cloud-sdk-fish-completion",
         "home-manager": "home-manager",
+        "hwdata": "hwdata",
         "kured": "kured",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "netns-exec": "netns-exec",
