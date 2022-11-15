@@ -16,7 +16,7 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     flake-utils.url = "github:numtide/flake-utils";
     nur.url = "github:nix-community/NUR";
@@ -64,6 +64,10 @@
     };
     google-cloud-sdk-fish-completion = {
       url = "github:Doctusoft/google-cloud-sdk-fish-completion";
+      flake = false;
+    };
+    hwdata = {
+      url = "github:vcrhonek/hwdata";
       flake = false;
     };
     nixpkgs-fmt = {
@@ -292,6 +296,7 @@
             // {
               kured-yaml = true;
               argocd-yaml = true;
+              hwdata-master = true;
             }));
       }
     );
