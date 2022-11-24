@@ -108,7 +108,7 @@ in {
     };
 
     shellInit = ''
-      fish_vi_key_bindings ^ /dev/null
+      fish_vi_key_bindings
 
       setenv EDITOR nvim
 
@@ -127,6 +127,21 @@ in {
 
       function md
         mkdir -p $argv && cd $argv
+      end
+
+      function vault-proxy
+        set -Ux VAULT_ADDR "https://127.0.0.1:8200"
+        set -Ux VAULT_TLS_SERVER_NAME vault.dev.exsules.com
+        set -l k8s (${pkgs.kubectl}/bin/kubectl config current-context)
+        set msg "[vault] Starting port-forward on Kubernetes context $k8s"
+        if test -n "$TMUX"
+          ${pkgs.tmux}/bin/tmux split-pane -d -v -l 3 "echo \"$msg\"; ${pkgs.kubectl}/bin/kubectl -n vault port-forward svc/vault-active 8200; set -e VAULT_ADDR VAULT_TLS_SERVER_NAME; echo Disconnected ; sleep 3"
+        else
+          echo >&2 "Open new shell before using Vault:"
+          echo >&2 "$msg"
+          ${pkgs.kubectl}/bin/kubectl -n vault port-forward svc/vault-active 8200 >&2
+          set -e VAULT_ADDR VAULT_TLS_SERVER_NAME
+        end
       end
 
       function extract
