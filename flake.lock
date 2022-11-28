@@ -95,11 +95,11 @@
         "rust-analyzer-src": "rust-analyzer-src"
       },
       "locked": {
-        "lastModified": 1669443859,
-        "narHash": "sha256-LwFb2WmvGE+gwI2DBNNjNB/9xbrvXlfTMsVsrFaxB5U=",
+        "lastModified": 1669530262,
+        "narHash": "sha256-mXOcVIj3P0mbrTYRcXpLakJ1DzlYhwzRHTiSmWSoNT8=",
         "owner": "nix-community",
         "repo": "fenix",
-        "rev": "684adee4d90fdd48994fd52a6ce145f89411173f",
+        "rev": "b8e61625858bd174fc5deb5f2e0307335e898626",
         "type": "github"
       },
       "original": {
@@ -194,11 +194,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1669510155,
-        "narHash": "sha256-PS2WdRXujfxH9PuH0w8aRmrEQ+Toz3RqGlp0mXQRGio=",
+        "lastModified": 1669573161,
+        "narHash": "sha256-UAOXq+LIX+goAAY2MiC0+zCxdNPaO7NAPTvCQExpIBs=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "e999dfe7cba2e1fd59ab135e7496545bd4f82b76",
+        "rev": "50c9bccb6abc52811a59db620606e016fcde32bd",
         "type": "github"
       },
       "original": {
@@ -249,11 +249,11 @@
       },
       "locked": {
         "dir": "contrib",
-        "lastModified": 1669432527,
-        "narHash": "sha256-lfjjzg/NFFfP8cFCCKRr36EkQVlcNyMZBCNne6lY1Cs=",
+        "lastModified": 1669504792,
+        "narHash": "sha256-2AqFzJpAnGWFA/349E362azC2wuC9/acJdpjrd8n+D8=",
         "owner": "neovim",
         "repo": "neovim",
-        "rev": "84465a8c1583f444d4365b2a70e03cd38ebe7f81",
+        "rev": "3098064f332ffbc59c342545402e2d2da798a458",
         "type": "github"
       },
       "original": {
@@ -272,11 +272,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1669450483,
-        "narHash": "sha256-CP7I2vV8/fnpBjwDVhJluze/9mrmy87U93qAkVDOnQQ=",
+        "lastModified": 1669536865,
+        "narHash": "sha256-aBdp65eCZCpuQpQ+O1RPcLyNPpedkENDGfWHqg/yOcY=",
         "owner": "nix-community",
         "repo": "neovim-nightly-overlay",
-        "rev": "7904a5497404a613d2e8658067fb212ed2401fd9",
+        "rev": "1c34c9d76463c08e0377a88592081dedd708f1f9",
         "type": "github"
       },
       "original": {
@@ -383,11 +383,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1669508708,
-        "narHash": "sha256-Jyb+Vs6kuTOo65LHogAfcyz7WeePUu7Hi6HOWEq4ec4=",
+        "lastModified": 1669599180,
+        "narHash": "sha256-JlZ0s8XL2f+juaZB+dwyCpWzLbFxQzY7uJs4J1BZzL4=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "417dc569d6e85dbe0c91ef10312c7364ce7aedb0",
+        "rev": "cdb40cd090c54d2a60f9261fd67aae0869fcc44e",
         "type": "github"
       },
       "original": {
@@ -447,11 +447,11 @@
     "rust-analyzer-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1669415612,
-        "narHash": "sha256-LLsbCxUf36eyF3R8ulN0eqKj6ixfaLdBtetR8TdUAOo=",
+        "lastModified": 1669485300,
+        "narHash": "sha256-TedLmLyFAzsPnfXdy7/3ftpnlBuAifpkLK9Kjjiqe0Q=",
         "owner": "rust-lang",
         "repo": "rust-analyzer",
-        "rev": "d2281f0367ba85c34ee9bce07d3cca40e1424721",
+        "rev": "34e2bc6a541cca670307cec94cfc5546016705d6",
         "type": "github"
       },
       "original": {
@@ -496,11 +496,11 @@
     "swaylock": {
       "flake": false,
       "locked": {
-        "lastModified": 1669330570,
-        "narHash": "sha256-JeLlvw0bHW9LZ5uEg9Dl32oMmUq3Anw7nI4zmkPLNgc=",
+        "lastModified": 1669554817,
+        "narHash": "sha256-rare15vE/g3Ca311C8u3uKAVXow3sDh4ZumEc7oZ2bM=",
         "owner": "swaywm",
         "repo": "swaylock",
-        "rev": "cbdafb031ade85cb49a83cd93f13863265bc0e99",
+        "rev": "9ec454103039f64b4a9e1e4f634a3b83e57b48a5",
         "type": "github"
       },
       "original": {
@@ -576,11 +576,11 @@
     "wlroots": {
       "flake": false,
       "locked": {
-        "lastModified": 1669453616,
-        "narHash": "sha256-lj7MoXhUKPlqxFWkktddHhoCPRMK5wTB3coHajFr5A4=",
+        "lastModified": 1669546652,
+        "narHash": "sha256-b9o5aBRorpCpHOP7AiglNtYp7Hr31jy9Jd1T6WpGY5g=",
         "ref": "master",
-        "rev": "35a0d9c85d63344c41a4b2fd5ec9ed4636889b8a",
-        "revCount": 5943,
+        "rev": "ab6607b950ef763106920ea4f21c4357f48040d7",
+        "revCount": 5944,
         "type": "git",
         "url": "https://gitlab.freedesktop.org/wlroots/wlroots"
       },
