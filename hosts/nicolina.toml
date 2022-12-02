@@ -17,12 +17,12 @@ profiles = [
 
 age.secrets.wg-home.file = "secrets/nicolina/wg-home.age"
 
-networking.wireguard.enable = true
-networking.wireguard.interfaces.home.ips = [ "10.0.149.6/32" ]
-networking.wireguard.interfaces.home.privateKeyFile = "/run/agenix/wg-home"
-networking.wireguard.interfaces.home.peers = [
-  { publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.1.121:51820", persistentKeepalive = 25 }
-]
+services.innernet.client.exsules.enable = true
+services.innernet.client.exsules.settings.interface.address = "10.0.153.6/22"
+services.innernet.client.exsules.settings.interface.privateKeyFile = "/run/agenix/wg-home"
+services.innernet.client.exsules.settings.server.publicKey = "08ZvGL46b+TuMFO/ys8q6S3KADctaFitWLkyW+SUWRI="
+services.innernet.client.exsules.settings.server.externalEndpoint = "65.108.84.164:51820"
+services.innernet.client.exsules.settings.server.internalEndpoint = "10.0.152.1:51820"
 
 users.groups.blazed.gid = 1447
 users.users.blazed.uid = 1447

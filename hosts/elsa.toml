@@ -27,32 +27,22 @@ age.secrets.k3s-token.file = "secrets/k3s/token.age"
 age.secrets.wg-exsules.file = "secrets/elsa/wg-exsules.age"
 age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
-networking.nat.enable = true
-networking.nat.externalInterface = [ "wlan0" ]
-networking.firewall.allowedUDPPorts = [ 51820 ]
 networking.firewall.trustedInterfaces = [ "exsules" ]
-networking.server-wireguard.enable = true
-networking.server-wireguard.ips = [ "10.0.149.1/24" ]
-networking.server-wireguard.listenPort = 51820
-networking.server-wireguard.privateKeyFile = "/run/agenix/wg-exsules"
-networking.server-wireguard.cidr = "10.0.149.0/22"
-networking.server-wireguard.externalInterface =  "wlan0"
-networking.server-wireguard.peers = [
-  { publicKey = "7lUItjqmzF7Wwx4jvjqGO45uvkGiKmNQxx5DjXTiTDI=", allowedIPs = [ "10.0.149.2/32" ] },
-  { publicKey = "sFiCyanPnKKhK5tL0L+l2ew0USq3BkU8SROv0oIQVA4=", allowedIPs = [ "10.0.149.3/32" ] },
-  { publicKey = "qEKOiqpirwMHff9v0Du/34Vy2TXU2EchYlRyrZ/PsTk=", allowedIPs = [ "10.0.149.5/32" ] },
-  { publicKey = "08ZvGL46b+TuMFO/ys8q6S3KADctaFitWLkyW+SUWRI=", allowedIPs = [ "10.0.149.6/32" ] },
-  { publicKey = "HxUxKi3BGYEVwuwuT/R+eGCdFtl0hktbiewr93UL5lA=", allowedIPs = [ "10.0.149.20/32" ] },
-  { publicKey = "LxGKvmlRmvgR/DVyzS6OYom/vj1JZdBQPhxUVjdn6HY=", allowedIPs = ["10.0.149.22/32" ] },
-]
+
+services.innernet.client.exsules.enable = true
+services.innernet.client.exsules.settings.interface.address = "10.0.153.21/22"
+services.innernet.client.exsules.settings.interface.privateKeyFile = "/run/agenix/wg-exsules"
+services.innernet.client.exsules.settings.server.publicKey = "FgVMLRimgGBDqD6bZLwIFar0WllKZwamkOCE7PGeMXs="
+services.innernet.client.exsules.settings.server.externalEndpoint = "65.108.84.164:51820"
+services.innernet.client.exsules.settings.server.internalEndpoint = "10.0.152.1:51820"
 
 services.k3s.role = "agent"
 services.k3s.tokenFile = "/run/agenix/k3s-token"
-services.k3s.serverAddr = "https://10.0.149.5:6443"
+services.k3s.serverAddr = "https://10.0.152.1:6443"
 services.k3s.settings.flannel-iface = "exsules"
-services.k3s.settings.node-ip = "10.0.149.1"
+services.k3s.settings.node-ip = "10.0.153.21"
 services.k3s.settings.node-external-ip = "10.0.1.121"
-services.k3s.after = [ "wireguard-exsules.service" ]
+services.k3s.after = [ "innernet-client-exsules.service" ]
 services.k3s.settings.node-label."topology.kubernetes.io/region" = "sweden"
 services.k3s.settings.node-label."topology.kubernetes.io/zone" = "home"
 

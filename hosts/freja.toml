@@ -29,12 +29,13 @@ age.secrets.wg-exsules.file = "secrets/freja/wg-exsules.age"
 age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
 networking.firewall.trustedInterfaces = [ "exsules" ]
-networking.wireguard.enable = true
-networking.wireguard.interfaces.exsules.ips = [ "10.0.149.22/32" ]
-networking.wireguard.interfaces.exsules.privateKeyFile = "/run/agenix/wg-exsules"
-networking.wireguard.interfaces.exsules.peers = [
-  { publicKey = "JOrJsDXLKdAY+G6u7gh5cDwLZr+C0QrLv31K3vIJED8=", allowedIPs = [ "10.0.149.0/24" ], endpoint = "10.0.0.1:51820", persistentKeepalive = 25 }
-]
+
+services.innernet.client.exsules.enable = true
+services.innernet.client.exsules.settings.interface.address = "10.0.153.22/22"
+services.innernet.client.exsules.settings.interface.privateKeyFile = "/run/agenix/wg-exsules"
+services.innernet.client.exsules.settings.server.publicKey = "LxGKvmlRmvgR/DVyzS6OYom/vj1JZdBQPhxUVjdn6HY="
+services.innernet.client.exsules.settings.server.externalEndpoint = "65.108.84.164:51820"
+services.innernet.client.exsules.settings.server.internalEndpoint = "10.0.152.1:51820"
 
 services.k3s = { role = "agent", tokenFile = "/run/agenix/k3s-token", serverAddr = "https://10.0.0.20:6443" }
 
