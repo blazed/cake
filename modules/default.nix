@@ -5,6 +5,7 @@
     ./config-from-data.nix
     ./home.nix
     ./host-config.nix
+    ./innernet.nix
     ./k3s.nix
     ./private-wireguard.nix
     ./services.nix
