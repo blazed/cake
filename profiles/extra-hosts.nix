@@ -1,11 +1,11 @@
 {
   networking.extraHosts = ''
     10.0.0.20 media
-    10.0.153.3 diana
-    10.0.152.1 angelica
-    10.0.153.6 nicolina
-    10.0.153.20 sophia
-    10.0.153.21 elsa
+    100.79.183.68 diana
+    100.120.174.60 angelica
+    100.119.236.66 nicolina
+    100.115.123.80 sophia
+    100.70.82.57 elsa
     10.0.153.22 freja
   '';
 }

@@ -12,6 +12,7 @@ profiles = [
   "profiles/workstation",
   "profiles/pcscd",
   "profiles/state",
+  "profiles/tailscale",
   "profiles/xserver",
 ]
 
