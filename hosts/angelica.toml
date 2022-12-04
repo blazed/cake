@@ -10,6 +10,7 @@ profiles = [
   "profiles/k3s",
   "profiles/server",
   "profiles/state",
+  "profiles/tailscale",
 ]
 
 users.groups.blazed.gid = 1447
@@ -23,58 +24,22 @@ users.users.blazed.openssh.authorizedKeys.keys = [
 ]
 
 age.secrets.k3s-token.file = "secrets/k3s/token.age"
-age.secrets.wg-innernet.file = "secrets/angelica/wg-innernet.age"
 
 age.secrets.argocd-vault-sercet = { file = "secrets/k3s/argocd-vault-secret.yaml.age", path = "/var/lib/rancher/k3s/server/manifests/argocd-vault-secret.yaml" }
 age.secrets.argocd-cm = { file = "secrets/k3s/argocd-cm.yaml.age", path = "/var/lib/rancher/k3s/server/manifests/argocd-cm.yaml" }
 age.secrets.argocd-repositories = { file = "secrets/k3s/argocd-repositories.yaml.age", path = "/var/lib/rancher/k3s/server/manifests/argocd-repositories.yaml" }
-
-networking.firewall.trustedInterfaces = [ "exsules" ]
-
-services.innernet.server.exsules.enable = true
-services.innernet.server.exsules.settings.openFirewall = true
-services.innernet.server.exsules.settings.cidr = "10.0.152.0/22"
-services.innernet.server.exsules.settings.listenPort = 51820
-services.innernet.server.exsules.settings.privateKeyFile = "/run/agenix/wg-innernet"
-services.innernet.server.exsules.settings.publicKey = "FgVMLRimgGBDqD6bZLwIFar0WllKZwamkOCE7PGeMXs="
-services.innernet.server.exsules.settings.externalEndpoint = "65.108.84.164:51820"
-
-services.innernet.server.exsules.settings.cidrs.home.cidr = "10.0.153.0/26"
-services.innernet.server.exsules.settings.cidrs.home.parent = "exsules"
-
-services.innernet.server.exsules.settings.peers.diana.ip = "10.0.153.3"
-services.innernet.server.exsules.settings.peers.diana.cidr = "home"
-services.innernet.server.exsules.settings.peers.diana.publicKey = "sFiCyanPnKKhK5tL0L+l2ew0USq3BkU8SROv0oIQVA4="
-services.innernet.server.exsules.settings.peers.diana.isAdmin = true
-
-services.innernet.server.exsules.settings.peers.nicolina.ip = "10.0.153.6"
-services.innernet.server.exsules.settings.peers.nicolina.cidr = "home"
-services.innernet.server.exsules.settings.peers.nicolina.publicKey = "08ZvGL46b+TuMFO/ys8q6S3KADctaFitWLkyW+SUWRI="
-services.innernet.server.exsules.settings.peers.nicolina.isAdmin = true
-
-services.innernet.server.exsules.settings.peers.sophia.ip = "10.0.153.20"
-services.innernet.server.exsules.settings.peers.sophia.cidr = "home"
-services.innernet.server.exsules.settings.peers.sophia.publicKey = "HxUxKi3BGYEVwuwuT/R+eGCdFtl0hktbiewr93UL5lA="
-
-services.innernet.server.exsules.settings.peers.elsa.ip = "10.0.153.21"
-services.innernet.server.exsules.settings.peers.elsa.cidr = "home"
-services.innernet.server.exsules.settings.peers.elsa.publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4="
-
-services.innernet.server.exsules.settings.peers.freja.ip = "10.0.153.22"
-services.innernet.server.exsules.settings.peers.freja.cidr = "home"
-services.innernet.server.exsules.settings.peers.freja.publicKey = "LxGKvmlRmvgR/DVyzS6OYom/vj1JZdBQPhxUVjdn6HY="
 
 services.k3s.role = "server"
 services.k3s.tokenFile = "/run/agenix/k3s-token"
 services.k3s.settings.cluster-cidr = "10.244.0.0/16"
 services.k3s.settings.service-cidr = "10.96.0.0/12"
 services.k3s.settings.cluster-dns = "10.96.0.10"
-services.k3s.settings.node-ip = "10.0.152.1"
+services.k3s.settings.node-ip = "100.120.174.60"
 services.k3s.settings.node-external-ip = "65.108.84.164"
-services.k3s.settings.advertise-address = "10.0.152.1"
-services.k3s.settings.flannel-iface = "exsules"
+services.k3s.settings.advertise-address = "100.120.174.60"
+services.k3s.settings.flannel-iface = "tailscale0"
 services.k3s.settings.kube-controller-manager-arg.node-cidr-mask-size = 24
-services.k3s.after = [ "innernet-server-exsules.service" ]
+services.k3s.after = [ "tailscaled.service" ]
 services.k3s.settings.node-label."svccontroller.k3s.cattle.io/enablelb" = "true"
 services.k3s.settings.node-label."topology.kubernetes.io/region" = "finland"
 services.k3s.settings.node-label."topology.kubernetes.io/zone" = "hetzner"
