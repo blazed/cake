@@ -49,14 +49,6 @@ services.k3s.settings.secrets-encryption = true
 services.k3s.autoDeploy.kured = "pkg:kured-yaml/kured.yaml"
 services.k3s.autoDeploy.argocd = "pkg:argocd-yaml/argocd.yaml"
 
-services.k3s.autoDeploy.kiali-helm-repo.apiVersion = "v1"
-services.k3s.autoDeploy.kiali-helm-repo.kind = "Secret"
-services.k3s.autoDeploy.kiali-helm-repo.type = "Opaque"
-services.k3s.autoDeploy.kiali-helm-repo.metadata.name = "kiali-helm-repo"
-services.k3s.autoDeploy.kiali-helm-repo.metadata.namespace = "argocd"
-services.k3s.autoDeploy.kiali-helm-repo.metadata.labels."argocd.argoproj.io/secret-type" = "repository"
-services.k3s.autoDeploy.kiali-helm-repo.stringData = { name = "kiali", project = "sre-dev", type = "helm", url = "https://kiali.org/helm-charts" }
-
 services.k3s.autoDeploy.sre-dev-project.apiVersion = "argoproj.io/v1alpha1"
 services.k3s.autoDeploy.sre-dev-project.kind = "AppProject"
 services.k3s.autoDeploy.sre-dev-project.metadata.name = "sre-dev"
