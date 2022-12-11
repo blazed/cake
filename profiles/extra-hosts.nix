@@ -1,7 +1,7 @@
 {
   networking.extraHosts = ''
     10.0.0.20 media
-    100.79.183.68 diana
+    100.115.155.116 diana
     100.120.174.60 angelica
     100.119.236.66 nicolina
     100.115.123.80 sophia

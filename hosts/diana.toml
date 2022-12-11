@@ -23,14 +23,12 @@ age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
 networking.private-wireguard.enable = true
 networking.private-wireguard.ips = [
-  "10.0.149.3/32",
   "10.68.41.158/32",
   "fc00:bbbb:bbbb:bb01::5:299d/128",
 ]
 networking.private-wireguard.privateKeyFile = "/run/agenix/wg-private"
 networking.private-wireguard.peers = [
-  { publicKey = "pKcMMeC4jMUxSU5pH1orvp4//GrY8is+y9JRfVP3+BY=", allowedIPs = [ "0.0.0.0/0", "::0/0" ], endpoint = "185.65.135.222:51820", persistentKeepalive = 25 },
-  { publicKey = "S7cbuWJvDYznxAtbqOZyKvvC//fQuciKbOqpTV18Cx4=", allowedIPs = [ "10.0.149.0/24", "10.0.0.0/23" ], endpoint = "wireguard.darkstar.se:51820", persistentKeepalive = 25 }
+  { publicKey = "94qIvXgF0OXZ4IcquoS7AO57OV6JswUFgdONgGiq+jo=", allowedIPs = [ "0.0.0.0/0", "::0/0" ], endpoint = "185.65.135.69:51820", persistentKeepalive = 25 },
 ]
 
 users.groups.blazed.gid = 1000
