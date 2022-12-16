@@ -22,13 +22,13 @@ in {
       coc-prettier
       coc-rls
       coc-json
+      coc-rust-analyzer
       vim-surround
       vim-rooter
       fzf-vim
       vim-toml
       vim-yaml
       vim-nix
-      rust-vim
       tabular
       vim-markdown
       vim-jsonnet
