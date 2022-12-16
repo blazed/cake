@@ -43,7 +43,7 @@
       name: argocd-dex-server
     spec:
       ports:
-      - name: http
+      - name: tcp # Needed for istio mTLS to work as expected.
         port: 5556
         protocol: TCP
         targetPort: 5556
@@ -109,6 +109,19 @@
     apiVersion: apps/v1
     kind: Deployment
     metadata:
+      name: argocd-server
+    spec:
+      template:
+        spec:
+          containers:
+          - name: argocd-server
+            command:
+            - argocd-server
+            - --insecure
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
       name: argocd-repo-server
     spec:
       template:
@@ -120,10 +133,10 @@
             image: alpine:3.8
             command: [sh, -c]
             args:
-            - wget -O argocd-vault-plugin
-              https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v1.11.0/argocd-vault-plugin_1.11.0_linux_amd64
-
-              chmod +x argocd-vault-plugin && mv argocd-vault-plugin /custom-tools/
+            - wget -qO /custom-tools/argo-cd-helmfile.sh https://raw.githubusercontent.com/travisghansen/argo-cd-helmfile/master/src/argo-cd-helmfile.sh &&
+              chmod +x /custom-tools/argo-cd-helmfile.sh &&
+              wget -qO /custom-tools/helmfile https://github.com/roboll/helmfile/releases/download/v0.144.0/helmfile_linux_amd64 &&
+              chmod +x /custom-tools/helmfile
             volumeMounts:
             - name: custom-tools
               mountPath: /custom-tools
@@ -131,14 +144,23 @@
           - name: argocd-repo-server
             volumeMounts:
             - name: custom-tools
-              mountPath: /usr/local/bin/argocd-vault-plugin
-              subPath: argocd-vault-plugin
+              mountPath: /usr/local/bin/argo-cd-helmfile.sh
+              subPath: argo-cd-helmfile.sh
+            - name: custom-tools
+              mountPath: /usr/local/bin/helmfile
+              subPath: helmfile
             envFrom:
             - secretRef:
                 name: argocd-vault-configuration
           volumes:
           - name: custom-tools
             emptyDir: {}
+    ---
+    \$patch: delete
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: argocd-cmd-params-cm
     ---
     \$patch: delete
     apiVersion: v1
@@ -198,14 +220,14 @@
         matchLabels:
           app.kubernetes.io/name: argocd-server-metrics
     ---
-    apiVersion: networking.istio.io/v1alpha3
+    apiVersion: networking.istio.io/v1beta1
     kind: VirtualService
     metadata:
       name: argocd
       namespace: argocd
     spec:
       gateways:
-      - istio-ingress/external
+      - istio-ingress/public
       hosts:
       - argocd.exsules.dev
       http:
@@ -216,18 +238,7 @@
         - destination:
             host: argocd-server.argocd.svc.cluster.local
             port:
-              number: 443
-    ---
-    apiVersion: "networking.istio.io/v1alpha3"
-    kind: "DestinationRule"
-    metadata:
-      name: "argocd-web-no-mtls"
-      namespace: argocd
-    spec:
-      host: argocd-server.argocd.svc.cluster.local
-      trafficPolicy:
-        tls:
-          mode: SIMPLE
+              number: 80
 
     EXTRAS
 
