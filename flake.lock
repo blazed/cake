@@ -39,13 +39,13 @@
     "argocd-install": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-aq12CXMujss33H1HfMazu7rNGI7Esz6BrVSA5XnnbJE=",
+        "narHash": "sha256-7XGHA3pmG7keli6AnS6Ncy8t9bjrA7PVXiyHWp1f7H4=",
         "type": "file",
-        "url": "https://raw.githubusercontent.com/argoproj/argo-cd/v2.4.12/manifests/install.yaml"
+        "url": "https://raw.githubusercontent.com/argoproj/argo-cd/v2.5.4/manifests/install.yaml"
       },
       "original": {
         "type": "file",
-        "url": "https://raw.githubusercontent.com/argoproj/argo-cd/v2.4.12/manifests/install.yaml"
+        "url": "https://raw.githubusercontent.com/argoproj/argo-cd/v2.5.4/manifests/install.yaml"
       }
     },
     "blur": {
