@@ -69,7 +69,7 @@ in {
     MOZ_ENABLE_WAYLAND = "1";
     MOZ_USE_XINPUT2 = "1";
     XCURSOR_THEME = "default";
-    QT_STYLE_OVERRIDE = "gtk";
+    QT_STYLE_OVERRIDE = lib.mkForce "gtk";
     _JAVA_AWT_WM_NONREPARENTING = "1";
   };
 
