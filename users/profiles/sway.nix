@@ -22,37 +22,41 @@
   swaylockTimeout = "300";
   swaylockSleepTimeout = "310";
 
-  swayidleCommand = lib.concatStringsSep " " [
-    "${pkgs.swayidle}/bin/swayidle -w"
-    "timeout ${swaylockTimeout}"
-    "'${pkgs.swaylock-dope}/bin/swaylock-dope'"
-    "timeout ${swaylockSleepTimeout}"
-    "'${pkgs.sway}/bin/swaymsg \"output * dpms off\"'"
-    "resume '${pkgs.sway}/bin/swaymsg \"output * dpms on\"'"
-    "before-sleep '${pkgs.swaylock-dope}/bin/swaylock-dope'"
-  ];
+  swayidleCommand = pkgs.writeShellApplication {
+    name = "swayidle";
+    runtimeInputs = [pkgs.sway pkgs.bash pkgs.swaylock-dope pkgs.swayidle];
+    text = ''
+      swayidle -d -w timeout ${swaylockTimeout} swaylock-dope \
+                     timeout ${swaylockSleepTimeout} 'swaymsg "output * dpms off"' \
+                     resume 'sway "output * dpms on"' \
+                     before-sleep swaylock-dope
+    '';
+  };
 
-  swayOnReload = pkgs.writeStrictShellScriptBin "sway-on-reload" ''
-    LID=/proc/acpi/button/lid/LID
-    if [ ! -e "$LID" ]; then
-      LID=/proc/acpi/button/lid/LID0
-    fi
-    if [ ! -e "$LID" ]; then
-       echo No lid found - skipping sway reload action
-       exit
-    fi
-    if grep -q open "$LID"/state; then
-        swaymsg output eDP-1 enable
-    else
-        swaymsg output eDP-1 disable
-    fi
-    ${
-      lib.optionalString config.services.kanshi.enable
-      ''
-        systemctl restart --user kanshi.service
-      ''
-    }
-  '';
+  swayOnReload = pkgs.writeShellApplication {
+    name = "sway-on-reload";
+    runtimeInputs = [pkgs.sway];
+    text = ''
+      LID=/proc/acpi/button/lid/LID
+      if [ ! -e "$LID" ]; then
+        LID=/proc/acpi/button/lid/LID0
+      fi
+      if [ -e "$LID" ]; then
+        if grep -q open "$LID"/state; then
+            swaymsg output eDP-1 enable
+        else
+            swaymsg output eDP-1 disable
+        fi
+      fi
+
+      ${
+        lib.optionalString config.services.kanshi.enable
+        ''
+          systemctl restart --user kanshi.service
+        ''
+      }
+    '';
+  };
 
   fonts = {
     names = ["Roboto" "Font Awesome 5 Free" "Font Awesome 5 Brands" "Arial" "sans-serif"];
@@ -61,14 +65,16 @@
   };
 
   modifier = "Mod4";
+
+  xcursor_theme = "default";
 in {
   home.sessionVariables = {
-    DK_BACKEND = "wayland";
+    GDK_BACKEND = "wayland";
     CLUTTER_BACKEND = "wayland";
     QT_QPA_PLATFORM = "wayland-egl";
     MOZ_ENABLE_WAYLAND = "1";
     MOZ_USE_XINPUT2 = "1";
-    XCURSOR_THEME = "default";
+    XCURSOR_THEME = xcursor_theme;
     QT_STYLE_OVERRIDE = lib.mkForce "gtk";
     _JAVA_AWT_WM_NONREPARENTING = "1";
   };
@@ -133,9 +139,9 @@ in {
 
       input = {
         "*" = {
-          xkb_layout = "us";
+          xkb_layout = "us,us";
           xkb_options = "compose:ralt,caps:escape";
-          xkb_variant = "dvp";
+          xkb_variant = "dvp,";
         };
         "1739:52710:DLL096D:01_06CB:CDE6_Touchpad" = {
           dwt = "true";
@@ -189,6 +195,11 @@ in {
         "${modifier}+Shift+k" = "move down";
         "${modifier}+Shift+l" = "move up";
         "${modifier}+Shift+semicolon" = "move right";
+
+        "${modifier}+space" = "exec echo sway_visible > $XDG_RUNTIME_DIR/persway";
+        "${modifier}+Control+space" = "exec echo master_cycle_next > $XDG_RUNTIME_DIR/persway";
+        "${modifier}+Tab" = "exec echo stack_focus_next > $XDG_RUNTIME_DIR/persway";
+        "${modifier}+Shift+Tab" = "exec echo stack_focus_prev > $XDG_RUNTIME_DIR/persway";
 
         "${modifier}+Escape" = ''mode "(p)oweroff, (s)uspend, (h)ibernate, (r)eboot, (l)ogout"'';
         "${modifier}+x" = ''mode "disabled keybindings"'';
@@ -302,6 +313,7 @@ in {
   };
 
   systemd.user.services = {
-    swayidle = swayservice "Sway Idle Service" swayidleCommand;
+    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d master_stack -a spiral -- /run/user/1000/persway";
+    swayidle = swayservice "Sway Idle Service" "${swayidleCommand}/bin/swayidle";
   };
 }

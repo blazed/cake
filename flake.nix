@@ -45,6 +45,34 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    alejandra = {
+      url = "github:kamadorueda/alejandra";
+      inputs = {
+        fenix.follows = "fenix";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+
+    dream2nix = {
+      url = "github:nix-community/dream2nix";
+      inputs = {
+        alejandra.follows = "alejandra";
+        devshell.follows = "devshell";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+
+    persway = {
+      url = "github:johnae/persway/master-stack";
+      inputs = {
+        devshell.follows = "devshell";
+        dream2nix.follows = "dream2nix";
+        fenix.follows = "fenix";
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+
     ## non flakes
     age-plugin-yubikey = {
       url = "github:str4d/age-plugin-yubikey";
@@ -167,6 +195,7 @@
         inputs.nix-misc.overlay
         inputs.devshell.overlay
         inputs.nur.overlay
+        inputs.persway.overlays.default
         inputs.agenix.overlay
         inputs.neovim-nightly-overlay.overlay
         inputs.fenix.overlay
@@ -294,6 +323,7 @@
             // (filterAttrs (name: _: hasPrefix "images/" name) pkgs)
             // cakeOverlays
             // {
+              persway = true;
               kured-yaml = true;
               argocd-yaml = true;
               hwdata-master = true;
@@ -432,7 +462,10 @@
 
       overlays =
         packageOverlays
-        // cakeOverlays;
+        // cakeOverlays
+        // {
+          persway = inputs.persway.overlays.default;
+        };
 
       github-actions-package-matrix-x86-64-linux = let
         pkgs = pkgsFor "x86_64-linux";
