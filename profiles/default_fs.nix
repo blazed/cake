@@ -1,4 +1,8 @@
 {
+  lib,
+  ...
+}:
+{
   fileSystems."/" = {
     device = "none";
     fsType = "tmpfs";
