@@ -327,8 +327,8 @@ in
       }
 
       echo Creating btrfs filesystem on /dev/mapper/${diskLabels.encRoot}
-      mkfs.btrfs ${btrfsFormatExtraParams} -f -L "$DISK_ROOT_LABEL" /dev/mapper/"$ENC_DISK_ROOT_LABEL"
-      waitForPath "/dev/disk/by-label/${diskLabels.boot}"
+      mkfs.btrfs ${btrfsFormatExtraParams} -f -L ${diskLabels.root} /dev/mapper/${diskLabels.encRoot}
+      waitForPath "/dev/disk/by-label/${diskLabels.root}"
 
       echo Creating vfat disk at "$DISK_EFI"
       mkfs.fat -F 32 -n ${diskLabels.boot} "$DISK_EFI"
