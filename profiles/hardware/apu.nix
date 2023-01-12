@@ -21,7 +21,7 @@
     terminal_output serial
   ";
 
-  fileSystems."/nix".options = ["subvol=@keep" "rw" "noatime" "compress=zstd"];
+  fileSystems."/nix".options = ["subvol=@nix" "rw" "noatime" "compress=zstd"];
   fileSystems."/keep".options = ["subvol=@keep" "rw" "noatime" "compress=zstd"];
 
   hardware.cpu.amd.updateMicrocode = true;
