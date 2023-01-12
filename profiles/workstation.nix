@@ -167,4 +167,6 @@ in {
     powerline-fonts
     roboto
   ];
+
+  machinePurpose = "workstation";
 }
