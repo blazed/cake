@@ -1,6 +1,7 @@
 system = "x86_64-linux"
 
 [config]
+publicKey = ""
 
 profiles = [
   "profiles/hardware/apu",
