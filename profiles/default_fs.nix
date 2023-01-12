@@ -1,4 +1,8 @@
 {
+  lib,
+  ...
+}:
+{
   fileSystems."/" = {
     device = "none";
     fsType = "tmpfs";
@@ -8,14 +12,14 @@
   fileSystems."/nix" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
-    options = ["subvol=@nix" "rw" "noatime" "compress=zstd" "ssd" "space_cache"];
+    options = lib.mkDefault ["subvol=@nix" "rw" "noatime" "compress=zstd" "ssd" "space_cache"];
   };
 
   fileSystems."/keep" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
     neededForBoot = true;
-    options = ["subvol=@keep" "rw" "noatime" "compress=zstd" "ssd" "space_cache"];
+    options = lib.mkDefault ["subvol=@keep" "rw" "noatime" "compress=zstd" "ssd" "space_cache"];
   };
 
   fileSystems."/boot" = {
@@ -31,11 +35,15 @@
     encrypted_root = {
       device = "/dev/disk/by-label/encrypted_root";
       keyFile = "/dev/mapper/cryptkey";
+      bypassWorkqueues = true;
+      allowDiscards = true;
     };
 
     encrypted_swap = {
       device = "/dev/disk/by-label/encrypted_swap";
       keyFile = "/dev/mapper/cryptkey";
+      bypassWorkqueues = true;
+      allowDiscards = true;
     };
   };
 }
