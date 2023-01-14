@@ -48,13 +48,13 @@
       else "";
     listToCli = path: value:
       concatStringsSep " "
-      (map (item: "--${path} \"${toString item}\"") value);
+      (map (item: "--${path} ${toString item}") value);
     attrsToCli = path:
       mapAttrsToList (
         k: v:
           if isBool v
           then boolToCli path v
-          else "--${path} \"${k}=${toString v}\""
+          else "--${path} ${k}=${toString v}"
       );
     fieldToCli = path: value:
       if isAttrs value
@@ -63,7 +63,7 @@
       then boolToCli path value
       else if isList value
       then listToCli path value
-      else "--${path} \"${toString value}\"";
+      else "--${path} ${toString value}";
   in
     flatten (mapAttrsToList fieldToCli s);
 in {
