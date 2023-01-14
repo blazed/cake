@@ -7,6 +7,7 @@
   l = lib // builtins;
   inherit
     (l)
+    optional
     mkOption
     mkIf
     mkMerge
@@ -25,122 +26,21 @@
     sort
     lessThan
     ;
-  inherit (config.systemd) enableUnifiedCgroupHierarchy;
   cfg = config.services.k3s;
   k3sManifestsDir = "/var/lib/rancher/k3s/server/manifests";
   containerdConfigDir = "/var/lib/rancher/k3s/agent/etc/containerd";
-  containerdConfig = pkgs.writeText "config.toml.tmpl" ''
-    [plugins.opt]
-      path = "{{ .NodeConfig.Containerd.Opt }}"
-    [plugins.cri]
-      stream_server_address = "127.0.0.1"
-      stream_server_port = "10010"
-      enable_selinux = {{ .NodeConfig.SELinux }}
-      enable_unprivileged_ports = true
-      enable_unprivileged_icmp = true
-    {{- if .DisableCgroup}}
-      disable_cgroup = true
-    {{end}}
-    {{- if .IsRunningInUserNS }}
-      disable_apparmor = true
-      restrict_oom_score_adj = true
-    {{end}}
-    {{- if .NodeConfig.AgentConfig.PauseImage }}
-      sandbox_image = "{{ .NodeConfig.AgentConfig.PauseImage }}"
-    {{end}}
-    {{- if .NodeConfig.AgentConfig.Snapshotter }}
-    [plugins.cri.containerd]
-      snapshotter = "{{ .NodeConfig.AgentConfig.Snapshotter }}"
-      disable_snapshot_annotations = {{ if eq .NodeConfig.AgentConfig.Snapshotter "stargz" }}false{{else}}true{{end}}
-    {{ if eq .NodeConfig.AgentConfig.Snapshotter "stargz" }}
-    {{ if .NodeConfig.AgentConfig.ImageServiceSocket }}
-    [plugins.stargz]
-    cri_keychain_image_service_path = "{{ .NodeConfig.AgentConfig.ImageServiceSocket }}"
-    [plugins.stargz.cri_keychain]
-    enable_keychain = true
-    {{end}}
-    {{ if .PrivateRegistryConfig }}
-    {{ if .PrivateRegistryConfig.Mirrors }}
-    [plugins.stargz.registry.mirrors]{{end}}
-    {{range $k, $v := .PrivateRegistryConfig.Mirrors }}
-    [plugins.stargz.registry.mirrors."{{$k}}"]
-      endpoint = [{{range $i, $j := $v.Endpoints}}{{if $i}}, {{end}}{{printf "%q" .}}{{end}}]
-    {{if $v.Rewrites}}
-      [plugins.stargz.registry.mirrors."{{$k}}".rewrite]
-    {{range $pattern, $replace := $v.Rewrites}}
-        "{{$pattern}}" = "{{$replace}}"
-    {{end}}
-    {{end}}
-    {{end}}
-    {{range $k, $v := .PrivateRegistryConfig.Configs }}
-    {{ if $v.Auth }}
-    [plugins.stargz.registry.configs."{{$k}}".auth]
-      {{ if $v.Auth.Username }}username = {{ printf "%q" $v.Auth.Username }}{{end}}
-      {{ if $v.Auth.Password }}password = {{ printf "%q" $v.Auth.Password }}{{end}}
-      {{ if $v.Auth.Auth }}auth = {{ printf "%q" $v.Auth.Auth }}{{end}}
-      {{ if $v.Auth.IdentityToken }}identitytoken = {{ printf "%q" $v.Auth.IdentityToken }}{{end}}
-    {{end}}
-    {{ if $v.TLS }}
-    [plugins.stargz.registry.configs."{{$k}}".tls]
-      {{ if $v.TLS.CAFile }}ca_file = "{{ $v.TLS.CAFile }}"{{end}}
-      {{ if $v.TLS.CertFile }}cert_file = "{{ $v.TLS.CertFile }}"{{end}}
-      {{ if $v.TLS.KeyFile }}key_file = "{{ $v.TLS.KeyFile }}"{{end}}
-      {{ if $v.TLS.InsecureSkipVerify }}insecure_skip_verify = true{{end}}
-    {{end}}
-    {{end}}
-    {{end}}
-    {{end}}
-    {{end}}
-    {{- if not .NodeConfig.NoFlannel }}
-    [plugins.cri.cni]
-      bin_dir = "{{ .NodeConfig.AgentConfig.CNIBinDir }}"
-      conf_dir = "{{ .NodeConfig.AgentConfig.CNIConfDir }}"
-    {{end}}
-    [plugins.cri.containerd.runtimes.runc]
-      runtime_type = "io.containerd.runc.v2"
-    [plugins.cri.containerd.runtimes.runc.options]
-      SystemdCgroup = ${
-      if enableUnifiedCgroupHierarchy
-      then "true"
-      else "false"
-    }
-    {{ if .PrivateRegistryConfig }}
-    {{ if .PrivateRegistryConfig.Mirrors }}
-    [plugins.cri.registry.mirrors]{{end}}
-    {{range $k, $v := .PrivateRegistryConfig.Mirrors }}
-    [plugins.cri.registry.mirrors."{{$k}}"]
-      endpoint = [{{range $i, $j := $v.Endpoints}}{{if $i}}, {{end}}{{printf "%q" .}}{{end}}]
-    {{if $v.Rewrites}}
-      [plugins.cri.registry.mirrors."{{$k}}".rewrite]
-    {{range $pattern, $replace := $v.Rewrites}}
-        "{{$pattern}}" = "{{$replace}}"
-    {{end}}
-    {{end}}
-    {{end}}
-    {{range $k, $v := .PrivateRegistryConfig.Configs }}
-    {{ if $v.Auth }}
-    [plugins.cri.registry.configs."{{$k}}".auth]
-      {{ if $v.Auth.Username }}username = {{ printf "%q" $v.Auth.Username }}{{end}}
-      {{ if $v.Auth.Password }}password = {{ printf "%q" $v.Auth.Password }}{{end}}
-      {{ if $v.Auth.Auth }}auth = {{ printf "%q" $v.Auth.Auth }}{{end}}
-      {{ if $v.Auth.IdentityToken }}identitytoken = {{ printf "%q" $v.Auth.IdentityToken }}{{end}}
-    {{end}}
-    {{ if $v.TLS }}
-    [plugins.cri.registry.configs."{{$k}}".tls]
-      {{ if $v.TLS.CAFile }}ca_file = "{{ $v.TLS.CAFile }}"{{end}}
-      {{ if $v.TLS.CertFile }}cert_file = "{{ $v.TLS.CertFile }}"{{end}}
-      {{ if $v.TLS.KeyFile }}key_file = "{{ $v.TLS.KeyFile }}"{{end}}
-      {{ if $v.TLS.InsecureSkipVerify }}insecure_skip_verify = true{{end}}
-    {{end}}
-    {{end}}
-    {{end}}
-    {{range $k, $v := .ExtraRuntimes}}
-    [plugins.cri.containerd.runtimes."{{$k}}"]
-      runtime_type = "{{$v.RuntimeType}}"
-    [plugins.cri.containerd.runtimes."{{$k}}".options]
-      BinaryName = "{{$v.BinaryName}}"
-    {{end}}
-  '';
+  getIfaceIp = pkgs.writeShellApplication {
+    name = "get-iface-ip";
+    runtimeInputs = with pkgs; [jq iproute2];
+    text = ''
+      IFACE=''${1:-}
+      if [ "$IFACE" = "" ]; then
+        echo Please provide the interface to get the ip off of
+        exit 1
+      fi
+      ip -o -4 -family inet -json addr show scope global dev "$IFACE" | jq -r '.[0].addr_info[0].local'
+    '';
+  };
   settingsToCli = s: let
     boolToCli = path: value:
       if value
@@ -203,29 +103,47 @@ in {
   config = mkIf cfg.enable {
     assertions = mkForce [];
     services.k3s.extraFlags = concatStringsSep " " (sort lessThan (settingsToCli cfg.settings));
-    systemd.services.k3s.preStart = ''
-      mkdir -p ${containerdConfigDir}
-      cp ${containerdConfig} ${containerdConfigDir}/config.toml.tmpl
-      ${
-        if cfg.role == "server"
-        then ''
-          mkdir -p ${k3sManifestsDir}
-          ${
-            concatStringsSep "\n" (mapAttrsToList (
-                name: path: "cp ${path} ${k3sManifestsDir}/${name}.yaml"
-              )
-              cfg.autoDeploy)
-          }
-          ${
-            concatStringsSep "\n" (map (
-                manifestName: "touch ${k3sManifestsDir}/${manifestName}.yaml.skip"
-              )
-              cfg.disable)
-          }
-        ''
-        else ""
-      }
-    '';
+    systemd.services.k3s = {
+      path = [getIfaceIp];
+      preStart = ''
+        rm -f ${containerdConfigDir}/config.toml.tmpl
+        ${
+          if cfg.role == "server"
+          then ''
+            mkdir -p ${k3sManifestsDir}
+            ${
+              concatStringsSep "\n" (mapAttrsToList (
+                  name: path: "cp ${path} ${k3sManifestsDir}/${name}.yaml"
+                )
+                cfg.autoDeploy)
+            }
+            ${
+              concatStringsSep "\n" (map (
+                  manifestName: "touch ${k3sManifestsDir}/${manifestName}.yaml.skip"
+                )
+                cfg.disable)
+            }
+          ''
+          else ""
+        }
+      '';
+      serviceConfig.ExecStart = lib.mkForce (concatStringsSep " " (
+        [
+          "${pkgs.bash}/bin/bash -c \"exec "
+        ]
+        ++ [
+          "${cfg.package}/bin/k3s ${cfg.role}"
+        ]
+        ++ (optional cfg.clusterInit "--cluster-init")
+        ++ (optional cfg.disableAgent "--disable-agent")
+        ++ (optional (cfg.serverAddr != "") "--server ${cfg.serverAddr}")
+        ++ (optional (cfg.token != "") "--token ${cfg.token}")
+        ++ (optional (cfg.tokenFile != null) "--token-file ${cfg.tokenFile}")
+        ++ (optional (cfg.configPath != null) "--config ${cfg.configPath}")
+        ++ [cfg.extraFlags]
+        ++ ["\""]
+      ));
+    };
     ## Random fixes and hacks for k3s networking
     ## see: https://github.com/NixOS/nixpkgs/issues/98766
     boot.kernelModules = ["br_netfilter" "ip_conntrack" "ip_vs" "ip_vs_rr" "ip_vs_wrr" "ip_vs_sh" "overlay"];
