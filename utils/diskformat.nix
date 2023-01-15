@@ -32,7 +32,7 @@
   efiSpace = "500M";
   luksKeySpace = "20M";
   ramGb = "$(free --giga | tail -n+2 | head -1 | awk '{print $2}')";
-  uuidCryptKey = 
+  uuidCryptKey =
     if hasAttr "cryptkey" boot.initrd.luks.devices
     then boot.initrd.luks.devices.cryptkey.keyFile != null
     else false;
@@ -181,7 +181,7 @@ in
         swap_space="1"
       fi
 
-      ${ 
+      ${
         if machinePurpose == "server"
         then ''
           ## no supprot for hibernation

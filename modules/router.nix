@@ -17,7 +17,8 @@
     mkOption
     mkEnableOption
     mapAttrsToList
-    recursiveUpdate;
+    recursiveUpdate
+    ;
   inherit
     (builtins)
     head
@@ -27,7 +28,8 @@
     attrNames
     mapAttrs
     concatStringsSep
-    listToAttrs;
+    listToAttrs
+    ;
 
   cfg = config.services.router;
 
@@ -38,25 +40,26 @@
     c = head (tail (tail s));
   in "${a}.${b}.${c}";
 
-  internalInterfaces = {
-    ${cfg.internalInterface} = rec {
-      base = ipBase cfg.internalInterfaceIP;
-      address = "${base}.1";
-      network = "${base}.0";
-      prefixLength = 24;
-      netmask = "255.255.255.0";
-    };
-  } //
-  (
-    mapAttrs (name: conf:
-      rec {
+  internalInterfaces =
+    {
+      ${cfg.internalInterface} = rec {
+        base = ipBase cfg.internalInterfaceIP;
+        address = "${base}.1";
+        network = "${base}.0";
+        prefixLength = 24;
+        netmask = "255.255.255.0";
+      };
+    }
+    // (
+      mapAttrs (name: conf: rec {
         base = ipBase conf.address;
         address = "${base}.1";
         network = "${base}.0";
         prefixLength = 24;
         netmask = "255.255.255.0";
-    }) cfg.vlans
-  );
+      })
+      cfg.vlans
+    );
 
   internalInterfaceNames = attrNames internalInterfaces;
 in {
@@ -115,48 +118,54 @@ in {
 
   config = mkIf cfg.enable {
     networking.useDHCP = lib.mkForce false;
-    networking.interfaces = {
-      ${cfg.externalInterface}.useDHCP = true;
-    }
-    // (
-      mapAttrs (_: net: {
-        useDHCP = false;
-        ipv4.addresses = [{inherit (net) address prefixLength;}];
-      })
-      internalInterfaces
-    );
+    networking.interfaces =
+      {
+        ${cfg.externalInterface}.useDHCP = true;
+      }
+      // (
+        mapAttrs (_: net: {
+          useDHCP = false;
+          ipv4.addresses = [{inherit (net) address prefixLength;}];
+        })
+        internalInterfaces
+      );
 
     networking.vlans =
-      mapAttrs (name: conf: {
-        id = conf.id;
-        interface = conf.interface;
-      }) cfg.vlans;
+      mapAttrs (
+        name: conf: {
+          inherit (conf) id interface;
+        }
+      )
+      cfg.vlans;
 
     services.dhcpd4.enable = true;
     services.dhcpd4.interfaces = internalInterfaceNames;
-    services.dhcpd4.extraConfig = ''
-      option subnet-mask 255.255.255.0;
-    ''
-    + (concatStringsSep "\n" (mapAttrsToList (iface: config: ''
-      subnet ${config.network} netmask ${config.netmask} {
-        option broadcast-address ${config.base}.255;
-        option domain-name-servers ${config.address};
-        option routers ${config.address};
-        interface ${iface};
-        default-lease-time 86400;
-        max-lease-time 86400;
-        range ${config.base}.10 ${config.base}.128;
-      }
-    '') internalInterfaces));
+    services.dhcpd4.extraConfig =
+      ''
+        option subnet-mask 255.255.255.0;
+      ''
+      + (concatStringsSep "\n" (mapAttrsToList (iface: config: ''
+          subnet ${config.network} netmask ${config.netmask} {
+            option broadcast-address ${config.base}.255;
+            option domain-name-servers ${config.address};
+            option routers ${config.address};
+            interface ${iface};
+            default-lease-time 86400;
+            max-lease-time 86400;
+            range ${config.base}.10 ${config.base}.128;
+          }
+        '')
+        internalInterfaces));
 
     environment.state."/keep".directories = ["/var/lib/dnsmasq"];
 
     services.dnsmasq.enable = true;
     services.dnsmasq.resolveLocalQueries = true;
-    services.dnsmasq.settings = {
-      server = cfg.upstreamDnsServers;
-    }
-    // cfg.dnsMasqSettings;
+    services.dnsmasq.settings =
+      {
+        server = cfg.upstreamDnsServers;
+      }
+      // cfg.dnsMasqSettings;
 
     networking.firewall.enable = lib.mkForce false;
 
@@ -193,7 +202,7 @@ in {
             iifname { ${concatStringsSep "," (internalInterfaceNames ++ cfg.trustedInterfaces)} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
             iifname { "${cfg.externalInterface}" } oifname { ${concatStringsSep "," (internalInterfaceNames ++ cfg.trustedInterfaces)} } ct state { established, related } counter accept comment "Allow established back to LANs"
             iifname { ${concatStringsSep "," cfg.trustedInterfaces} } oifname { "iot" } counter accept comment "Allow trusted LAN to IoT"
-            iifname { "iot" } oifname { ${concatStringsSep "," cfg.trustedInterfaces } } ct state { established, related } counter accept comment "Allow established back to LANs"
+            iifname { "iot" } oifname { ${concatStringsSep "," cfg.trustedInterfaces} } ct state { established, related } counter accept comment "Allow established back to LANs"
           }
         }
 
