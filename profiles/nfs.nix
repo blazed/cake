@@ -1,6 +1,6 @@
 {
   fileSystems."/mnt/media" = {
-    device = "10.0.0.10:/volume1/media";
+    device = "100.122.42.92:/volume1/media";
     fsType = "nfs";
   };
 }
