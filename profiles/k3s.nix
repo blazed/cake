@@ -25,7 +25,7 @@ in {
   };
 
   fileSystems."/mnt/persistentvolume" = {
-    device = "100.122.42.92:/volume1/persistentvolume";
+    device = "storage01:/volume1/persistentvolume";
     fsType = "nfs";
   };
 
