@@ -126,10 +126,6 @@ in {
       internalInterfaces
     );
 
-    # networking.nat.enable = true;
-    # networking.nat.externalInterface = cfg.externalInterface;
-    # networking.nat.internalInterfaces = internalInterfaceNames;
-
     networking.vlans =
       mapAttrs (name: conf: {
         id = conf.id;
