@@ -8,7 +8,6 @@ profiles = [
   "profiles/default_fs",
   "profiles/bluetooth",
   "profiles/bluez_autoswitch",
-  "profiles/extra-hosts",
   "profiles/hidpi",
   "profiles/home-manager",
   "profiles/laptop",
