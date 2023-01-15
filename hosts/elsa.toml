@@ -39,5 +39,5 @@ users.users.blazed.openssh.authorizedKeys.keys = [
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min", enableSentinel = true }
 
-fileSystems."/nix".options = ["subvol=@nix", "rw", "noatime", "compress=zstd"];
-fileSystems."/keep".options = ["subvol=@keep", "rw", "noatime", "compress=zstd"];
+fileSystems."/nix".options = ["subvol=@nix", "rw", "noatime", "compress=zstd"]
+fileSystems."/keep".options = ["subvol=@keep", "rw", "noatime", "compress=zstd"]
