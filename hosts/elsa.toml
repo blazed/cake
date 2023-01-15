@@ -38,6 +38,3 @@ users.users.blazed.openssh.authorizedKeys.keys = [
 # services.k3s.settings.node-label."topology.kubernetes.io/zone" = "home"
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min", enableSentinel = true }
-
-fileSystems."/nix".options = ["subvol=@nix", "rw", "noatime", "compress=zstd"]
-fileSystems."/keep".options = ["subvol=@keep", "rw", "noatime", "compress=zstd"]
