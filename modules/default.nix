@@ -8,6 +8,7 @@
     ./innernet.nix
     ./k3s.nix
     ./private-wireguard.nix
+    ./router.nix
     ./services.nix
     ./server-wireguard.nix
     ./sleep-management.nix

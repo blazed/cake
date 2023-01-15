@@ -1,14 +1,15 @@
 system = "x86_64-linux"
 
 [config]
-publicKey = ""
+publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIw1s50het1bH/63ZDVHTZDywAUKeJebmR87CU++dqkx"
 
 profiles = [
   "profiles/hardware/apu",
   "profiles/default_fs",
   "profiles/server",
   "profiles/state",
-  "profiles/uuid_disk_crypt"
+  "profiles/tailscale",
+  "profiles/uuid_disk_crypt",
 ]
 
 disk.dosLabel = true
@@ -23,3 +24,34 @@ openssh.authorizedKeys.keys = [
   "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo=",
   "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=",
 ]
+
+[config.services.router]
+enable = true
+upstreamDnsServers = [
+  "45.90.28.33",
+  "45.90.30.33",
+  "2a07:a8c1::",
+  "2a07:a8c0::",
+]
+externalInterface = "enp2s0"
+internalInterface = "enp3s0"
+dnsMasqSettings.no-resolv = true
+dnsMasqSettings.bogus-priv = true
+dnsMasqSettings.strict-order = true
+dnsMasqSettings.add-cpe-id = "8bc773"
+vlans.lan = { id = 10, interface = "enp3s0", address = "10.0.10.1" }
+vlans.iot = { id = 20, interface = "enp3s0", address = "10.0.20.1" }
+vlans.guest = { id = 30, interface = "enp3s0", address = "10.0.199.1" }
+trustedInterfaces = [
+  "lan",
+  "tailscale0",
+]
+
+[config.services.prometheus.exporters.node]
+enable = true
+listenAddress = "10.0.10.1"
+
+[config.services.prometheus.exporters.dnsmasq]
+enable = true
+listenAddress = "10.0.10.1"
+leasesPath = "/var/lib/dnsmasq/dnsmasq.leases"
