@@ -126,6 +126,7 @@ in {
           ''
           else ""
         }
+        sleep 60
       '';
       serviceConfig.ExecStart = lib.mkForce (concatStringsSep " " (
         [
