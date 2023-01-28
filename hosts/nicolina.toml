@@ -58,6 +58,7 @@ services.restic.backups.remote.initialize = true
 services.restic.backups.remote.user = "blazed"
 services.restic.backups.remote.passwordFile = "/run/agenix/restic-password"
 services.restic.backups.remote.environmentFile = "/run/agenix/restic-env"
+services.restic.backups.remote.repository = "s3:https://minio.exsules.dev/computer-backups"
 services.restic.backups.remote.timerConfig = { OnCalendar = "00/2:00", randomizedDelaySec = "30m" }
 services.restic.backups.remote.paths = [
   "/home/blazed/Documents",
