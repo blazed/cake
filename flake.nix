@@ -40,10 +40,10 @@
     devshell.inputs.flake-utils.follows = "flake-utils";
     devshell.inputs.nixpkgs.follows = "nixpkgs";
 
-    neovim-nightly-overlay = {
-      url = "github:nix-community/neovim-nightly-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # neovim-nightly-overlay = {
+    #   url = "github:nix-community/neovim-nightly-overlay";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
 
     alejandra = {
       url = "github:kamadorueda/alejandra";
@@ -197,7 +197,7 @@
         inputs.nur.overlay
         inputs.persway.overlays.default
         inputs.agenix.overlay
-        inputs.neovim-nightly-overlay.overlay
+        # inputs.neovim-nightly-overlay.overlay
         inputs.fenix.overlay
         (import ./kubernetes/overlay.nix {inherit inputs;})
         (
