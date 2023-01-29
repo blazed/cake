@@ -337,11 +337,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1674771519,
-        "narHash": "sha256-U0W3S1nX6yEvLh3Vq70EORbmXecAKXfmEfCfaA4A+I8=",
+        "lastModified": 1674928308,
+        "narHash": "sha256-elVU4NUZEl11BdT4gC+lrpLYM8Ccxqxs19Ix84HTI9o=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "bb4b25b302dbf0f527f190461b080b5262871756",
+        "rev": "08a778d80308353f4f65c9dcd3790b5da02d6306",
         "type": "github"
       },
       "original": {
@@ -529,11 +529,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1674888299,
-        "narHash": "sha256-5g0shs1K4vxmv3W8SqgI7cmSnlotT4AWmxdBO9tvmTM=",
+        "lastModified": 1674945972,
+        "narHash": "sha256-BfNnYn3iKm6tL4HLDtk/X0f6uPWTToVPxiNe9asWDmk=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "22eafe11a555362dadd49b3f76b1ceae7e17e4d1",
+        "rev": "3ccb2c06d5be111aa3bbc36c7f30dd10a69b9a7a",
         "type": "github"
       },
       "original": {
@@ -719,11 +719,11 @@
     "swaylock": {
       "flake": false,
       "locked": {
-        "lastModified": 1674818596,
-        "narHash": "sha256-a0cEUidGsqf5TOCVirZCler3x9OJlZB+ypoTz2luCMI=",
+        "lastModified": 1674943410,
+        "narHash": "sha256-Zpxc9h0S4JXPZgxugtvXfOexatyhcfiujM/KGGBSv8U=",
         "owner": "swaywm",
         "repo": "swaylock",
-        "rev": "6213fa0a7cac6da1a49f340d4999b9f6f9e82a5c",
+        "rev": "ac3b49b6571ceda3f8db11a98bfe320106996280",
         "type": "github"
       },
       "original": {
