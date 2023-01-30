@@ -29,7 +29,6 @@
     name = "lint";
     runtimeInputs = [statix];
     text = ''
-      export PATH=${statix}/bin:$PATH
       _CAKE_HELP=''${_CAKE_HELP:-}
       if [ -n "$_CAKE_HELP" ]; then
         echo lint all nix files
@@ -37,7 +36,7 @@
       fi
       shopt -s globstar
       action="''${1:-}"
-      shift
+      shift || true
       if [ -z "$action" ]; then
         statix check
       else
