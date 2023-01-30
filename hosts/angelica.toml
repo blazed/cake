@@ -5,6 +5,7 @@ publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICcPgR1IDyaKKQECpqdoesNahtMWQYi
 
 profiles = [
   "profiles/hardware/intel",
+  "profiles/acme",
   "profiles/unencrypted_fs",
   "profiles/hetzner_cloud",
   "profiles/k3s",
@@ -27,10 +28,61 @@ openssh.authorizedKeys.keys = [
 ]
 
 [config.age.secrets]
-k3s-token.file = "secrets/k3s/token.age"
+k3s-token  = { file = "secrets/k3s/token.age" }
 argocd-vault-sercet = { file = "secrets/k3s/argocd-vault-secret.yaml.age", path = "/var/lib/rancher/k3s/server/manifests/argocd-vault-secret.yaml" }
 argocd-cm = { file = "secrets/k3s/argocd-cm.yaml.age", path = "/var/lib/rancher/k3s/server/manifests/argocd-cm.yaml" }
 argocd-repo-creds = { file = "secrets/k3s/argocd-repo-creds.yaml.age", path = "/var/lib/rancher/k3s/server/manifests/argocd-repo-creds.yaml" }
+dex-env = { file = "secrets/dex-env.age" }
+acme-cloudflare = { file = "secrets/acme-cloudflare.age" }
+
+[config.networking.firewall]
+allowedTCPPorts = [ 80, 443 ]
+
+[config.services.dex]
+enable = true
+environmentFile = "/var/run/agenix/dex-env"
+
+[config.services.dex.settings]
+issuer = "https://id.internal.exsules.com"
+oauth2.skipApprovalScreen = true
+storage.type = "sqlite3"
+storage.config.file = "/var/lib/dex/dex.db"
+web.http = "127.0.0.1:5556"
+
+[[config.services.dex.settings.connectors]]
+id = "github"
+name = "GitHub"
+type = "github"
+config.clientID = "$GITHUB_CLIENT_ID"
+config.clientSecret = "$GITHUB_CLIENT_SECRET"
+config.redirectURI = "https://id.internal.exsules.com/callback"
+config.orgs = [ { name = "exsules", teams = [ "SRE", "Developers" ] } ]
+
+[[config.services.dex.settings.staticClients]]
+id = "k3s"
+name = "k3s"
+secretEnv = "DEX_K3S_CLIENT_SECRET"
+redirectURIs = [ "http://localhost:8000" ]
+
+[config.systemd.services.dex.serviceConfig]
+BindPaths = [ "/var/lib/dex" ]
+
+[config.services.nginx]
+enable = true
+recommendedTlsSettings = true
+recommendedProxySettings = true
+recommendedOptimisation = true
+recommendedGzipSettings = true
+
+[config.services.nginx.virtualHosts."id.internal.exsules.com"]
+forceSSL = true
+enableACME = true
+locations."/".proxyPass = "http://127.0.0.1:5556"
+
+[config.environment.state."/keep"]
+directories = [
+  "/var/lib/dex",
+]
 
 [config.services.k3s]
 role = "server"
@@ -46,10 +98,15 @@ node-external-ip = "$(get-iface-ip eth0)"
 advertise-address = "$(get-iface-ip tailscale0)"
 flannel-iface = "tailscale0"
 kube-controller-manager-arg.node-cidr-mask-size = 24
+kube-apiserver-arg.oidc-issuer-url = "https://id.internal.exsules.com"
+kube-apiserver-arg.oidc-username-claim = "email"
+kube-apiserver-arg.oidc-groups-claim = "groups"
+kube-apiserver-arg.oidc-client-id = "k3s"
 node-label."svccontroller.k3s.cattle.io/enablelb" = "true"
 node-label."topology.kubernetes.io/region" = "finland"
 node-label."topology.kubernetes.io/zone" = "hetzner"
 secrets-encryption = true
+tls-san = ["angelica", "angelica.tailef5cf.ts.net"]
 
 [config.services.k3s.autoDeploy]
 kured = "pkg:kured-yaml/kured.yaml"
@@ -91,6 +148,17 @@ spec.destinations = [
 ]
 spec.namespaceResourceWhitelist = [
   { group = "*", kind = "*" }
+]
+
+[config.services.k3s.autoDeploy.dex-gh-sre]
+apiVersion = "rbac.authorization.k8s.io/v1"
+kind = "ClusterRoleBinding"
+metadata.name = "dex-gh-sre"
+roleRef.apiGroup = "rbac.authorization.k8s.io"
+roleRef.kind = "ClusterRole"
+roleRef.name = "cluster-admin"
+subjects = [
+  { apiGroup = "rbac.authorization.k8s.io", kind = "Group", name = "exsules:SRE" }
 ]
 
 [config.system.autoUpgrade]
