@@ -4,12 +4,15 @@
   bash,
   jq,
   grim,
+  coreutils,
+  findutils,
   sway,
   swaylock,
-  mkStrictShellScript,
+  writeShellApplication,
+  lib,
 }:
-mkStrictShellScript {
+writeShellApplication {
   name = "swaylock-dope";
-  src = ./swaylock-dope;
-  substitutions = {inherit stdenv blur bash jq grim sway swaylock;};
+  text = builtins.readFile ./swaylock-dope;
+  runtimeInputs = [blur jq grim coreutils findutils sway swaylock];
 }
