@@ -1,7 +1,7 @@
 {
   programs.ssh = {
     enable = true;
-    forwardAgent = true;
+    forwardAgent = false;
     serverAliveInterval = 60;
     controlMaster = "auto";
     controlPersist = "30m";

@@ -18,6 +18,8 @@ profiles = [
 
 age.secrets.wg-home.file = "secrets/diana/wg-home.age"
 age.secrets.wg-private.file = "secrets/diana/wg-private.age"
+age.secrets.restic-password = { file = "secrets/restic-password.age", owner = "1000" }
+age.secrets.restic-env = { file = "secrets/restic-env.age", owner = "1000" }
 age.secrets.wifi-networks.file = "secrets/wifi-networks.age"
 
 networking.private-wireguard.enable = true
@@ -64,5 +66,18 @@ home-manager.users.blazed.programs.git.extraConfig.user.signingKey = "key::sk-ss
 home-manager.users.blazed.programs.git.extraConfig.gpg.format = "ssh"
 home-manager.users.blazed.programs.git.extraConfig.commit.gpgSign = true
 home-manager.users.blazed.programs.git.extraConfig.tag.forceSignAnnotated = true
+
+services.restic.backups.remote.initialize = true
+services.restic.backups.remote.user = "blazed"
+services.restic.backups.remote.passwordFile = "/run/agenix/restic-password"
+services.restic.backups.remote.environmentFile = "/run/agenix/restic-env"
+services.restic.backups.remote.repository = "s3:https://minio.exsules.dev/computer-backups"
+services.restic.backups.remote.timerConfig = { OnCalendar = "00/6:00", RandomizedDelaySec = "30m" }
+services.restic.backups.remote.paths = [
+  "/home/blazed/Documents",
+  "/home/blazed/Photos",
+  "/home/blazed/Pictures",
+  "/home/blazed/code",
+]
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
