@@ -9,7 +9,7 @@ in {
     vimdiffAlias = true;
     withNodeJs = true;
     withRuby = true;
-    package = pkgs.neovim-nightly;
+    package = pkgs.neovim-unwrapped;
     plugins = with pkgs.vimPlugins; [
       onedark-vim
       lightline-vim

@@ -3,11 +3,14 @@
   lib,
   ...
 }: let
-  commandNotFound = pkgs.writeShellScriptBin "command-not-found" ''
-    # shellcheck disable=SC1091
-    source ${pkgs.nix-index}/etc/profile.d/command-not-found.sh
-    command_not_found_handle "$@"
-  '';
+  commandNotFound = pkgs.writeShellApplication {
+    name = "command-not-found";
+    text = ''
+      # shellcheck disable=SC1091
+      source ${pkgs.nix-index}/etc/profile.d/command-not-found.sh
+      command_not_found_handle "$@"
+    '';
+  };
 
   withinNetNS = executable: {netns ? "private"}:
     lib.concatStringsSep " " [
@@ -48,20 +51,26 @@
     eval "$RUN"
   '';
 
-  swayDrmDebug = pkgs.writeStrictShellScriptBin "sway-drm-debug" ''
-    echo 0xFE | sudo tee /sys/module/drm/parameters/debug # Enable verbose DRM logging
-    sudo dmesg -C
-    dmesg -w >dmesg.log & # Continuously write DRM logs to a file
-    sway -d >sway.log 2>&1 # Reproduce the bug, then exit sway
-    fg # Kill dmesg with Ctrl+C
-    echo 0x00 | sudo tee /sys/module/drm/parameters/debug
-  '';
+  swayDrmDebug = pkgs.writeShellApplication {
+    name = "sway-drm-debug";
+    text = ''
+      echo 0xFE | sudo tee /sys/module/drm/parameters/debug # Enable verbose DRM logging
+      sudo dmesg -C
+      dmesg -w >dmesg.log & # Continuously write DRM logs to a file
+      sway -d >sway.log 2>&1 # Reproduce the bug, then exit sway
+      fg # Kill dmesg with Ctrl+C
+      echo 0x00 | sudo tee /sys/module/drm/parameters/debug
+    '';
+  };
 
-  drmDebugLaunch = pkgs.writeStrictShellScriptBin "drm-debug-launch" ''
-    ln -s ${swayDrmDebug}/bin/sway-drm-debug ~/sway-drm-debug
-    echo Please execute ~/sway-drm-debug
-    ${pkgs.fish}/bin/fish
-  '';
+  drmDebugLaunch = pkgs.writeShellApplication {
+    name = "drm-debug-launch";
+    text = ''
+      ln -s ${swayDrmDebug}/bin/sway-drm-debug ~/sway-drm-debug
+      echo Please execute ~/sway-drm-debug
+      ${pkgs.fish}/bin/fish
+    '';
+  };
 
   launcher = genLauncher [
     {"sway" = "${pkgs.udev}/bin/systemd-cat --identifier=sway ${sway}/bin/sway";}

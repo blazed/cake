@@ -54,7 +54,7 @@ networking.private-wireguard.peers = [
 
 services.k3s.role = "agent"
 services.k3s.tokenFile = "/run/agenix/k3s-token"
-services.k3s.serverAddr = "https://100.120.174.60:6443"
+services.k3s.settings.server = "https://angelica.tailef5cf.ts.net:6443"
 services.k3s.settings.flannel-iface = "tailscale0"
 services.k3s.settings.node-ip = "$(get-iface-ip tailscale0)"
 services.k3s.settings.node-external-ip = "$(get-iface-ip eth0)"

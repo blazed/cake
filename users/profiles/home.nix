@@ -12,6 +12,7 @@ in {
     pkgs.fzf
     pkgs.nodejs
     pkgs.kubectl
+    pkgs.kubelogin-oidc
     pkgs.kubectx
     pkgs.kustomize
     pkgs.scrot

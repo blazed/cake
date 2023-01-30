@@ -14,55 +14,29 @@ in
   )
   // {
     wayland-protocols-master = final: prev: {wayland-protocols-master = prev.callPackage ./wayland-protocols-master {};};
-    libdrm-24114 = final: prev: {
-      libdrm-24114 = prev.libdrm.overrideAttrs (oa: rec {
-        pname = "libdrm";
-        version = "2.4.114";
+  }
+  // {
+    libxkbcommon-150 = final: prev: {
+      libxkbcommon-150 = prev.libxkbcommon.overrideAttrs (oa: rec {
+        pname = "libxkbcommon";
+        version = "1.5.0";
         src = prev.fetchurl {
-          url = "https://dri.freedesktop.org/${pname}/${pname}-${version}.tar.xz";
-          hash = "sha256-MEnPhDpH0S5e7vvDvjSW14L6CfQjRr8Lfe/j0eWY0CY=";
+          url = "https://xkbcommon.org/download/${pname}-${version}.tar.xz";
+          hash = "sha256-Vg8RxLu8oQ9JXz7306aqTKYrT4+wtS59RZ0Yom5G4Bc=";
         };
       });
     };
-  }
-  // {
-    hwdata-master = final: prev: {
-      hwdata-master = prev.stdenv.mkDerivation rec {
-        pname = "hwdata";
-        version = inputs.hwdata.rev;
-        src = inputs.hwdata;
-
-        postPatch = ''
-          patchShebangs ./configure
-        '';
-
-        configureFlags = ["--datadir=${placeholder "out"}/share"];
-
-        doCheck = false;
-
-        meta = with lib; {
-          homepage = "https://github.com/vcrhonek/hwdata";
-          description = "Hardware Database, including Monitors, pci.ids, usb.ids, and video cards";
-          license = licenses.gpl2Plus;
-          platforms = platforms.all;
-          maintainers = with maintainers; [lovesegfault];
-        };
-      };
-    };
-
     cake-updaters = import ./cake-updaters-overlay.nix;
     wlroots-master = final: prev: {
       wlroots-master = prev.callPackage ./wlroots-master {
         wayland-protocols = final.wayland-protocols-master;
-        hwdata = final.hwdata-master;
-        libdrm = final.libdrm-24114;
       };
     };
     sway-unwrapped = final: prev: {
       sway-unwrapped = prev.callPackage ./sway {
         wlroots = final.wlroots-master;
         wayland-protocols = final.wayland-protocols-master;
-        libdrm = final.libdrm-24114;
+        libxkbcommon = final.libxkbcommon-150;
       };
     };
     sway = final: prev: {sway = prev.callPackage (prev.path + "/pkgs/applications/window-managers/sway/wrapper.nix") {};};
