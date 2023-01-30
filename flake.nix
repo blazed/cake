@@ -196,30 +196,34 @@
         inputs.fenix.overlays.default
         (import ./kubernetes/overlay.nix {inherit inputs;})
         (
-          final: prev: let
-            default_flake = "github:blazed/cake";
-            flags = "--use-remote-sudo -L";
-          in {
-            nixos-upgrade = prev.writeStrictShellScriptBin "nixos-upgrade" ''
-              echo Clearing fetcher cache
-              echo rm -rf ~/.cache/nix/fetcher-cache-v1.sqlite*
-              rm -rf ~/.cache/nix/fetcher-cache-v1.sqlite*
-              flake=''${1:-${default_flake}}
-              echo nixos-rebuild boot --flake "$flake" ${flags}
-              nixos-rebuild boot --flake "$flake" ${flags}
-              booted="$(readlink /run/booted-system/{initrd,kernel,kernel-modules})"
-              built="$(readlink /nix/var/nix/profiles/system/{initrd,kernel,kernel-modules})"
-              if [ "$booted" = "$built" ]; then
-                echo nixos-rebuild switch --flake "$flake" ${flags}
-                nixos-rebuild switch --flake "$flake" ${flags}
-              else
-                cat<<MSG
-                The system must be rebooted for the changes to take effect
-                this is because either all of or some of the kernel, the kernel
-                modules or initrd were updated
-              MSG
-              fi
-            '';
+          final: prev: {
+            nixos-upgrade = let
+              default_flake = "github:blazed/cake";
+              flags = "--use-remote-sudo -L";
+            in
+              prev.writeShellApplication {
+                name = "nixos-upgrade";
+                text = ''
+                  echo Clearing fetcher cache
+                  echo rm -rf ~/.cache/nix/fetcher-cache-v1.sqlite*
+                  rm -rf ~/.cache/nix/fetcher-cache-v1.sqlite*
+                  flake=''${1:-${default_flake}}
+                  echo nixos-rebuild boot --flake "$flake" ${flags}
+                  nixos-rebuild boot --flake "$flake" ${flags}
+                  booted="$(readlink /run/booted-system/{initrd,kernel,kernel-modules})"
+                  built="$(readlink /nix/var/nix/profiles/system/{initrd,kernel,kernel-modules})"
+                  if [ "$booted" = "$built" ]; then
+                    echo nixos-rebuild switch --flake "$flake" ${flags}
+                    nixos-rebuild switch --flake "$flake" ${flags}
+                  else
+                    cat<<MSG
+                    The system must be rebooted for the changes to take effect
+                    this is because either all of or some of the kernel, the kernel
+                    modules or initrd were updated
+                  MSG
+                  fi
+                '';
+              };
           }
         )
       ]
