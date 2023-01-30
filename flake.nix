@@ -24,10 +24,6 @@
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-misc = {
-      url = "github:johnae/nix-misc";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -192,13 +188,12 @@
 
     overlays =
       [
-        inputs.nix-misc.overlay
         inputs.devshell.overlay
         inputs.nur.overlay
         inputs.persway.overlays.default
-        inputs.agenix.overlay
+        inputs.agenix.overlays.default
         # inputs.neovim-nightly-overlay.overlay
-        inputs.fenix.overlay
+        inputs.fenix.overlays.default
         (import ./kubernetes/overlay.nix {inherit inputs;})
         (
           final: prev: let
