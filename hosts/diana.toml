@@ -14,6 +14,7 @@ profiles = [
   "profiles/pcscd",
   "profiles/state",
   "profiles/tailscale",
+  "profiles/zram",
 ]
 
 age.secrets.wg-home.file = "secrets/diana/wg-home.age"

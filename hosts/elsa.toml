@@ -12,6 +12,7 @@ profiles = [
   "profiles/uuid_disk_crypt",
   "profiles/tailscale",
   "profiles/wifi",
+  "profiles/zram",
 ]
 
 users.groups.blazed.gid = 1447

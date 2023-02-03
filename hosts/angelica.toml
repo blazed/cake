@@ -12,6 +12,7 @@ profiles = [
   "profiles/server",
   "profiles/state",
   "profiles/tailscale",
+  "profiles/zram",
 ]
 
 [config.users.groups.blazed]

@@ -13,6 +13,7 @@ profiles = [
   "profiles/state",
   "profiles/tailscale",
   "profiles/xserver",
+  "profiles/zram",
 ]
 
 age.secrets.wg-home.file = "secrets/nicolina/wg-home.age"
