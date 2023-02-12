@@ -38,16 +38,6 @@
           format = "{1m}";
         }
         {
-          block = "nvidia_gpu";
-          label = "1070 Ti";
-          show_utilization = true;
-          show_memory = false;
-          show_clocks = false;
-          show_temperature = true;
-          show_fan_speed = true;
-          interval = 1;
-        }
-        {
           block = "sound";
         }
         {
