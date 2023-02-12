@@ -171,6 +171,14 @@ in {
         };
       };
 
+      gaps = {
+        inner = 4;
+        top = -5;
+        bottom = -5;
+        left = -5;
+        right = -5;
+      };
+
       modes = {
         resize = {
           Left = "resize shrink width 10 px or 10 ppt";
@@ -344,7 +352,7 @@ in {
   };
 
   systemd.user.services = {
-    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d master_stack -a spiral -- /run/user/1000/persway";
+    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d master_stack -a spiral -- /run/user/%U/persway";
     swayidle = swayservice "Sway Idle Service" "${swayidleCommand}/bin/swayidle";
   };
 }
