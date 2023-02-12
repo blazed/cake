@@ -229,7 +229,7 @@ in {
       '';
     };
 
-    systemd.services.nftables.after = mkMerge [(mapAttrsToList (name: _: "${name}-netdev.service") internalInterfaces)];
+    systemd.services.nftables.wants = mkMerge [(mapAttrsToList (name: _: "${name}-netdev.service") internalInterfaces)];
 
     boot.kernel.sysctl."net.ipv4.conf.all.forwarding" = true;
     boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = true;
