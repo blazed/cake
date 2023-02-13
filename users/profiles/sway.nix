@@ -68,6 +68,8 @@
 
   xcursor_theme = "default";
 in {
+  home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
+
   home.sessionVariables = {
     GDK_BACKEND = "wayland";
     CLUTTER_BACKEND = "wayland";
@@ -143,11 +145,38 @@ in {
           xkb_options = "compose:ralt,caps:escape";
           xkb_variant = "dvp,";
         };
+        "3897:1558:Heng_Yu_Technology_POKER_3C" = {
+          xkb_layout = "dvp-custom";
+        };
         "1739:52710:DLL096D:01_06CB:CDE6_Touchpad" = {
           dwt = "true";
           natural_scroll = "true";
           tap = "true";
         };
+      };
+
+      output = {
+        "ASUSTek COMPUTER INC PG279QE #ASMJ3N131Wnd" = {
+          mode = "2560x1440@143.998Hz";
+          pos = "1440 680";
+        };
+        "LG Electronics 27GL850 007NTUW8L254" = {
+          mode = "2560x1440@144.000Hz";
+          pos = "4000 680";
+        };
+        "LG Electronics 27GL850 007NTWG5A929" = {
+          mode = "2560x1440@144.000Hz";
+          pos = "0 0";
+          transform = "270";
+        };
+      };
+
+      gaps = {
+        inner = 4;
+        top = -5;
+        bottom = -5;
+        left = -5;
+        right = -5;
       };
 
       modes = {
@@ -304,6 +333,16 @@ in {
       ];
     };
     extraConfig = ''
+      workspace 1 output DP-1
+      workspace 3 output DP-1
+      workspace 5 output DP-1
+
+      workspace 2 output DP-2
+      workspace 4 output DP-2
+      workspace 6 output DP-2
+
+      workspace 7 output DP-3
+
       no_focus [window_role="browser"]
       popup_during_fullscreen smart
       bindswitch --reload --locked lid:on output eDP-1 disable
@@ -313,7 +352,7 @@ in {
   };
 
   systemd.user.services = {
-    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d master_stack -a spiral -- /run/user/1000/persway";
+    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d master_stack -a spiral -- /run/user/%U/persway";
     swayidle = swayservice "Sway Idle Service" "${swayidleCommand}/bin/swayidle";
   };
 }

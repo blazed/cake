@@ -21,10 +21,24 @@ in {
   hardware.opengl.enable = true;
   hardware.opengl.driSupport = true;
   hardware.opengl.driSupport32Bit = true;
+  hardware.opengl.extraPackages = [
+    pkgs.intel-media-driver
+    pkgs.vaapiIntel
+    pkgs.vaapiVdpau
+    pkgs.libvdpau-va-gl
+    pkgs.rocm-opencl-icd
+    pkgs.rocm-opencl-runtime
+    pkgs.amdvlk
+  ];
 
   sound.enable = false;
   security.rtkit.enable = true;
 
+  security.pam.services.swaylock = {
+    text = ''
+      auth include login
+    '';
+  };
   environment.pathsToLink = ["/etc/gconf"];
 
   virtualisation.docker.enable = true;
