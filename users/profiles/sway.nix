@@ -33,6 +33,15 @@
     '';
   };
 
+  screenshot = pkgs.writeShellApplication {
+    name = "screenshot";
+    runtimeInputs = [pkgs.slurp pkgs.grim];
+    text = ''
+      mkdir -p ~/Pictures/screenshots
+      slurp | grim -g - ~/Pictures/screenshots/"$(date +'%Y-%m-%dT%H%M%S.png')"
+    '';
+  };
+
   swayOnReload = pkgs.writeShellApplication {
     name = "sway-on-reload";
     runtimeInputs = [pkgs.sway];
@@ -229,6 +238,8 @@ in {
         "${modifier}+Control+space" = "exec echo master_cycle_next > $XDG_RUNTIME_DIR/persway";
         "${modifier}+Tab" = "exec echo stack_focus_next > $XDG_RUNTIME_DIR/persway";
         "${modifier}+Shift+Tab" = "exec echo stack_focus_prev > $XDG_RUNTIME_DIR/persway";
+
+        "${modifier}+Shift+s" = ''exec ${screenshot}/bin/screenshot'';
 
         "${modifier}+Escape" = ''mode "(p)oweroff, (s)uspend, (h)ibernate, (r)eboot, (l)ogout"'';
         "${modifier}+x" = ''mode "disabled keybindings"'';
