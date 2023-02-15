@@ -42,6 +42,46 @@
     '';
   };
 
+  randomBackground = pkgs.writeShellApplication {
+    name = "random-background";
+    runtimeInputs = [pkgs.curl];
+    text = ''
+      curl --silent --fail-with-body -Lo /tmp/background.jpg 'https://source.unsplash.com/featured/2560x1440/?space,abstract,nature' 2>/dev/null
+      if [ "$(stat -c "%s" "/tmp/background.jpg")" -le 50000 ]; then
+        exit 1
+      fi
+      if [ -e "$HOME"/Pictures/background.jpg ]; then
+        mv "$HOME"/Pictures/background.jpg "$HOME"/Pictures/prev-background.jpg
+      fi
+      mv /tmp/background.jpg "$HOME"/Pictures/background.jpg
+      echo "$HOME"/Pictures/background.jpg
+    '';
+  };
+
+  swayBackground = pkgs.writeShellApplication {
+    name = "sway-background";
+    runtimeInputs = [randomBackground];
+    text = ''
+      BG=$(random-background)
+      exec swaymsg "output * bg '$BG' fill"
+    '';
+  };
+
+  rotatingBackground = pkgs.writeShellApplication {
+    name = "rotating-background";
+    runtimeInputs = [swayBackground pkgs.sway];
+    text = ''
+      while true; do
+      if ! sway-background; then
+        if [ -e "$HOME/Pictures/background.jpg" ]; then
+            exec swaymsg "output * bg '$HOME/Pictures/background.jpg' fill"
+        fi
+      fi
+      sleep 600
+      done
+    '';
+  };
+
   swayOnReload = pkgs.writeShellApplication {
     name = "sway-on-reload";
     runtimeInputs = [pkgs.sway];
@@ -145,7 +185,7 @@ in {
 
       floating = {
         titlebar = false;
-        border = 1;
+        border = 3;
       };
 
       input = {
@@ -165,6 +205,9 @@ in {
       };
 
       output = {
+        "*" = {
+          bg = "~/Pictures/background.jpg fill";
+        };
         "ASUSTek COMPUTER INC PG279QE #ASMJ3N131Wnd" = {
           mode = "2560x1440@143.998Hz";
           pos = "1440 680";
@@ -229,10 +272,15 @@ in {
         "${modifier}+l" = "focus up";
         "${modifier}+semicolon" = "focus right";
 
-        "${modifier}+Shift+j" = "move left";
-        "${modifier}+Shift+k" = "move down";
-        "${modifier}+Shift+l" = "move up";
-        "${modifier}+Shift+semicolon" = "move right";
+        "${modifier}+Shift+h" = "move left";
+        "${modifier}+Shift+j" = "move down";
+        "${modifier}+Shift+k" = "move up";
+        "${modifier}+Shift+l" = "move right";
+
+        "${modifier}+Control+Tab" = "[con_mark=_swap] unmark _swap; mark --add _swap; [con_mark=_prev] focus; swap container with mark _swap; [con_mark=_swap] unmark _swap";
+        "${modifier}+Control+Left" = "[con_mark=_swap] unmark _swap; mark --add _swap; focus left; swap container with mark _swap; [con_mark=_swap] unmark _swap";
+        "${modifier}+Control+Right" = "[con_mark=_swap] unmark _swap; mark --add _swap; focus right; swap container with mark _swap; [con_mark=_swap] unmark _swap";
+        "${modifier}+Control+Down" = "[con_mark=_swap] unmark _swap; mark --add _swap; focus down; swap container with mark _swap; [con_mark=_swap] unmark _swap";
 
         "${modifier}+space" = "exec echo sway_visible > $XDG_RUNTIME_DIR/persway";
         "${modifier}+Control+space" = "exec echo master_cycle_next > $XDG_RUNTIME_DIR/persway";
@@ -247,8 +295,15 @@ in {
 
         "${modifier}+Shift+x" = ''exec ${pkgs.swaylock-dope}/bin/swaylock-dope'';
 
+        "${modifier}+i" = ''exec ${pkgs.sway}/bin/swaymsg inhibit_idle open'';
+        "${modifier}+Shift+i" = ''exec ${pkgs.sway}/bin/swaymsg inhibit_idle none'';
+
+        "${modifier}+Shift+v" = ''splith'';
+
         "${modifier}+Return" = ''exec ${pkgs.alacritty}/bin/alacritty'';
         "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
+
+        "${modifier}+b" = ''exec ${swayBackground}/bin/sway-background'';
 
         XF86AudioRaiseVolume = ''exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%'';
         XF86AudioLowerVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
@@ -363,7 +418,8 @@ in {
   };
 
   systemd.user.services = {
-    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d master_stack -a spiral -- /run/user/%U/persway";
+    rotating-background = swayservice "Rotating background service" "${rotatingBackground}/bin/rotating-background";
+    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d master_stack -- /run/user/%U/persway";
     swayidle = swayservice "Sway Idle Service" "${swayidleCommand}/bin/swayidle";
   };
 }

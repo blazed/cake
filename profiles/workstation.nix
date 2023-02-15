@@ -132,6 +132,7 @@ in {
             "/home/${userName}/.cache/vim"
             "/home/${userName}/.config/Signal"
             "/home/${userName}/.config/discord"
+            "/home/${userName}/.config/easyeffects"
             "/home/${userName}/.config/gcloud"
             "/home/${userName}/.config/lutris"
             "/home/${userName}/.config/obs-studio"
