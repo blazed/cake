@@ -1,0 +1,111 @@
+{
+  lib,
+  ...
+}:
+{
+  programs.waybar.enable = true; 
+  programs.waybar.settings.topBar = {
+    bar_id = "top";
+    ipc = true;
+    position = "top";
+    modules-left = ["sway/workspaces" "sway/mode"];
+    modules-right = ["network" "network#wifi" "memory" "cpu" "temperature" "idle_inhibitor" "pulseaudio" "blacklight" "battery" "clock" "tray"];
+    "sway/workspaces" = {
+      disable-scroll-wraparound = true;
+    };
+    network = {
+      interface = lib.mkDefault "enp*";
+      format-ethernet = " {bandwidthDownBits:>}  {bandwidthUpBits:>} {ipaddr} ";
+      tooltip-format = "{ifname} via {gwaddr} ";
+      format-linked = "{ifname} (No IP) ";
+      format-disconnected = "";
+      format-alt = "{ifname}: {ipaddr}";
+      interval = 1;
+    };
+    "network#wifi" = {
+      interface = lib.mkDefault "wlan*";
+      format-ethernet = " {bandwidthDownBits:>}  {bandwidthUpBits:>} {ipaddr} ";
+      tooltip-format = "{ifname} via {gwaddr} ";
+      format-linked = "{ifname} (No IP) ";
+      format-disconnected = "";
+      format-alt = "{ifname}: {ipaddr}";
+      interval = 1;
+    };
+    memory = {
+      format = "{used:0.1f}G ";
+    };
+    cpu = {
+      format = "{}% ";
+    };
+    temperature = {
+      format = "{temperatureC}°C ";
+    };
+    idle_inhibitor = {
+      format = "{icon}";
+      format-icons = {
+        activated = "";
+        deactivated = "";
+      };
+    };
+    pulseaudio = {
+      format = "{volume}% {icon}";
+      format-bluetooth = "{volume}% {icon}";
+      format-muted = "";
+      format-icons = {
+        headphone = "";
+        hands-free = "";
+        headset = "";
+        phone = "";
+        portable = "";
+        car = "";
+        default = ["" ""];
+      };
+      scroll-step = 1;
+      ignored-sinks = ["Easy Effects Sink"];
+    };
+    clock = {
+      format = "{:%a %d/%m %I:%M %p}";
+    };
+  };
+  programs.waybar.systemd.enable = true;
+  programs.waybar.style = ''
+    * {
+      border: none;
+      border-radius: 0;
+      font-family: "Roboto Mono, Font Awesome 5 Free, Font Awesome 5 Brands, Arial, sans-serif";
+    }
+
+    window {
+      font-weight: bold;
+      font-family: "Roboto Mono, Font Awesome 5 Free, Font Awesome 5 Brands, Arial, sans-serif";
+    }
+
+    window#waybar {
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+    }
+
+    #workspaces button {
+      padding: 0 5px;
+      background: transparent;
+      color: #bababa;
+      border-top: 2px solid transparent;
+    }
+
+    #workspaces button.focused {
+      color: white;
+      background: transparent;
+      border-top: 2px solid #c9545d;
+    }
+
+    #mode {
+      background: #64727D;
+      border-bottom: 2px solid white;
+    }
+
+    #network, #memory, #cpu, #temperature, #idle_inhibitor, #pulseaudio, #clock, #tray, #mode {
+      padding: 0 3px;
+      margin: 0 2px;
+    }
+  '';
+}

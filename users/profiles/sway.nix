@@ -46,7 +46,7 @@
     name = "random-background";
     runtimeInputs = [pkgs.curl];
     text = ''
-      curl --silent --fail-with-body -Lo /tmp/background.jpg 'https://source.unsplash.com/featured/2560x1440/?space,abstract,nature' 2>/dev/null
+      curl --silent --fail-with-body -Lo /tmp/background.jpg 'https://source.unsplash.com/featured/2560x1440/?space,nature' 2>/dev/null
       if [ "$(stat -c "%s" "/tmp/background.jpg")" -le 50000 ]; then
         exit 1
       fi
@@ -128,6 +128,7 @@ in {
     XCURSOR_THEME = xcursor_theme;
     QT_STYLE_OVERRIDE = lib.mkForce "gtk";
     _JAVA_AWT_WM_NONREPARENTING = "1";
+    NIXOS_OZONE_WL = "1";
   };
 
   wayland.windowManager.sway = {
@@ -352,51 +353,7 @@ in {
         }
       ];
 
-      bars = [
-        {
-          inherit fonts;
-          extraConfig = ''
-            height 25
-          '';
-          statusCommand = "${pkgs.i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-default.toml";
-          position = "top";
-          colors = {
-            background = "#222222";
-            statusline = "#dddddd";
-            separator = "#666666";
-
-            focusedWorkspace = {
-              border = "#0088CC";
-              background = "#0088CC";
-              text = "#ffffff";
-            };
-
-            activeWorkspace = {
-              border = "#333333";
-              background = "#333333";
-              text = "#ffffff";
-            };
-
-            inactiveWorkspace = {
-              border = "#333333";
-              background = "#333333";
-              text = "#ffffff";
-            };
-
-            urgentWorkspace = {
-              border = "#2f343a";
-              background = "#900000";
-              text = "#ffffff";
-            };
-
-            bindingMode = {
-              border = "#BF616A";
-              background = "#BF616A";
-              text = "#E5E9F0";
-            };
-          };
-        }
-      ];
+      bars = [];
     };
     extraConfig = ''
       workspace 1 output DP-1

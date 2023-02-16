@@ -40,7 +40,7 @@ home-manager.users.blazed.profiles = [
   "users/profiles/fish",
   "users/profiles/git",
   "users/profiles/obs",
-  "users/profiles/i3status",
+  "users/profiles/waybar",
   "users/profiles/neovim",
   "users/profiles/rofi-wayland",
   "users/profiles/ssh",
