@@ -46,9 +46,6 @@ jobs:
           packages
         assignees: blazed
         reviewers: blazed
-        team-reviewers: |
-          owners
-          maintainers
 
     - name: Enable Pull Request Automerge
       if: steps.cpr.outputs.pull-request-operation == 'created'
