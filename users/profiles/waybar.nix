@@ -24,7 +24,7 @@
     };
     "network#wifi" = {
       interface = lib.mkDefault "wlan*";
-      format-ethernet = " {bandwidthDownBits:>}  {bandwidthUpBits:>} {ipaddr} ";
+      format-wifi = " {essid} {signalStrength}% {ipaddr} {bandwidthDownBits:>} {bandwidthUpBits:>}";
       tooltip-format = "{ifname} via {gwaddr} ";
       format-linked = "{ifname} (No IP) ";
       format-disconnected = "";

@@ -52,7 +52,7 @@ home-manager.users.blazed.profiles = [
   "users/profiles/dunst",
   "users/profiles/fish",
   "users/profiles/git",
-  "users/profiles/i3status-laptop",
+  "users/profiles/waybar",
   "users/profiles/neovim",
   "users/profiles/rbw",
   "users/profiles/rofi-wayland",
