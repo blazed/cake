@@ -24,6 +24,7 @@ in {
     pkgs.spotify
     pkgs.netns-dbus-proxy
     pkgs.xdg-utils
+    pkgs.persway
   ];
 
   home.sessionVariables = rec {

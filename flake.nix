@@ -59,7 +59,7 @@
     };
 
     persway = {
-      url = "github:johnae/persway/master-stack";
+      url = "github:johnae/persway";
       inputs = {
         devshell.follows = "devshell";
         dream2nix.follows = "dream2nix";

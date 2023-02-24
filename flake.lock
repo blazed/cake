@@ -537,16 +537,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1672528836,
-        "narHash": "sha256-pzBg0j8p2fUQscMrJuEe7iSQPmzcruQtQYZJYUdzj0Q=",
+        "lastModified": 1677149405,
+        "narHash": "sha256-c5l2awgnGF/DLIENgdIxlfUFxv3+4a4x0luHpxcpC5U=",
         "owner": "johnae",
         "repo": "persway",
-        "rev": "6d8ce2aeee0d31da09369158012dbbcea0cdf193",
+        "rev": "b3bb60aa14cf0fa1ed9c3e525092e8da6cc91cb5",
         "type": "github"
       },
       "original": {
         "owner": "johnae",
-        "ref": "master-stack",
         "repo": "persway",
         "type": "github"
       }
