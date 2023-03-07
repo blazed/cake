@@ -22,6 +22,7 @@
   libpng,
   libuuid,
   seatd,
+  libdisplay-info,
   libdrm,
   ffmpeg,
   xwayland,
@@ -52,6 +53,7 @@ stdenv.mkDerivation {
     wayland-protocols
     libinput
     libxkbcommon
+    libdisplay-info
     pixman
     xcbutilwm
     libX11

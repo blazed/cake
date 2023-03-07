@@ -61,7 +61,7 @@
     persway = {
       url = "github:johnae/persway";
       inputs = {
-        devshell.follows = "devshell";
+        # devshell.follows = "devshell";
         dream2nix.follows = "dream2nix";
         fenix.follows = "fenix";
         flake-utils.follows = "flake-utils";
@@ -135,7 +135,11 @@
       flake = false;
     };
     argocd-install = {
-      url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.5.4/manifests/install.yaml";
+      url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.3/manifests/install.yaml";
+      flake = false;
+    };
+    libdisplay-info = {
+      url = "git+https://gitlab.freedesktop.org/emersion/libdisplay-info.git?ref=main";
       flake = false;
     };
   };
@@ -188,7 +192,7 @@
 
     overlays =
       [
-        inputs.devshell.overlay
+        inputs.devshell.overlays.default
         inputs.nur.overlay
         inputs.persway.overlays.default
         inputs.agenix.overlays.default

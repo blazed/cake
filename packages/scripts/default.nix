@@ -10,8 +10,6 @@
     name = "tm";
     text = ''
       #!${stdenv.shell}
-      [ "$TMUX" == "" ] || exit 0
-
       PS3="Please choose your session: "
       # shellcheck disable=SC2207
       options=($(tmux list-sessions -F "#S" 2>/dev/null) "New Session" "fish")

@@ -16,10 +16,18 @@ in
     wayland-protocols-master = final: prev: {wayland-protocols-master = prev.callPackage ./wayland-protocols-master {};};
   }
   // {
+    libdisplay-info-main = final: prev: {
+      libdisplay-info-main = prev.libdisplay-info.overrideAttrs (oa: rec {
+        pname = "libdisplay-info";
+        version = "0.1.1";
+        src = inputs.libdisplay-info;
+      });
+    };
     cake-updaters = import ./cake-updaters-overlay.nix;
     wlroots-master = final: prev: {
       wlroots-master = prev.callPackage ./wlroots-master {
         wayland-protocols = final.wayland-protocols-master;
+        libdisplay-info = final.libdisplay-info-main;
       };
     };
     sway-unwrapped = final: prev: {
