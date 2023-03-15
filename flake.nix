@@ -90,10 +90,6 @@
       url = "github:Doctusoft/google-cloud-sdk-fish-completion";
       flake = false;
     };
-    hwdata = {
-      url = "github:vcrhonek/hwdata";
-      flake = false;
-    };
     nixpkgs-fmt = {
       url = "github:nix-community/nixpkgs-fmt";
       flake = false;
@@ -329,7 +325,6 @@
               persway = true;
               kured-yaml = true;
               argocd-yaml = true;
-              hwdata-master = true;
             }));
       }
     );

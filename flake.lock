@@ -414,22 +414,6 @@
         "type": "github"
       }
     },
-    "hwdata": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1677680755,
-        "narHash": "sha256-+9UyF4tcy5cJPjbyQ2RuWVJkBsZut+YX2ncUJIqIQZo=",
-        "owner": "vcrhonek",
-        "repo": "hwdata",
-        "rev": "0e25d93ac6433791edbb9d28b3f8eae0cf5e46ff",
-        "type": "github"
-      },
-      "original": {
-        "owner": "vcrhonek",
-        "repo": "hwdata",
-        "type": "github"
-      }
-    },
     "kured": {
       "flake": false,
       "locked": {
@@ -692,7 +676,6 @@
         "flake-utils": "flake-utils",
         "google-cloud-sdk-fish-completion": "google-cloud-sdk-fish-completion",
         "home-manager": "home-manager",
-        "hwdata": "hwdata",
         "kured": "kured",
         "libdisplay-info": "libdisplay-info",
         "netns-exec": "netns-exec",

@@ -1,4 +1,10 @@
-{lib, ...}: {
+{
+  lib,
+  config,
+  ...
+}: let
+  btrfsDisks = config.btrfs.disks;
+in {
   fileSystems."/" = {
     device = "none";
     fsType = "tmpfs";
@@ -25,21 +31,34 @@
 
   swapDevices = [{device = "/dev/disk/by-label/swap";}];
 
-  boot.initrd.luks.devices = {
-    cryptkey.device = "/dev/disk/by-label/cryptkey";
+  boot.initrd.luks.devices =
+    lib.recursiveUpdate {
+      cryptkey.device = "/dev/disk/by-label/cryptkey";
 
-    encrypted_root = {
-      device = "/dev/disk/by-label/encrypted_root";
-      keyFile = "/dev/mapper/cryptkey";
-      bypassWorkqueues = true;
-      allowDiscards = true;
-    };
+      encrypted_root = {
+        device = "/dev/disk/by-label/encrypted_root";
+        keyFile = "/dev/mapper/cryptkey";
+        bypassWorkqueues = true;
+        allowDiscards = true;
+      };
 
-    encrypted_swap = {
-      device = "/dev/disk/by-label/encrypted_swap";
-      keyFile = "/dev/mapper/cryptkey";
-      bypassWorkqueues = true;
-      allowDiscards = true;
-    };
-  };
+      encrypted_swap = {
+        device = "/dev/disk/by-label/encrypted_swap";
+        keyFile = "/dev/mapper/cryptkey";
+        bypassWorkqueues = true;
+        allowDiscards = true;
+      };
+    }
+    (
+      builtins.listToAttrs (lib.imap1 (idx: device:
+        {
+          name = "encrypted_root${toString idx}";
+          value = {
+            device = "/dev/disk/by-label/encrypted_root${toString idx}";
+            keyFile = "/dev/mapper/cryptkey";
+            bypassWorkqueues = true;
+            allowDiscards = true;
+          };
+        }) (builtins.tail btrfsDisks))
+    );
 }
