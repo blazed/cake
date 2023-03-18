@@ -5,3 +5,4 @@ wifi-networks
 /secrets/**/*
 !/secrets/*.nix
 !/secrets/*.age
+!/secrets/*.pub
