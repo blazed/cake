@@ -61,14 +61,14 @@ in {
     '';
   };
 
-  services.plex = {
+  services.jellyfin = {
     enable = true;
     openFirewall = true;
     user = "deluge";
     group = "deluge";
   };
 
-  systemd.services.plex = {
+  systemd.services.jellyfin = {
     after = ["mnt-media.mount"];
   };
 
@@ -94,7 +94,7 @@ in {
   };
 
   environment.state."/keep".directories = [
-    "/var/lib/plex"
+    "/var/lib/jellyfin"
     "/var/lib/deluge"
     "/var/lib/radarr"
     "/var/lib/sonarr"
