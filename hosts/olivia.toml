@@ -8,12 +8,12 @@ profiles = [
   "profiles/default_fs",
   "profiles/server",
   "profiles/state",
-  # "profiles/tailscale",
+  "profiles/tailscale",
   "profiles/zram",
 ]
 
 [config.btrfs]
-disks = [ "/dev/nvme0n1",  "/dev/nvme1n1" ]
+disks = [ "/dev/nvme0n1", "/dev/nvme1n1" ]
 
 [config.boot]
 kernelParams = [
