@@ -1,7 +1,7 @@
 system = "x86_64-linux"
 
 [config]
-publicKey = ""
+publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBiJBQ3iuAmUiUis8yzxGGpyQR1L4o9u4xAjAaL0arXy"
 
 profiles = [
   "profiles/hardware/ax41",
