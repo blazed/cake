@@ -1,0 +1,63 @@
+system = "x86_64-linux"
+
+[config]
+publicKey = ""
+
+profiles = [
+  "profiles/hardware/ax41",
+  "profiles/default_fs",
+  "profiles/server",
+  "profiles/state",
+  "profiles/tailscale",
+  "profiles/zram",
+]
+
+[config.btrfs]
+disks = [ "/dev/nvme0n1", "/dev/nvme1n1" ]
+
+[config.boot]
+kernelParams = [
+  "ip=65.108.236.239::65.108.236.193:255.255.255.192:jolene:eth0:none",
+]
+
+[config.boot.initrd]
+availableKernelModules = [
+  "r8169",
+  "nvme",
+  "ahci",
+  "usbhid",
+]
+
+[config.boot.initrd.network]
+enable = true
+postCommands = "echo 'cryptsetup-askpass' >> /root/.profile"
+
+[config.boot.initrd.network.ssh]
+enable = true
+port = 2222
+hostKeys = [
+  "/keep/secrets/initrd_ed25519_key",
+]
+authorizedKeys = [
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM6W52dA+lgtDTvjMRzaXVXm8CmJVNLLySz2xW44cSVY",
+  "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo=",
+  "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=",
+]
+
+[config.users.groups.blazed]
+gid = 1447
+
+[config.users.users.blazed]
+uid = 1447
+hashedPassword = "$6$mMZ.32xAYcIU9CU1$e1odugZc/7QlpZA0AWv7Ecn/SlqU/5h5x5NPr7Ko/4HPGHkK0TsxL678E9ddyIIsCDPM4rXPr79AYTMjL2uZC/"
+openssh.authorizedKeys.keys = [
+  "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo=",
+  "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=",
+]
+
+[config.networking]
+defaultGateway = "65.108.236.192"
+
+[[config.networking.interfaces.eth0.ipv4.addresses]]
+address = "65.108.236.239"
+prefixLength = 26
