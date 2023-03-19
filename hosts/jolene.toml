@@ -56,7 +56,7 @@ openssh.authorizedKeys.keys = [
 ]
 
 [config.networking]
-defaultGateway = "65.108.236.192"
+defaultGateway = "65.108.236.193"
 
 [[config.networking.interfaces.eth0.ipv4.addresses]]
 address = "65.108.236.239"
