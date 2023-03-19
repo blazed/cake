@@ -22,7 +22,7 @@ kernelParams = [
 
 [config.boot.initrd]
 availableKernelModules = [
-  "r8169",
+  "igb",
   "nvme",
   "ahci",
   "usbhid",
