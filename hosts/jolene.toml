@@ -6,11 +6,15 @@ publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBiJBQ3iuAmUiUis8yzxGGpyQR1L4o9
 profiles = [
   "profiles/hardware/ax41",
   "profiles/default_fs",
+  "profiles/k3s",
   "profiles/server",
   "profiles/state",
   "profiles/tailscale",
   "profiles/zram",
 ]
+
+[config.age.secrets]
+k3s-token  = { file = "secrets/k3s/token.age" }
 
 [config.btrfs]
 disks = [ "/dev/nvme0n1", "/dev/nvme1n1" ]
@@ -61,3 +65,24 @@ defaultGateway = "65.108.236.193"
 [[config.networking.interfaces.eth0.ipv4.addresses]]
 address = "65.108.236.239"
 prefixLength = 26
+
+[config.services.k3s]
+role = "agent"
+tokenFile = "/run/agenix/k3s-token"
+after = [ "tailscaled.service" ]
+
+[config.services.k3s.settings]
+server = "https://olivia.tailef5cf.ts.net:6443"
+node-ip = "$(get-iface-ip tailscale0)"
+node-external-ip = "$(get-iface-ip eth0)"
+flannel-iface = "tailscale0"
+node-label."topology.kubernetes.io/region" = "finland"
+node-label."topology.kubernetes.io/zone" = "hetzner"
+
+[config.system.autoUpgrade]
+enable = false
+flake = "github:blazed/cake"
+allowReboot = true
+dates = "*:0/15"
+randomizedDelaySec = "5min"
+enableSentinel = true
