@@ -14,6 +14,7 @@ in {
     pkgs.kubectl
     pkgs.kubelogin-oidc
     pkgs.kubectx
+    pkgs.krew
     pkgs.kustomize
     pkgs.scrot
     pkgs.xclip

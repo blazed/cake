@@ -63,38 +63,23 @@ in {
 
   environment.etc."systemd/sleep.conf".text = "HibernateDelaySec=8h";
 
+  environment.etc = {
+    "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
+        bluez_monitor.properties = {
+            ["bluez5.enable-sbc-xq"] = true,
+            ["bluez5.enable-msbc"] = true,
+            ["bluez5.enable-hw-volume"] = true,
+            ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+        }
+    '';
+  };
+
   services.pipewire = {
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    media-session.config.bluez-monitor.rules = [
-      {
-        # Matches all cards
-        matches = [{"device.name" = "~bluez_card.*";}];
-        actions = {
-          "update-props" = {
-            "bluez5.auto-connect" = ["hfp_hf" "hsp_hs" "a2dp_sink"];
-            "bluez5.reconnect-profiles" = ["hfp_hf" "hsp_hs" "a2dp_sink"];
-            # mSBC is not expected to work on all headset + adapter combinations.
-            "bluez5.msbc-support" = true;
-            # SBC-XQ is not expected to work on all headset + adapter combinations.
-            "bluez5.sbc-xq-support" = true;
-          };
-        };
-      }
-      {
-        matches = [
-          # Matches all sources
-          {"node.name" = "~bluez_input.*";}
-          # Matches all outputs
-          {"node.name" = "~bluez_output.*";}
-        ];
-        actions = {
-          "node.pause-on-idle" = false;
-        };
-      }
-    ];
+    wireplumber.enable = true;
   };
 
   xdg.portal.enable = true;
@@ -105,12 +90,12 @@ in {
     pkgs.entr
     pkgs.firefox-devedition-bin
     pkgs.gitAndTools.hub
-    pkgs.go_1_19
+    pkgs.go_1_20
     pkgs.ledger-live-desktop
     pkgs.lm_sensors
     pkgs.lutris
     pkgs.signal-desktop
-    pkgs.tdesktop ## Telegrom
+    pkgs.tdesktop ## Telegram
     pkgs.vulkan-loader
   ];
 

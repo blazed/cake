@@ -123,6 +123,7 @@ in {
     GDK_BACKEND = "wayland";
     CLUTTER_BACKEND = "wayland";
     QT_QPA_PLATFORM = "wayland-egl";
+    SDL_VIDEODRIVER = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
     MOZ_USE_XINPUT2 = "1";
     XCURSOR_THEME = xcursor_theme;

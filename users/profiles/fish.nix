@@ -126,6 +126,8 @@ in {
       setenv PATH "$GOPATH/bin:$PATH"
       setenv GOPRIVATE "github.com/exsules"
 
+      set -gx PATH $PATH $HOME/bin
+
       function __fish_command_not_found_handler --on-event fish_command_not_found
         ${commandNotFound}/bin/command-not-found $argv
       end

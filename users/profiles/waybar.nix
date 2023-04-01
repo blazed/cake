@@ -61,7 +61,7 @@
         default = ["" ""];
       };
       scroll-step = 1;
-      ignored-sinks = ["Easy Effects Sink"];
+      ignored-sinks = ["Easy Effects Sink" "SteelSeries Arctis 7 Chat"];
     };
     clock = {
       format = "{:%a %d/%m %I:%M %p}";

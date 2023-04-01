@@ -14,14 +14,14 @@ in {
   fileSystems."/nix" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
-    options = lib.mkDefault ["subvol=@nix" "rw" "noatime" "compress=zstd" "ssd" "space_cache"];
+    options = ["subvol=@nix" "rw" "noatime" "compress=zstd"];
   };
 
   fileSystems."/keep" = {
     device = "/dev/disk/by-label/root";
     fsType = "btrfs";
     neededForBoot = true;
-    options = lib.mkDefault ["subvol=@keep" "rw" "noatime" "compress=zstd" "ssd" "space_cache"];
+    options = ["subvol=@keep" "rw" "noatime" "compress=zstd"];
   };
 
   fileSystems."/boot" = {
