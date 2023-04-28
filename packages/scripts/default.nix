@@ -20,7 +20,7 @@
       do
           case $opt in
               "New Session")
-                  read -rp "Enter new session name: " SESSION_NAME
+                  read -r -p "Enter new session name: " SESSION_NAME
                   tmux new -s "$SESSION_NAME"
                   break
                   ;;

@@ -13,7 +13,18 @@ in
     genAttrs pkgList (key: (final: prev: {${key} = prev.callPackage (./. + "/${key}") {inherit inputs;};}))
   )
   // {
-    wayland-protocols-master = final: prev: {wayland-protocols-master = prev.callPackage ./wayland-protocols-master {};};
+    wayland-122 = final: prev: {
+      wayland-122 = prev.wayland.overrideAttrs (oa: rec {
+        pname = "wayland";
+        version = "1.22.0";
+        src = inputs.wayland-122;
+      });
+    };
+    wayland-protocols-master = final: prev: {
+      wayland-protocols-master = prev.callPackage ./wayland-protocols-master {
+        wayland = final.wayland-122;
+      };
+    };
   }
   // {
     libdisplay-info-main = final: prev: {
@@ -26,6 +37,7 @@ in
     cake-updaters = import ./cake-updaters-overlay.nix;
     wlroots-master = final: prev: {
       wlroots-master = prev.callPackage ./wlroots-master {
+        wayland = final.wayland-122;
         wayland-protocols = final.wayland-protocols-master;
         libdisplay-info = final.libdisplay-info-main;
       };

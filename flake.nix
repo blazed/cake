@@ -131,11 +131,15 @@
       flake = false;
     };
     argocd-install = {
-      url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.6/manifests/install.yaml";
+      url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.7/manifests/install.yaml";
       flake = false;
     };
     libdisplay-info = {
       url = "git+https://gitlab.freedesktop.org/emersion/libdisplay-info.git?ref=main";
+      flake = false;
+    };
+    wayland-122 = {
+      url = "https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.22.0/downloads/wayland-1.22.0.tar.xz";
       flake = false;
     };
   };
