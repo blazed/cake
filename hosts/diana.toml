@@ -7,8 +7,6 @@ profiles = [
   "profiles/hardware/xps9300",
   "profiles/default_fs",
   "profiles/bluetooth",
-  "profiles/bluez_autoswitch",
-  "profiles/hidpi",
   "profiles/home-manager",
   "profiles/laptop",
   "profiles/pcscd",
@@ -50,6 +48,7 @@ home-manager.users.blazed.userinfo.githubUser = "blazed"
 home-manager.users.blazed.profiles = [
   "users/profiles/alacritty",
   "users/profiles/dunst",
+  "users/profiles/easyeffects",
   "users/profiles/fish",
   "users/profiles/git",
   "users/profiles/waybar",
@@ -61,6 +60,7 @@ home-manager.users.blazed.profiles = [
   "users/profiles/sway",
   "users/profiles/tmux",
   "users/profiles/wlsunset",
+  "users/profiles/zellij",
 ]
 
 home-manager.users.blazed.programs.git.extraConfig.user.signingKey = "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo="

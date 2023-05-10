@@ -89,7 +89,6 @@ in {
     pkgs.discord
     pkgs.entr
     pkgs.firefox-devedition-bin
-    pkgs.gitAndTools.hub
     pkgs.go_1_20
     pkgs.ledger-live-desktop
     pkgs.lm_sensors
@@ -119,6 +118,8 @@ in {
             "/home/${userName}/.config/discord"
             "/home/${userName}/.config/easyeffects"
             "/home/${userName}/.config/gcloud"
+            "/home/${userName}/.config/gh"
+            "/home/${userName}/.config/github-copilot"
             "/home/${userName}/.config/lutris"
             "/home/${userName}/.config/obs-studio"
             "/home/${userName}/.config/pipewire"
