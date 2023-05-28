@@ -364,7 +364,6 @@
             boot.supportedFilesystems = lib.mkForce ["btrfs" "vfat"];
             boot.kernelPackages = pkgs.linuxPackages_latest;
             services.getty.autologinUser = mkForce "root";
-            hardware.video.hidpi.enable = true;
             # Enable sshd which gets disabled by netboot-minimal.nix
             systemd.services.sshd.wantedBy = mkOverride 0 ["multi-user.target"];
             users.users.root.openssh.authorizedKeys.keys = [
