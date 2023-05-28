@@ -37,13 +37,13 @@ role = "agent"
 tokenFile = "/run/agenix/k3s-token"
 after = [ "tailscaled.service" ]
 
-[config.services.k3s]
-settings.server = "https://olivia.tailef5cf.ts.net:6443"
-settings.flannel-iface = "tailscale0"
-settings.node-ip = "$(get-iface-ip tailscale0)"
-settings.node-external-ip = "$(get-iface-ip wlan0)"
-settings.node-label."topology.kubernetes.io/region" = "sweden"
-settings.node-label."topology.kubernetes.io/zone" = "home"
+[config.services.k3s.settings]
+server = "https://olivia.tailef5cf.ts.net:6443"
+flannel-iface = "tailscale0"
+node-ip = "$(get-iface-ip tailscale0)"
+node-external-ip = "$(get-iface-ip wlan0)"
+node-label."topology.kubernetes.io/region" = "sweden"
+node-label."topology.kubernetes.io/zone" = "home"
 
 [config.system.autoUpgrade]
 enable = true
