@@ -22,9 +22,9 @@
   in {
     timers.${name} = {
       description = "Remote disk unlock for ${host}:${strPort}";
-      wantedBy = [ "timers.target" ];
+      wantedBy = ["timers.target"];
       timerConfig = {
-        interval = interval;
+        OnUnitInactiveSec = interval;
         OnBootSec = interval;
         RandomizedDelaySec = "30s";
       };
