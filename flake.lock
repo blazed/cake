@@ -626,11 +626,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1685278508,
-        "narHash": "sha256-HbcZqPJvQsm3uhDci2FHF9mCyhMt9LqtvnLm4Qb6iVc=",
+        "lastModified": 1685320818,
+        "narHash": "sha256-QRLfYOJuL/1lwPHmelTbvCK6EDQeWcKZfGF0QSbsJ5c=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "5694f7ec1f41aecb0ac8374d6f6028a3dea51ee3",
+        "rev": "e7bf6b743fc8b1aea39b926a5b4ca657270d393b",
         "type": "github"
       },
       "original": {
@@ -937,11 +937,11 @@
     "wlroots": {
       "flake": false,
       "locked": {
-        "lastModified": 1685119858,
-        "narHash": "sha256-iP994SB9cdXdI3rlzQYO4s9OsaeC1a59C4oQwxdx25k=",
+        "lastModified": 1685285479,
+        "narHash": "sha256-m+kyUNjcns0/hFqWEm3IRf1/qLA169qmdir61Uh6UXw=",
         "ref": "master",
-        "rev": "2c6aeed7d67450f99379575348e548233dbd5ab8",
-        "revCount": 6290,
+        "rev": "3de330ec856edbae2caa13d9358dc5dfddf35370",
+        "revCount": 6291,
         "type": "git",
         "url": "https://gitlab.freedesktop.org/wlroots/wlroots"
       },
