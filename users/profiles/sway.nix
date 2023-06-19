@@ -380,7 +380,7 @@ in {
 
   systemd.user.services = {
     rotating-background = swayservice "Rotating background service" "${rotatingBackground}/bin/rotating-background";
-    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway daemon -w -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d stack_main";
+    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway daemon -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d stack_main";
     swayidle = swayservice "Sway Idle Service" "${swayidleCommand}/bin/swayidle";
   };
 }

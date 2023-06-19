@@ -80,7 +80,7 @@ node-label."topology.kubernetes.io/region" = "finland"
 node-label."topology.kubernetes.io/zone" = "hetzner"
 
 [config.system.autoUpgrade]
-enable = false
+enable = true
 flake = "github:blazed/cake"
 allowReboot = true
 dates = "*:0/15"

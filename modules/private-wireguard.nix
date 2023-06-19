@@ -47,6 +47,9 @@ in {
         ${pkgs.iproute2}/bin/ip netns add ${cfg.interfaceNamespace}
         ${pkgs.iproute2}/bin/ip netns exec private ip link set dev lo up
       '';
+      postShutdown = ''
+        ${pkgs.iproute2}/bin/ip netns del ${cfg.interfaceNamespace}
+      '';
     };
   };
 }

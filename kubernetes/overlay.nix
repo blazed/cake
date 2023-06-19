@@ -109,58 +109,34 @@
     apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: argocd-server
-    spec:
-      template:
-        spec:
-          containers:
-          - name: argocd-server
-            command:
-            - argocd-server
-            - --insecure
-    ---
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
       name: argocd-repo-server
     spec:
       template:
         spec:
-          serviceAccount: argocd-repo-server
-          automountServiceAccountToken: true
-          initContainers:
-          - name: download-tools
-            image: alpine:3.8
-            command: [sh, -c]
-            args:
-            - wget -qO /custom-tools/argo-cd-helmfile.sh https://raw.githubusercontent.com/travisghansen/argo-cd-helmfile/master/src/argo-cd-helmfile.sh &&
-              chmod +x /custom-tools/argo-cd-helmfile.sh &&
-              wget -qO /custom-tools/helmfile https://github.com/roboll/helmfile/releases/download/v0.144.0/helmfile_linux_amd64 &&
-              chmod +x /custom-tools/helmfile
-            volumeMounts:
-            - name: custom-tools
-              mountPath: /custom-tools
           containers:
-          - name: argocd-repo-server
+          - name: helmfile-plugin
+            image: travisghansen/argo-cd-helmfile:latest
+            command: [/var/run/argocd/argocd-cmp-server]
+            securityContext:
+              runAsUser: 999
+              runAsNonRoot: true
             volumeMounts:
-            - name: custom-tools
-              mountPath: /usr/local/bin/argo-cd-helmfile.sh
-              subPath: argo-cd-helmfile.sh
-            - name: custom-tools
-              mountPath: /usr/local/bin/helmfile
-              subPath: helmfile
-            envFrom:
-            - secretRef:
-                name: argocd-vault-configuration
+            - name: helmfile-cmp-tmp
+              mountPath: /tmp
+            - mountPath: /var/run/argocd
+              name: var-files
+            - mountPath: /home/argocd/cmp-server/plugins
+              name: plugins
           volumes:
-          - name: custom-tools
+          - name: helmfile-cmp-tmp
             emptyDir: {}
     ---
-    \$patch: delete
     apiVersion: v1
     kind: ConfigMap
     metadata:
       name: argocd-cmd-params-cm
+    data:
+      server.insecure: "true"
     ---
     \$patch: delete
     apiVersion: v1

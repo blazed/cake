@@ -1,5 +1,18 @@
 {pkgs, ...}: let
   initConfig = import ../files/nvim/init.nix {inherit pkgs;};
+
+  customPlugins = {
+    neoai = pkgs.vimUtils.buildVimPlugin {
+      name = "neoai";
+      meta.homepage = "https://github.com/Bryley/neoai.nvim";
+      src = pkgs.fetchFromGitHub {
+        owner = "Bryley";
+        repo = "neoai.nvim";
+        rev = "b90180e30d143afb71490b92b08c1e9121d4416a";
+        sha256 = "sha256-XLQp7i5SOzLkVHCbqUMk+ujcA4Uzpew3VjNAXw6WM8I=";
+      };
+    };
+  };
 in {
   programs.neovim = {
     enable = true;
@@ -10,7 +23,8 @@ in {
     withNodeJs = true;
     withRuby = true;
     package = pkgs.neovim-unwrapped;
-    plugins = with pkgs.vimPlugins; [
+    plugins = with pkgs.vimPlugins // customPlugins; [
+      neoai
       onedark-vim
       lightline-vim
       vim-matchup
@@ -37,6 +51,8 @@ in {
       neosnippet-snippets
       vim-commentary
       vim-repeat
+      copilot-vim
+      nui-nvim
       # editorconfig-vim
       vim-fugitive
       (nvim-treesitter.withPlugins (

@@ -49,6 +49,10 @@ home-manager.users.blazed.profiles = [
   "users/profiles/tmux",
 ]
 
+ networking.extraHosts = """
+ 127.0.0.1  nats.sre.svc.cluster.local cockroachdb-public.cockroachdb.svc.cluster.local 
+ """
+
 home-manager.users.blazed.programs.git.extraConfig.user.signingKey = "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo="
 home-manager.users.blazed.programs.git.extraConfig.gpg.format = "ssh"
 home-manager.users.blazed.programs.git.extraConfig.commit.gpgSign = true
