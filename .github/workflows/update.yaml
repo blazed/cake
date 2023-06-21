@@ -45,7 +45,6 @@ jobs:
         labels: |
           packages
         assignees: blazed
-        reviewers: blazed
 
     - name: Enable Pull Request Automerge
       if: steps.cpr.outputs.pull-request-operation == 'created'
@@ -54,4 +53,3 @@ jobs:
         token: ${{ secrets.GH_ACCESS_TOKEN }}
         pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
         merge-method: squash
-
