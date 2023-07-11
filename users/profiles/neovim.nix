@@ -30,13 +30,13 @@ in {
       vim-matchup
       vim-highlightedyank
       vim-sneak
-      coc-nvim
-      coc-go
-      coc-fzf
-      coc-prettier
-      coc-rls
-      coc-json
-      coc-rust-analyzer
+      # coc-nvim
+      # coc-go
+      # coc-fzf
+      # coc-prettier
+      # coc-rls
+      # coc-json
+      # coc-rust-analyzer
       vim-surround
       vim-rooter
       fzf-vim
@@ -53,6 +53,15 @@ in {
       vim-repeat
       copilot-vim
       nui-nvim
+      nvim-lspconfig
+      rust-vim
+      cmp-nvim-lsp
+      cmp-buffer
+      cmp-path
+      nvim-cmp
+      cmp-vsnip
+      vim-vsnip
+      lsp_signature-nvim
       # editorconfig-vim
       vim-fugitive
       (nvim-treesitter.withPlugins (
@@ -90,7 +99,8 @@ in {
           "rootPatterns": [".git/", "jsonnetfile.json"],
           "filetypes": ["jsonnet", "libsonnet"]
         }
-      }
+      },
+      "rust-analyzer.server.path": "${pkgs.rust-analyzer}/bin/rust-analyzer"
     }
   '';
 }
