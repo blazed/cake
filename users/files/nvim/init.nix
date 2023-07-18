@@ -111,10 +111,12 @@
     let g:rust_clip_command = '${pkgs.xclip}/bin/xclip -selection clipboard'
 
     " golang
-    " autocmd BufWritePre *.go :silent call CocAction('runCommand', 'editor.action.organizeImport')
+    autocmd BufWritePre *.go lua vim.lsp.buf.format()
 
     " terraform
     let g:terraform_fmt_on_save=1
+    autocmd BufWritePre *.tf lua vim.lsp.buf.format()
+    autocmd BufWritePre *.tfvars lua vim.lsp.buf.format()
 
     filetype plugin indent on
     set autoindent
@@ -480,7 +482,7 @@
       buf_set_keymap('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>', opts)
       buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
       buf_set_keymap('n', '<space>q', '<cmd>lua vim.diagnostic.set_loclist()<CR>', opts)
-      buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.formatting()<CR>", opts)
+      buf_set_keymap("n", "<space>f", "<cmd>lua vim.lsp.buf.format()<CR>", opts)
 
       require "lsp_signature".on_attach({
         doc_lines = 0,
@@ -509,6 +511,49 @@
           },
         },
       },
+      capabilities = capabilities,
+    }
+
+    lspconfig.gopls.setup {
+      cmd = {'${pkgs.gopls}/bin/gopls'},
+      on_attach = on_attach,
+      flags = {
+        debounce_text_changes = 150,
+      },
+      settings = {
+        gopls = {
+          experimentalPostfixCompletions = true,
+          analyses = {
+            unusedparams = true,
+            shadow = true,
+          },
+          staticcheck = true,
+        },
+      },
+      capabilities = capabilities,
+    }
+    vim.api.nvim_create_autocmd('BufWritePre', {
+      pattern = '*.go',
+      callback = function()
+        vim.lsp.buf.code_action({ context = { only = { 'source.organizeImports' } }, apply = true })
+      end
+    })
+
+    lspconfig.helm_ls.setup {
+      cmd = {'${pkgs.helm-ls}/bin/helm_ls', 'serve'},
+      on_attach = on_attach,
+      capabilities = capabilities,
+    }
+
+    lspconfig.nixd.setup {
+      cmd = {'${pkgs.nixd}/bin/nixd'},
+      on_attach = on_attach,
+      capabilities = capabilities,
+    }
+
+    lspconfig.terraformls.setup {
+      cmd = {'${pkgs.terraform-lsp}/bin/terraform-lsp', 'serve'},
+      on_attach = on_attach,
       capabilities = capabilities,
     }
     EOF
