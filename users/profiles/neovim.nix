@@ -38,7 +38,10 @@ in {
       nui-nvim
       nvim-cmp
       nvim-lspconfig
+      nvim-dap
       onedark-vim
+      plenary-nvim
+      rust-tools-nvim
       rust-vim
       tabular
       vim-commentary
