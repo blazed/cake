@@ -464,7 +464,6 @@
     local on_attach = function(client, bufnr)
       local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
       local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
-      local rt = require('rust-tools')
 
       buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
 
@@ -484,8 +483,8 @@
       buf_set_keymap('n', ']d', '<cmd>lua vim.diagnostic.goto_next()<CR>', opts)
       buf_set_keymap('n', '<space>q', '<cmd>lua vim.diagnostic.set_loclist()<CR>', opts)
       buf_set_keymap('n', '<space>f', '<cmd>lua vim.lsp.buf.format()<CR>', opts)
-      vim.keymap.set('n', '<C-space>', rt.hover_actions.hover_actions, { buffer = bufnr })
-      vim.keymap.set('n', '<leader>a', rt.hover_actions.code_action_group, { buffer = bufnr })
+      vim.keymap.set('n', '<C-space>', require'rust-tools'.hover_actions.hover_actions, { buffer = bufnr })
+      vim.keymap.set('n', '<leader>a', require'rust-tools'.hover_actions.code_action_group, { buffer = bufnr })
 
       require "lsp_signature".on_attach({
         doc_lines = 0,
@@ -495,7 +494,9 @@
       })
     end
 
-    require'rust-tools'.setup({
+    local rt = require('rust-tools')
+
+    rt.setup({
       server = {
         on_attach = on_attach,
       },
@@ -504,25 +505,25 @@
 
     local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-    lspconfig.rust_analyzer.setup {
-      on_attach = on_attach,
-      flags = {
-        debounce_text_changes = 150,
-      },
-      settings = {
-        ["rust-analyzer"] = {
-          cargo = {
-            allFeatures = true,
-          },
-          completion = {
-            postfix = {
-              enable = false,
-            },
-          },
-        },
-      },
-      capabilities = capabilities,
-    }
+    -- lspconfig.rust_analyzer.setup {
+    --   on_attach = on_attach,
+    --   flags = {
+    --     debounce_text_changes = 150,
+    --   },
+    --   settings = {
+    --     ["rust-analyzer"] = {
+    --       cargo = {
+    --         allFeatures = true,
+    --       },
+    --       completion = {
+    --         postfix = {
+    --           enable = false,
+    --         },
+    --       },
+    --     },
+    --   },
+    --   capabilities = capabilities,
+    -- }
 
     lspconfig.gopls.setup {
       cmd = {'${pkgs.gopls}/bin/gopls'},
