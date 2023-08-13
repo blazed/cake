@@ -118,6 +118,7 @@ in {
             "/home/${userName}/.cache/vim"
             "/home/${userName}/.cacke/monero-project"
             "/home/${userName}/.config/Signal"
+            "/home/${userName}/.config/WowUpCf"
             "/home/${userName}/.config/discord"
             "/home/${userName}/.config/easyeffects"
             "/home/${userName}/.config/gcloud"

@@ -58,11 +58,20 @@
       };
     };
 
+    dream2nix_legacy = {
+      url = "github:nix-community/dream2nix/6819a15ccc8a1e12462d479d60a6fdb697b27041";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        # flake-parts.follows = "flake-parts";
+        # pre-commit-hooks.follows = "pre-commit-hooks";
+        # flake-compat.follows = "flake-compat";
+      };
+    };
+
     persway = {
       url = "github:johnae/persway";
       inputs = {
-        # devshell.follows = "devshell";
-        dream2nix.follows = "dream2nix";
+        dream2nix.follows = "dream2nix_legacy";
         fenix.follows = "fenix";
         flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
