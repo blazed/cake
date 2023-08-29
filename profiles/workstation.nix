@@ -98,6 +98,7 @@ in {
     pkgs.signal-desktop
     pkgs.tdesktop ## Telegram
     pkgs.vulkan-loader
+    pkgs.insomnia
   ];
 
   programs.steam.enable = true;
@@ -117,6 +118,7 @@ in {
             "/home/${userName}/.cache/rbw"
             "/home/${userName}/.cache/vim"
             "/home/${userName}/.cacke/monero-project"
+            "/home/${userName}/.config/Insomnia"
             "/home/${userName}/.config/Signal"
             "/home/${userName}/.config/WowUpCf"
             "/home/${userName}/.config/discord"
