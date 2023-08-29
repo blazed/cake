@@ -91,11 +91,14 @@ in {
     pkgs.firefox-devedition-bin
     pkgs.go_1_20
     pkgs.ledger-live-desktop
+    pkgs.monero-gui
+    pkgs.monero-cli
     pkgs.lm_sensors
     pkgs.lutris
     pkgs.signal-desktop
     pkgs.tdesktop ## Telegram
     pkgs.vulkan-loader
+    pkgs.insomnia
   ];
 
   programs.steam.enable = true;
@@ -114,13 +117,17 @@ in {
             "/home/${userName}/.cache/nix-index"
             "/home/${userName}/.cache/rbw"
             "/home/${userName}/.cache/vim"
+            "/home/${userName}/.cacke/monero-project"
+            "/home/${userName}/.config/Insomnia"
             "/home/${userName}/.config/Signal"
+            "/home/${userName}/.config/WowUpCf"
             "/home/${userName}/.config/discord"
             "/home/${userName}/.config/easyeffects"
             "/home/${userName}/.config/gcloud"
             "/home/${userName}/.config/gh"
             "/home/${userName}/.config/github-copilot"
             "/home/${userName}/.config/lutris"
+            "/home/${userName}/.config/monero-project"
             "/home/${userName}/.config/obs-studio"
             "/home/${userName}/.config/pipewire"
             "/home/${userName}/.config/pulse"

@@ -134,7 +134,7 @@ in {
 
   wayland.windowManager.sway = {
     enable = true;
-    systemdIntegration = true;
+    systemd.enable = true;
     config = {
       inherit fonts modifier;
 
@@ -305,7 +305,9 @@ in {
 
         "${modifier}+Shift+v" = ''splith'';
 
-        "${modifier}+Return" = ''exec ${pkgs.alacritty}/bin/alacritty'';
+        "${modifier}+Shift+a" = ''scratchpad show'';
+
+        "${modifier}+Return" = ''exec ${pkgs.kitty}/bin/kitty'';
         "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
 
         "${modifier}+b" = ''exec ${swayBackground}/bin/sway-background'';
