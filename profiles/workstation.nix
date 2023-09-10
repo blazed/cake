@@ -169,7 +169,7 @@ in {
     ) (filterAttrs (_: user: user.isNormalUser) users);
   };
 
-  fonts.fonts = with pkgs; [
+  fonts.packages = with pkgs; [
     google-fonts
     font-awesome_5
     powerline-fonts

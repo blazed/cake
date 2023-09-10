@@ -7,25 +7,27 @@
 in {
   home.packages = [
     pkgs.alacritty
-    pkgs.nix-index
-    pkgs.scripts
+    pkgs.carapace
     pkgs.fzf
-    pkgs.nodejs
-    pkgs.kubectl
-    pkgs.kubelogin-oidc
-    pkgs.kubectx
-    pkgs.krew
-    pkgs.kustomize
-    pkgs.scrot
-    pkgs.xclip
-    pkgs.ruby
-    pkgs.virt-manager
-    pkgs.pwgen
     pkgs.google-cloud-sdk
-    pkgs.spotify
+    pkgs.krew
+    pkgs.kubectl
+    pkgs.kubectx
+    pkgs.kubelogin-oidc
+    pkgs.kustomize
     pkgs.netns-dbus-proxy
-    pkgs.xdg-utils
+    pkgs.nix-index
+    pkgs.nodejs
     pkgs.persway
+    pkgs.pueue
+    pkgs.pwgen
+    pkgs.ruby
+    pkgs.scripts
+    pkgs.scrot
+    pkgs.spotify
+    pkgs.virt-manager
+    pkgs.xclip
+    pkgs.xdg-utils
   ];
 
   home.sessionVariables = rec {

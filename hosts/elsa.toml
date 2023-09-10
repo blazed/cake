@@ -6,7 +6,6 @@ publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOrJCuQh8JV7yArBzBL8rGtpKGyvqiX
 profiles = [
   "profiles/hardware/nuc",
   "profiles/default_fs",
-  "profiles/k3s",
   "profiles/server",
   "profiles/state",
   "profiles/uuid_disk_crypt",
@@ -29,21 +28,7 @@ openssh.authorizedKeys.keys = [
 ]
 
 [config.age.secrets]
-k3s-token.file = "secrets/k3s/token.age"
 wifi-networks.file = "secrets/wifi-networks.age"
-
-[config.services.k3s]
-role = "agent"
-tokenFile = "/run/agenix/k3s-token"
-after = [ "tailscaled.service" ]
-
-[config.services.k3s.settings]
-server = "https://olivia.tailef5cf.ts.net:6443"
-flannel-iface = "tailscale0"
-node-ip = "$(get-iface-ip tailscale0)"
-node-external-ip = "$(get-iface-ip wlan0)"
-node-label."topology.kubernetes.io/region" = "sweden"
-node-label."topology.kubernetes.io/zone" = "home"
 
 [config.system.autoUpgrade]
 enable = true
@@ -51,4 +36,3 @@ flake = "github:blazed/cake"
 allowReboot = true
 dates = "*:0/15"
 randomizedDelaySec = "5min"
-enableSentinel = true
