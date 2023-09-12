@@ -6,7 +6,6 @@ publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBthY9m7Dxs2I5uvU/UeudSV27X52av
 profiles = [
   "profiles/hardware/intel",
   "profiles/default_fs",
-  "profiles/k3s",
   "profiles/download_station",
   "profiles/nfs",
   "profiles/server",
@@ -30,10 +29,9 @@ openssh.authorizedKeys.keys = [
 ]
 
 [config.age.secrets]
-k3s-token.file = "secrets/k3s/token.age"
 wg-private.file = "secrets/sophia/wg-private.age"
-remote-disk-password.file = "secrets/remote-disk-password.age"
-id_ed25519_remote_unlock.file = "secrets/id_ed25519_remote_unlock.age"
+github-runner-token-cake.file = "secrets/github-runner-token-cake.age"
+github-runner-token-exsules.file = "secrets/github-runner-token-exsules.age"
 
 [config.boot.initrd]
 availableKernelModules = [
@@ -65,37 +63,38 @@ allowedIPs = [ "0.0.0.0/0", "::0/0" ]
 endpoint = "185.204.1.219:51820"
 persistentKeepalive = 25
 
-[[config.services.remote-unlock]]
+[config.services.github-runners.cake]
 enable = true
-host = "65.108.236.239"
-port= 2222
-identityFile = "/run/agenix/id_ed25519_remote_unlock"
-passwordFile = "/run/agenix/remote-disk-password"
+workDir = "%S/github-runner-work/cake"
+ephemeral = true
+replace = true
+url = "https://github.com/blazed/cake"
+tokenFile = "/run/agenix/github-runner-token-cake"
+extraLabels = [ "cake" ]
+nodeRuntimes = [ "node20" ]
+serviceOverrides = { DynamicUser = false }
 
-[[config.services.remote-unlock]]
+[config.services.github-runners.exsules]
 enable = true
-host = "65.108.124.175"
-port = 2222
-identityFile = "/run/agenix/id_ed25519_remote_unlock"
-passwordFile = "/run/agenix/remote-disk-password"
+workDir = "%S/github-runner-work/exsules"
+ephemeral = true
+replace = true
+url = "https://github.com/exsules"
+tokenFile = "/run/agenix/github-runner-token-exsules"
+extraLabels = [ "exsules" ]
+nodeRuntimes = [ "node20" ]
+serviceOverrides = { DynamicUser = false }
 
-[config.services.k3s]
-role = "agent"
-tokenFile = "/run/agenix/k3s-token"
-after = [ "tailscaled.service" ]
-
-[config.services.k3s.settings]
-server = "https://olivia.tailef5cf.ts.net:6443"
-flannel-iface = "tailscale0"
-node-ip = "$(get-iface-ip tailscale0)"
-node-external-ip = "$(get-iface-ip eth0)"
-node-label."topology.kubernetes.io/region" = "sweden"
-node-label."topology.kubernetes.io/zone" = "home"
+[config.environment.state."/keep"]
+directories = [
+  "/var/lib/github-runner-work",
+  "/var/lib/github-runner-work/cake",
+  "/var/lib/github-runner-work/exsules",
+]
 
 [config.system.autoUpgrade]
-enable = true 
+enable = true
 flake = "github:blazed/cake"
 allowReboot = true
 dates = "*:0/15"
 randomizedDelaySec = "5min"
-enableSentinel = true
