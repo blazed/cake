@@ -13,47 +13,7 @@ in
     genAttrs pkgList (key: (final: prev: {${key} = prev.callPackage (./. + "/${key}") {inherit inputs;};}))
   )
   // {
-    wayland-122 = final: prev: {
-      wayland-122 = prev.wayland.overrideAttrs (oa: rec {
-        pname = "wayland";
-        version = "1.22.0";
-        src = inputs.wayland-122;
-      });
-    };
-    wayland-protocols-master = final: prev: {
-      wayland-protocols-master = prev.callPackage ./wayland-protocols-master {
-        wayland = final.wayland-122;
-      };
-    };
-  }
-  // {
-    libdisplay-info-main = final: prev: {
-      libdisplay-info-main = prev.libdisplay-info.overrideAttrs (oa: rec {
-        pname = "libdisplay-info";
-        version = "0.1.1";
-        src = inputs.libdisplay-info;
-      });
-    };
     cake-updaters = import ./cake-updaters-overlay.nix;
-    wlroots-master = final: prev: {
-      wlroots-master = prev.callPackage ./wlroots-master {
-        wayland = final.wayland-122;
-        wayland-protocols = final.wayland-protocols-master;
-        libdisplay-info = final.libdisplay-info-main;
-      };
-    };
-    sway-unwrapped = final: prev: {
-      sway-unwrapped = prev.callPackage ./sway {
-        wlroots = final.wlroots-master;
-        wayland-protocols = final.wayland-protocols-master;
-      };
-    };
-    sway = final: prev: {sway = prev.callPackage (prev.path + "/pkgs/applications/window-managers/sway/wrapper.nix") {};};
-    swayidle = final: prev: {
-      swayidle = prev.callPackage ./swayidle {
-        wayland-protocols = final.wayland-protocols-master;
-      };
-    };
     inputs = final: prev: {inherit inputs;};
     swaylock-dope = final: prev: {swaylock-dope = prev.callPackage ./swaylock-dope {};};
     wl-clipboard-x11 = final: prev: {wl-clipboard-x11 = prev.callPackage ./wl-clipboard-x11 {};};
