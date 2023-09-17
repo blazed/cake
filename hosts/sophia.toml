@@ -63,33 +63,28 @@ allowedIPs = [ "0.0.0.0/0", "::0/0" ]
 endpoint = "185.204.1.219:51820"
 persistentKeepalive = 25
 
-[config.services.github-runners.cake]
+[config.services.github-runners.blazed]
 enable = true
-workDir = "%S/github-runner-work/cake"
+# workDir = "%S"
 ephemeral = true
 replace = true
 url = "https://github.com/blazed/cake"
 tokenFile = "/run/agenix/github-runner-token-cake"
-extraLabels = [ "cake" ]
+extraLabels = [ "blazed" ]
 nodeRuntimes = [ "node20" ]
-serviceOverrides = { DynamicUser = false }
 
 [config.services.github-runners.exsules]
 enable = true
-workDir = "%S/github-runner-work/exsules"
+# workDir = "%S/github-runner-work"
 ephemeral = true
 replace = true
 url = "https://github.com/exsules"
 tokenFile = "/run/agenix/github-runner-token-exsules"
 extraLabels = [ "exsules" ]
 nodeRuntimes = [ "node20" ]
-serviceOverrides = { DynamicUser = false }
 
 [config.environment.state."/keep"]
 directories = [
-  "/var/lib/github-runner-work",
-  "/var/lib/github-runner-work/cake",
-  "/var/lib/github-runner-work/exsules",
   "/var/lib/private",
 ]
 
