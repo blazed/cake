@@ -15,10 +15,46 @@
     '';
   };
 
-  xcursor_theme = config.gtk.cursorTheme.name;
+  swaylockEffects = pkgs.writeShellApplication {
+    name = "swaylock-effects";
+    runtimeInputs = [pkgs.swaylock-effects];
+    text = ''
+      swaylock \
+       --screenshots \
+       --indicator-radius 100 \
+       --indicator-thickness 7 \
+       --effect-blur 15x3 \
+       --effect-greyscale \
+       --ring-color ffffff \
+       --ring-clear-color baffba \
+       --ring-ver-color bababa \
+       --ring-wrong-color ffbaba \
+       --key-hl-color bababa \
+       --line-color ffffffaa \
+       --inside-color ffffffaa \
+       --inside-ver-color bababaaa \
+       --line-ver-color bababaaa \
+       --inside-clear-color baffbaaa \
+       --line-clear-color baffbaaa \
+       --inside-wrong-color ffbabaaa \
+       --line-wrong-color ffbabaaa \
+       --separator-color 00000000 \
+       --grace 2 \
+       --fade-in 0.2
+    '';
+  };
+
+  xcursor_theme = "default";
   terminal = pkgs.kitty;
   terminal-bin = "${pkgs.kitty}/bin/kitty";
 in {
+  xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
+    [default]
+    path = "~/Pictures/wallpapers"
+    duration = "30m"
+    sorting = "random"
+    apply-shadow = false
+  '';
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
 
   home.sessionVariables = {
@@ -56,7 +92,7 @@ in {
     bind=,l,exit
     bind=,l,submap,reset
 
-    bind=,p,escape,reset
+    bind=,escape,submap,reset
     bind=,return,submap,reset
     submap=reset
   '';
@@ -68,8 +104,115 @@ in {
         "$mod, Return, exec, ${terminal-bin}"
         "$mod SHIFT, q, killactive"
         "$mod, d, exec, ${pkgs.rofi-wayland}/bin/rofi -show drun"
-        "$mod SHIFT, s, exec, ${screenshot/bin/screenshot}"
-        "$mod CONTROL, l, exec, ${swaylockEffects}/bin/swaylock-effects"
+        "$mod SHIFT, s, exec, ${screenshot}/bin/screenshot"
+        "$mod SHIFT, x, exec, ${swaylockEffects}/bin/swaylock-effects"
+        "$mod, left, movefocus, l"
+        "$mod, right, movefocus, r"
+        "$mod, up, movefocus, u"
+        "$mod, down, movefocus, d"
+        "$mod, code:14, workspace, 1"
+        "$mod, code:17, workspace, 2"
+        "$mod, code:13, workspace, 3"
+        "$mod, code:18, workspace, 4"
+        "$mod, code:12, workspace, 5"
+        "$mod, code:19, workspace, 6"
+        "$mod, code:11, workspace, 7"
+        "$mod, code:20, workspace, 8"
+        "$mod, code:15, workspace, 9"
+        "$mod SHIFT, code:14, movetoworkspace, 1"
+        "$mod SHIFT, code:17, movetoworkspace, 2"
+        "$mod SHIFT, code:13, movetoworkspace, 3"
+        "$mod SHIFT, code:18, movetoworkspace, 4"
+        "$mod SHIFT, code:12, movetoworkspace, 5"
+        "$mod SHIFT, code:19, movetoworkspace, 6"
+        "$mod SHIFT, code:11, movetoworkspace, 7"
+        "$mod SHIFT, code:20, movetoworkspace, 8"
+        "$mod SHIFT, code:15, movetoworkspace, 9"
+        "$mod, 0, workspace, 10"
+        "$mod SHIFT, 0, movetoworkspace, 10"
+        "$mod SHIFT, left, movewindow, l"
+        "$mod SHIFT, right, movewindow, r"
+        "$mod SHIFT, up, movewindow, u"
+        "$mod SHIFT, down, movewindow, d"
+        "$mod, f, fullscreen"
+        "$mod, g, togglegroup"
+        "$mod, Tab, changegroupactive"
+        "$mod, space, layoutmsg, swapwithmaster"
+        "$mod, m, movecurrentworkspacetomonitor, +1"
+        "$mod SHIFT, space, togglefloating"
+      ];
+
+      misc.disable_hyprland_logo = true;
+      misc.disable_splash_rendering = true;
+
+      binds = {
+        workspace_back_and_forth = true;
+        allow_workspace_cycles = true;
+      };
+
+      animations = {
+        enabled = true;
+        animation = [
+          "workspaces,1,0.6,default"
+          "windows,1,0.8,default"
+          "fade,1,0.8,default"
+          "border,1,0.6,default"
+          "borderangle,1,0.6,default"
+        ];
+      };
+
+      decoration = {
+        rounding = 4;
+        blur = {
+          enabled = true;
+          size = 7;
+          passes = 2;
+          xray = true;
+          ignore_opacity = true;
+          new_optimizations = true;
+          noise = 0.12;
+          contrast = 1.05;
+          brightness = 0.8;
+        };
+        drop_shadow = false;
+        shadow_range = 20;
+        shadow_render_power = 2;
+        shadow_offset = "3 3";
+        "col.shadow" = "0x99000000";
+        "col.shadow_inactive" = "0x55000000";
+        active_opacity = 0.95;
+        inactive_opacity = 0.85;
+        fullscreen_opacity = 1.0;
+      };
+
+      general = {
+        layout = "master";
+        border_size = 4;
+        gaps_in = 2;
+        gaps_out = 0;
+        "col.active_border" = "0x36393Eaa";
+      };
+
+      master = {
+        new_is_master = true;
+        orientation = "right";
+        mfact = 0.7;
+      };
+
+      input = {
+        kb_layout = "us";
+        kb_variant = "dvp";
+        kb_options = "compose:ralt,caps:escape";
+
+        touchpad = {
+          natural_scroll = true;
+          disable_while_typing = true;
+          tap-to-click = true;
+        };
+      };
+
+      exec-once = [
+        "${pkgs.wpaperd}/bin/wpaperd"
       ];
   };
 }

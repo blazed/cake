@@ -8,10 +8,26 @@
     bar_id = "top";
     ipc = true;
     position = "top";
-    modules-left = ["sway/workspaces" "sway/mode"];
+    modules-left = ["hyprland/workspaces" "sway/workspaces" "sway/mode" "hyprland/submap"];
+    # modules-center = ["hyprland/window"];
     modules-right = ["network" "network#wifi" "memory" "cpu" "temperature" "idle_inhibitor" "pulseaudio" "blacklight" "battery" "clock" "tray"];
     "sway/workspaces" = {
       disable-scroll-wraparound = true;
+    };
+    "hyprland/workspaces" = {
+      format = "{name}";
+      format-icons = {
+        active = "";
+        default = "";
+        persistent = "";
+      };
+      on-scroll-up = "hyprctl dispatch workspace r-1";
+      on-scroll-down = "hyprctl dispatch workspace r+1";
+      all-outputs = false;
+    };
+    "hyprland/submap" = {
+      format = "✌️ {}";
+      tooltip = false;
     };
     network = {
       interface = lib.mkDefault "enp*";
