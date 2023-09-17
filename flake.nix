@@ -62,9 +62,6 @@
       url = "github:nix-community/dream2nix/6819a15ccc8a1e12462d479d60a6fdb697b27041";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        # flake-parts.follows = "flake-parts";
-        # pre-commit-hooks.follows = "pre-commit-hooks";
-        # flake-compat.follows = "flake-compat";
       };
     };
 
@@ -107,26 +104,6 @@
       url = "github:johnae/netns-exec";
       flake = false;
     };
-    sway = {
-      url = "github:swaywm/sway";
-      flake = false;
-    };
-    swayidle = {
-      url = "github:swaywm/swayidle";
-      flake = false;
-    };
-    swaylock = {
-      url = "github:swaywm/swaylock";
-      flake = false;
-    };
-    wayland-protocols-master = {
-      url = "git+https://gitlab.freedesktop.org/wayland/wayland-protocols?ref=main";
-      flake = false;
-    };
-    wlroots = {
-      url = "git+https://gitlab.freedesktop.org/wlroots/wlroots?ref=master";
-      flake = false;
-    };
     wf-recorder = {
       url = "github:ammen99/wf-recorder";
       flake = false;
@@ -141,14 +118,6 @@
     };
     argocd-install = {
       url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.7.2/manifests/install.yaml";
-      flake = false;
-    };
-    libdisplay-info = {
-      url = "git+https://gitlab.freedesktop.org/emersion/libdisplay-info.git?ref=main";
-      flake = false;
-    };
-    wayland-122 = {
-      url = "https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.22.0/downloads/wayland-1.22.0.tar.xz";
       flake = false;
     };
   };
