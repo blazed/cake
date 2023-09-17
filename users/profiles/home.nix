@@ -97,7 +97,7 @@ in {
 
   programs.command-not-found.enable = false;
 
-  programs.exa = {
+  programs.eza = {
     enable = true;
     enableAliases = true;
   };
