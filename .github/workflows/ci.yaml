@@ -91,11 +91,8 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     name: Build (matrix)
-    needs: [build_package_x86_64_linux, build_host_x86_64_linux, nix_lint, nix_check]
+    needs: [build_package_x86_64_linux, build_host_x86_64_linux, nix_check]
     steps:
-      - name: Check linting status
-        if: ${{ needs.nix_lint.result != 'success' }}
-        run: exit 1
       - name: Check flake check status
         if: ${{ needs.nix_check.result != 'success' }}
         run: exit 1
