@@ -10,7 +10,7 @@ jobs:
   nix_check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v22
       with:
         extra_nix_config: |
@@ -23,7 +23,7 @@ jobs:
     outputs:
       matrix: ${{ steps.job-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v22
       with:
         extra_nix_config: |
@@ -37,7 +37,7 @@ jobs:
     outputs:
       matrix: ${{ steps.job-matrix.outputs.matrix }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v22
       with:
         extra_nix_config: |
@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.create_package_matrix_x86_64_linux.outputs.matrix) }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v22
       with:
         extra_nix_config: |
@@ -75,7 +75,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.create_host_matrix_x86_64_linux.outputs.matrix) }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v22
       with:
         extra_nix_config: |
