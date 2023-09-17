@@ -90,6 +90,7 @@ directories = [
   "/var/lib/github-runner-work",
   "/var/lib/github-runner-work/cake",
   "/var/lib/github-runner-work/exsules",
+  "/var/lib/private",
 ]
 
 [config.system.autoUpgrade]
