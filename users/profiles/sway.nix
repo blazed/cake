@@ -212,16 +212,15 @@ in {
         };
         "ASUSTek COMPUTER INC PG279QE #ASMJ3N131Wnd" = {
           mode = "2560x1440@143.998Hz";
-          pos = "1440 680";
+          pos = "2560 0";
         };
         "LG Electronics 27GL850 007NTUW8L254" = {
           mode = "2560x1440@144.000Hz";
-          pos = "4000 680";
+          pos = "5120 0";
         };
         "LG Electronics 27GL850 007NTWG5A929" = {
           mode = "2560x1440@144.000Hz";
           pos = "0 0";
-          transform = "270";
         };
       };
 
