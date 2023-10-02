@@ -7,11 +7,12 @@ profiles = [
   "profiles/hardware/usbcore",
   "profiles/hardware/x570",
   "profiles/default_fs",
+  "profiles/greetd",
   "profiles/home-manager",
-  "profiles/workstation",
   "profiles/pcscd",
   "profiles/state",
   "profiles/tailscale",
+  "profiles/workstation",
   "profiles/zram",
 ]
 
@@ -39,6 +40,8 @@ home-manager.users.blazed.profiles = [
   "users/profiles/easyeffects",
   "users/profiles/fish",
   "users/profiles/git",
+  "users/profiles/hyprland",
+  "users/profiles/kanshi",
   "users/profiles/kitty",
   "users/profiles/neovim",
   "users/profiles/nushell",
@@ -65,7 +68,7 @@ services.restic.backups.remote.initialize = true
 services.restic.backups.remote.user = "blazed"
 services.restic.backups.remote.passwordFile = "/run/agenix/restic-password"
 services.restic.backups.remote.environmentFile = "/run/agenix/restic-env"
-services.restic.backups.remote.repository = "s3:https://minio.exsules.dev/computer-backups"
+services.restic.backups.remote.repository = "s3:http://storage01:9000/computer-backups"
 services.restic.backups.remote.timerConfig = { OnCalendar = "00/2:00", RandomizedDelaySec = "30m" }
 services.restic.backups.remote.paths = [
   "/home/blazed/Documents",

@@ -3,6 +3,7 @@
   config,
   lib,
   pkgs,
+  specialArgs,
   ...
 }: let
 
@@ -21,6 +22,8 @@
     text = ''
       swaylock \
        --screenshots \
+       --clock \
+       --indicator \
        --indicator-radius 100 \
        --indicator-thickness 7 \
        --effect-blur 15x3 \
@@ -47,6 +50,8 @@
   xcursor_theme = "default";
   terminal = pkgs.kitty;
   terminal-bin = "${pkgs.kitty}/bin/kitty";
+
+  inherit (specialArgs) hostName;
 in {
   xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
     [default]
@@ -99,7 +104,7 @@ in {
 
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
-    bind = 
+    bind =
       [
         "$mod, Return, exec, ${terminal-bin}"
         "$mod SHIFT, q, killactive"
@@ -140,6 +145,11 @@ in {
         "$mod, space, layoutmsg, swapwithmaster"
         "$mod, m, movecurrentworkspacetomonitor, +1"
         "$mod SHIFT, space, togglefloating"
+      ];
+
+      bindm = [
+        "$mod, mouse:272, movewindow"
+        "$mod, mouse:273, resizewindow"
       ];
 
       misc.disable_hyprland_logo = true;
@@ -199,6 +209,8 @@ in {
         mfact = 0.7;
       };
 
+      layerrule = "blur,waybar";
+
       input = {
         kb_layout = "us";
         kb_variant = "dvp";
@@ -210,6 +222,18 @@ in {
           tap-to-click = true;
         };
       };
+
+      windowrulev2 = "idleinhibit fullscreen,fullscreen:1,class:(.*),title:(.*)";
+
+      "device:heng-yu-technology-poker-3c" = {
+        kb_layout = "dvp-custom";
+        kb_variant = "";
+        kb_options = "compose:ralt,caps:escape";
+      };
+
+      exec = [
+        "${pkgs.kanshi}/bin/kanshi"
+      ];
 
       exec-once = [
         "${pkgs.wpaperd}/bin/wpaperd"

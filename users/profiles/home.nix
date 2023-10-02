@@ -3,7 +3,7 @@
   config,
   ...
 }: let
-  inherit (config) home;
+  inherit (config) home gtx;
 in {
   home.packages = [
     pkgs.alacritty
