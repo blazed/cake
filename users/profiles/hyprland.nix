@@ -16,11 +16,14 @@
     '';
   };
 
+  swaylockTimeout = "300";
+  swaylockSleepTimeout = "310";
+
   swaylockEffects = pkgs.writeShellApplication {
     name = "swaylock-effects";
     runtimeInputs = [pkgs.swaylock-effects];
     text = ''
-      swaylock \
+      exec swaylock \
        --screenshots \
        --clock \
        --indicator \
@@ -44,6 +47,17 @@
        --separator-color 00000000 \
        --grace 2 \
        --fade-in 0.2
+    '';
+  };
+
+  swayidleCommand = pkgs.writeShellApplication {
+    name = "swayidle";
+    runtimeInputs = [pkgs.bash swaylockEffects pkgs.swayidle];
+    text = ''
+      exec swayidle -d -w timeout ${swaylockTimeout} swaylock-effects \
+                     timeout ${swaylockSleepTimeout} 'hyprctl dispatch dpms off' \
+                     resume 'hyprctl dispatch dpms on' \
+                     before-sleep swaylock-effects
     '';
   };
 
@@ -223,8 +237,6 @@ in {
         };
       };
 
-      windowrulev2 = "idleinhibit fullscreen,fullscreen:1,class:(.*),title:(.*)";
-
       "device:heng-yu-technology-poker-3c" = {
         kb_layout = "dvp-custom";
         kb_variant = "";
@@ -237,6 +249,7 @@ in {
 
       exec-once = [
         "${pkgs.wpaperd}/bin/wpaperd"
+        "${pkgs.swayidle}/bin/swayidle"
       ];
   };
 }
