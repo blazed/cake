@@ -5,8 +5,10 @@ publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBthY9m7Dxs2I5uvU/UeudSV27X52av
 
 profiles = [
   "profiles/hardware/intel",
+  "profiles/acme",
   "profiles/default_fs",
   "profiles/download_station",
+  "profiles/k3s",
   "profiles/nfs",
   "profiles/server",
   "profiles/state",
@@ -29,9 +31,8 @@ openssh.authorizedKeys.keys = [
 ]
 
 [config.age.secrets]
-wg-private.file = "secrets/sophia/wg-private.age"
-github-runner-token-cake.file = "secrets/github-runner-token-cake.age"
-github-runner-token-exsules.file = "secrets/github-runner-token-exsules.age"
+k3s-token = { file = "secrets/k3s/token.age" }
+wg-private = { file = "secrets/sophia/wg-private.age" }
 
 [config.boot.initrd]
 availableKernelModules = [
@@ -49,6 +50,31 @@ eno2.useDHCP = false
 eno3.useDHCP = false
 eno4.useDHCP = false
 
+[config.networking.firewall]
+allowedTCPPorts = [ 80, 443 ]
+
+[config.services.k3s]
+role = "server"
+tokenFile = "/run/agenix/k3s-token"
+after = [ "tailscaled.service" ]
+
+[config.services.k3s.settings]
+cluster-cidr = "10.244.0.0/16"
+service-cidr = "10.96.0.0/12"
+cluster-dns = "10.96.0.10"
+node-ip = "$(get-iface-ip tailscale0)"
+node-external-ip = "$(get-iface-ip eth0)"
+advertise-address = "$(get-iface-ip tailscale0)"
+flannel-iface = "tailscale0"
+kube-controller-manager-arg.node-cidr-mask-size = 24
+kube-apiserver-arg.oidc-issuer-url = "https://id.internal.exsules.com"
+kube-apiserver-arg.oidc-username-claim = "email"
+kube-apiserver-arg.oidc-groups-claim = "groups"
+kube-apiserver-arg.oidc-client-id = "k3s"
+node-label."svccontroller.k3s.cattle.io/enablelb" = "true"
+secrets-encryption = true
+tls-san = ["sophia", "sophia.tailef5cf.ts.net"]
+
 [config.networking.private-wireguard]
 enable = true
 ips = [
@@ -63,34 +89,11 @@ allowedIPs = [ "0.0.0.0/0", "::0/0" ]
 endpoint = "185.204.1.219:51820"
 persistentKeepalive = 25
 
-[config.services.github-runners.blazed]
-enable = true
-# workDir = "%S"
-ephemeral = true
-replace = true
-url = "https://github.com/blazed/cake"
-tokenFile = "/run/agenix/github-runner-token-cake"
-extraLabels = [ "blazed" ]
-nodeRuntimes = [ "node20" ]
-
-[config.services.github-runners.exsules]
-enable = true
-# workDir = "%S/github-runner-work"
-ephemeral = true
-replace = true
-url = "https://github.com/exsules"
-tokenFile = "/run/agenix/github-runner-token-exsules"
-extraLabels = [ "exsules" ]
-nodeRuntimes = [ "node20" ]
-
-[config.environment.state."/keep"]
-directories = [
-  "/var/lib/private",
-]
 
 [config.system.autoUpgrade]
-enable = true
+enable = false
 flake = "github:blazed/cake"
 allowReboot = true
 dates = "*:0/15"
 randomizedDelaySec = "5min"
+enableSentinel = true
