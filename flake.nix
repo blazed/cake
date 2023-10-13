@@ -455,7 +455,7 @@
       };
 
       github-actions-host-matrix-x86-64-linux = {
-        os = ["ubuntu-latest"];
+        os = ["cake"];
         host = mapAttrsToList (name: _: name) (filterAttrs (_: config: config.system == "x86_64-linux") hostConfigurations);
       };
     };
