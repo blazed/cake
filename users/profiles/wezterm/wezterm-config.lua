@@ -49,6 +49,11 @@ config.keys = {
     mods = 'LEADER',
     action = act.TogglePaneZoomState,
   },
+  {
+    key = 'd',
+    mods = 'LEADER',
+    action = act.DetachDomain 'CurrentPaneDomain',
+  },
 }
 
 config.unix_domains = {
