@@ -53,6 +53,7 @@ home-manager.users.blazed.profiles = [
   "users/profiles/sway",
   "users/profiles/tmux",
   "users/profiles/waybar",
+  "users/profiles/wezterm",
 ]
 
  networking.extraHosts = """
