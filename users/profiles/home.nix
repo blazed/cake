@@ -43,7 +43,6 @@ in {
     vulkan-loader
     wl-clipboard
     wl-clipboard-x11
-    xclip
     xdg-utils
   ];
 
