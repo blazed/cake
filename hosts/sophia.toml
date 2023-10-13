@@ -50,9 +50,6 @@ eno2.useDHCP = false
 eno3.useDHCP = false
 eno4.useDHCP = false
 
-[config.networking.firewall]
-allowedTCPPorts = [ 80, 443 ]
-
 [config.services.k3s]
 role = "server"
 tokenFile = "/run/agenix/k3s-token"
@@ -67,10 +64,6 @@ node-external-ip = "$(get-iface-ip eth0)"
 advertise-address = "$(get-iface-ip tailscale0)"
 flannel-iface = "tailscale0"
 kube-controller-manager-arg.node-cidr-mask-size = 24
-kube-apiserver-arg.oidc-issuer-url = "https://id.internal.exsules.com"
-kube-apiserver-arg.oidc-username-claim = "email"
-kube-apiserver-arg.oidc-groups-claim = "groups"
-kube-apiserver-arg.oidc-client-id = "k3s"
 node-label."svccontroller.k3s.cattle.io/enablelb" = "true"
 secrets-encryption = true
 tls-san = ["sophia", "sophia.tailef5cf.ts.net"]
