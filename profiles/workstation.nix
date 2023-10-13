@@ -174,6 +174,9 @@ in {
     font-awesome_5
     powerline-fonts
     roboto
+    (pkgs.nerdfonts.override {
+      fonts = ["JetBrainsMono" "RobotoMono"];
+    })
   ];
 
   machinePurpose = "workstation";
