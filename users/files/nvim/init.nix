@@ -108,7 +108,7 @@
     let g:rustfmt_autosave = 1
     let g:rustfmt_emit_files = 1
     let g:rustfmt_fail_silently = 0
-    let g:rust_clip_command = '${pkgs.xclip}/bin/xclip -selection clipboard'
+    let g:rust_clip_command = '${pkgs.wl-clipboard}/bin/wl-copy -p'
 
     " golang
     autocmd BufWritePre *.go lua vim.lsp.buf.format()
