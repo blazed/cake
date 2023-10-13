@@ -83,91 +83,9 @@ in {
   };
 
   xdg.portal.enable = true;
-  xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-wlr pkgs.xdg-desktop-portal-gtk];
-
-  environment.systemPackages = [
-    pkgs.discord
-    pkgs.entr
-    pkgs.firefox-devedition-bin
-    pkgs.go_1_20
-    pkgs.ledger-live-desktop
-    pkgs.monero-gui
-    pkgs.monero-cli
-    pkgs.lm_sensors
-    pkgs.lutris
-    pkgs.signal-desktop
-    pkgs.tdesktop ## Telegram
-    pkgs.vulkan-loader
-    pkgs.insomnia
-  ];
+  xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk];
 
   programs.steam.enable = true;
-
-  environment.state."/keep" = {
-    directories = [
-      "/var/lib/flatpak"
-    ];
-    users = mapAttrs' (
-      userName: conf:
-        nameValuePair (toString conf.uid) {
-          directories = [
-            "/home/${userName}/.backup/undo"
-            "/home/${userName}/.cache/mu"
-            "/home/${userName}/.cache/nix"
-            "/home/${userName}/.cache/nix-index"
-            "/home/${userName}/.cache/rbw"
-            "/home/${userName}/.cache/vim"
-            "/home/${userName}/.cacke/monero-project"
-            "/home/${userName}/.config/Insomnia"
-            "/home/${userName}/.config/Signal"
-            "/home/${userName}/.config/WowUpCf"
-            "/home/${userName}/.config/discord"
-            "/home/${userName}/.config/easyeffects"
-            "/home/${userName}/.config/gcloud"
-            "/home/${userName}/.config/gh"
-            "/home/${userName}/.config/github-copilot"
-            "/home/${userName}/.config/lutris"
-            "/home/${userName}/.config/monero-project"
-            "/home/${userName}/.config/obs-studio"
-            "/home/${userName}/.config/pipewire"
-            "/home/${userName}/.config/pulse"
-            "/home/${userName}/.config/spotify"
-            "/home/${userName}/.config/warcraftlogs"
-            "/home/${userName}/.factorio"
-            "/home/${userName}/.gnupg"
-            "/home/${userName}/.local/share/Steam"
-            "/home/${userName}/.local/share/TelegramDesktop"
-            "/home/${userName}/.local/share/containers"
-            "/home/${userName}/.local/share/direnv"
-            "/home/${userName}/.local/share/fish"
-            "/home/${userName}/.local/share/flatpak"
-            "/home/${userName}/.local/share/lutris"
-            "/home/${userName}/.local/share/vulkan"
-            "/home/${userName}/.local/state/pipewire/media-session.d"
-            "/home/${userName}/.local/state/wireplumber"
-            "/home/${userName}/.mail"
-            "/home/${userName}/.mozilla"
-            "/home/${userName}/.steam"
-            "/home/${userName}/.terraform.d"
-            "/home/${userName}/.var"
-            "/home/${userName}/.wine"
-            "/home/${userName}/Documents"
-            "/home/${userName}/Downloads"
-            "/home/${userName}/Games"
-            "/home/${userName}/Photos"
-            "/home/${userName}/Pictures"
-            "/home/${userName}/code"
-            # "/home/${userName}/.config/Ledger Live"
-          ];
-
-          files = [
-            "/home/${userName}/.config/gopass/config.yml"
-            "/home/${userName}/.kube/config"
-            "/home/${userName}/.ssh/known_hosts"
-          ];
-        }
-    ) (filterAttrs (_: user: user.isNormalUser) users);
-  };
 
   fonts.packages = with pkgs; [
     google-fonts

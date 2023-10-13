@@ -4,6 +4,7 @@
   lib,
   ...
 }: let
+  inherit (config) gtk;
   swayservice = Description: ExecStart: {
     Unit = {
       inherit Description;
@@ -115,7 +116,7 @@
 
   modifier = "Mod4";
 
-  xcursor_theme = "default";
+  xcursor_theme = gtk.cursorTheme.name;
 in {
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
 

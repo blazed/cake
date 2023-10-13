@@ -72,7 +72,7 @@
   local-dev = dev-env "local-dev";
   remote-dev = dev-env "remote-dev";
 
-  xcursor_theme = "default";
+  xcursor_theme = config.gtk.cursorTheme.name;
   terminal-bin = "${pkgs.wezterm}/bin/wezterm start --always-new-process";
 
   inherit (specialArgs) hostName;

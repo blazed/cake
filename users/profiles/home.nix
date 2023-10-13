@@ -3,43 +3,56 @@
   config,
   ...
 }: let
-  inherit (config) home gtx;
+  inherit (config) home gtk;
 in {
-  home.packages = [
-    pkgs.alacritty
-    pkgs.carapace
-    pkgs.fzf
-    pkgs.google-cloud-sdk
-    pkgs.krew
-    pkgs.kubectl
-    pkgs.kubectx
-    pkgs.kubelogin-oidc
-    pkgs.kustomize
-    pkgs.netns-dbus-proxy
-    pkgs.nix-index
-    pkgs.nodejs
-    pkgs.persway
-    pkgs.pueue
-    pkgs.pwgen
-    pkgs.ruby
-    pkgs.scripts
-    pkgs.scrot
-    pkgs.spotify
-    pkgs.virt-manager
-    pkgs.xclip
-    pkgs.xdg-utils
+  home.packages = with pkgs; [
+    carapace
+    discord
+    firefox-devedition-bin
+    fzf
+    gnome.nautilus
+    go_1_20
+    google-cloud-sdk
+    insomnia
+    kanshi
+    krew
+    kubectl
+    kubectx
+    kubelogin-oidc
+    kustomize
+    ledger-live-desktop
+    lm_sensors
+    lutris
+    monero-cli
+    monero-gui
+    netns-dbus-proxy
+    nix-index
+    nodejs
+    persway
+    pueue
+    pwgen
+    rnix-lsp
+    ruby
+    rust-analyzer-bin
+    scripts
+    scrot
+    signal-desktop
+    spotify
+    tdesktop ## Telegram
+    virt-manager
+    vulkan-loader
+    wl-clipboard
+    wl-clipboard-x11
+    xclip
+    xdg-utils
   ];
 
   home.sessionVariables = rec {
     EDITOR = "nvim";
     VISUAL = EDITOR;
     KUBECONFIG = "/home/${home.username}/.kube/config";
+    COLORTERM = "truecolor";
   };
-
-  # home.pointerCursor = {
-  #   package = pkgs.arc-icon-theme;
-  #   name = "Arc";
-  # };
 
   xdg.enable = true;
   xdg.configFile."mimeapps.list".force = true;
@@ -79,19 +92,25 @@ in {
     style.package = pkgs.adwaita-qt;
   };
 
+  home.sessionVariables.XCURSOR_THEME = gtk.cursorTheme.name;
+
   gtk = {
     enable = true;
     font = {
       package = pkgs.roboto;
       name = "Roboto Medium 11";
     };
+    cursorTheme = {
+      package = pkgs.nordzy-cursor-theme;
+      name = "Nordzy-cursors";
+    };
     iconTheme = {
-      package = pkgs.arc-icon-theme;
-      name = "Arc";
+      package = pkgs.nordzy-icon-theme;
+      name = "Nordzy-dark";
     };
     theme = {
       package = pkgs.nordic;
-      name = "Nordic";
+      name = "Nordic-darker";
     };
   };
 
