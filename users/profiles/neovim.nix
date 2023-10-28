@@ -37,13 +37,14 @@ in {
       neosnippet-vim
       nui-nvim
       nvim-cmp
-      nvim-lspconfig
       nvim-dap
+      nvim-lspconfig
       onedark-vim
       plenary-nvim
       rust-tools-nvim
       rust-vim
       tabular
+      typescript-tools-nvim
       vim-commentary
       vim-fugitive
       vim-highlightedyank
@@ -64,11 +65,23 @@ in {
         plugins:
           with plugins; [
             tree-sitter-bash
+            tree-sitter-comment
+            tree-sitter-css
+            tree-sitter-dockerfile
             tree-sitter-go
+            tree-sitter-html
+            tree-sitter-javascript
             tree-sitter-json
+            tree-sitter-lua
+            tree-sitter-markdown
             tree-sitter-nix
+            tree-sitter-regex
+            tree-sitter-rego
             tree-sitter-rust
+            tree-sitter-sql
             tree-sitter-toml
+            tree-sitter-tsx
+            tree-sitter-typescript
             tree-sitter-yaml
           ]
       ))

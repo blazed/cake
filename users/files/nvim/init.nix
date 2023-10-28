@@ -137,9 +137,9 @@
 
     " Tab control
     set shiftwidth=2
-    set softtabstop=4
-    set tabstop=4
-    set noexpandtab
+    set softtabstop=2
+    set tabstop=2
+    set expandtab
 
     " Wrapping options
     set formatoptions=tc " wrap text and comments using textwidth
@@ -328,11 +328,6 @@
     au FileType typescript.tsx,typescript set expandtab
     " au FileType typescript.tsx,typescript,json setl formatexpr=CocAction('formatSelected')
     " au User CocJumpPlaceholder call CocActionAsync('showSignatureHelp')
-
-    " Vue
-    au FileType vue set tabstop=2
-    au FileType vue set shiftwidth=2
-    au FileType vue set expandtab
 
     " protobuf
     au FileType proto set tabstop=2
@@ -566,6 +561,20 @@
       cmd = {'${pkgs.terraform-lsp}/bin/terraform-lsp', 'serve'},
       on_attach = on_attach,
       capabilities = capabilities,
+    }
+
+    require('typescript-tools').setup {
+      on_attach = on_attach,
+      capabilities = capabilities,
+      settings = {
+        separate_diagnostic_server = true,
+        publish_diagnostic_on = 'change',
+        expase_as_code_action = {
+          'fix_all',
+          'add_missing_imports',
+          'remove_unused',
+        },
+      },
     }
 
     EOF
