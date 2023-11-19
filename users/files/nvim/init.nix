@@ -500,26 +500,6 @@
 
     local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-    -- lspconfig.rust_analyzer.setup {
-    --   on_attach = on_attach,
-    --   flags = {
-    --     debounce_text_changes = 150,
-    --   },
-    --   settings = {
-    --     ["rust-analyzer"] = {
-    --       cargo = {
-    --         allFeatures = true,
-    --       },
-    --       completion = {
-    --         postfix = {
-    --           enable = false,
-    --         },
-    --       },
-    --     },
-    --   },
-    --   capabilities = capabilities,
-    -- }
-
     lspconfig.gopls.setup {
       cmd = {'${pkgs.gopls}/bin/gopls'},
       on_attach = on_attach,
@@ -559,6 +539,49 @@
 
     lspconfig.terraformls.setup {
       cmd = {'${pkgs.terraform-lsp}/bin/terraform-lsp', 'serve'},
+      on_attach = on_attach,
+      capabilities = capabilities,
+    }
+
+    lspconfig.yamlls.setup {
+      cmd = {'${pkgs.yaml-language-server}/bin/yaml-language-server', '--stdio'},
+      on_attach = on_attach,
+      capabilities = capabilities,
+      settings = {
+        redhat = {
+          telemetry = {
+            enabled = false,
+          },
+        },
+        yaml = {
+          schemas = {
+            ['https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json'] = 'docker-compose.{yml,yaml}',
+            ['http://json.schemastore.org/github-workflow'] = '.github/workflows/*.{yml,yaml}',
+          },
+        },
+      },
+    }
+
+    lspconfig.cssls.setup {
+      cmd = {'${pkgs.vscode-langservers-extracted}/bin/vscode-css-language-server', '--stdio'},
+      on_attach = on_attach,
+      capabilities = capabilities,
+    }
+
+    lspconfig.eslint.setup {
+      cmd = {'${pkgs.vscode-langservers-extracted}/bin/vscode-eslint-language-server', '--stdio'},
+      on_attach = on_attach,
+      capabilities = capabilities,
+    }
+
+    lspconfig.html.setup {
+      cmd = {'${pkgs.vscode-langservers-extracted}/bin/vscode-html-language-server', '--stdio'},
+      on_attach = on_attach,
+      capabilities = capabilities,
+    }
+
+    lspconfig.jsonls.setup {
+      cmd = {'${pkgs.vscode-langservers-extracted}/bin/vscode-json-language-server', '--stdio'},
       on_attach = on_attach,
       capabilities = capabilities,
     }

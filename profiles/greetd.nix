@@ -110,7 +110,7 @@ in {
     };
   };
   systemd.services.greetd.serviceConfig = {
-    ExecPreStart = "${pkgs.util-linux}/bin/kill -SIGRTMIN+21 1";
+    ExecStartPre = "${pkgs.util-linux}/bin/kill -SIGRTMIN+21 1";
     ExecStopPost = "${pkgs.util-linux}/bin/kill -SIGRTMIN+20 1";
   };
 }
