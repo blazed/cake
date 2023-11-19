@@ -98,7 +98,6 @@ in {
     XCURSOR_THEME = xcursor_theme;
     QT_STYLE_OVERRIDE = lib.mkForce "gtk";
     _JAVA_AWT_WM_NONREPARENTING = "1";
-    NIXOS_OZONE_WL = "1";
   };
 
   wayland.windowManager.hyprland.enable = true;
@@ -128,6 +127,7 @@ in {
 
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
+    # monitor = ",highres,auto,1";
     bind =
       [
         "$mod, Return, exec, ${terminal-bin}"
@@ -173,6 +173,14 @@ in {
         "$mod SHIFT, space, togglefloating"
       ];
 
+      binde = [
+        ", XF86AudioRaiseVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%"
+        ", XF86AudioLowerVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%"
+        ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"
+        ", XF86MonBrightnessUp, exec, light -A 5"
+        ", XF86MonBrightnessDown, exec, light -U 5"
+      ];
+
       bindm = [
         "$mod, mouse:272, movewindow"
         "$mod, mouse:273, resizewindow"
@@ -180,6 +188,15 @@ in {
 
       misc.disable_hyprland_logo = true;
       misc.disable_splash_rendering = true;
+
+      group = {
+        groupbar = {
+          font_size = 12;
+          gradients = false;
+          "col.inactive" = "0x2E344000";
+          "col.active" = "0x5E81AC00";
+        };
+      };
 
       binds = {
         workspace_back_and_forth = true;
@@ -223,7 +240,7 @@ in {
 
       general = {
         layout = "master";
-        border_size = 4;
+        border_size = 0;
         gaps_in = 2;
         gaps_out = 0;
         "col.active_border" = "0x36393Eaa";
@@ -235,12 +252,14 @@ in {
         mfact = 0.7;
       };
 
-      layerrule = "blur,waybar";
+      # layerrule = "blur,waybar";
 
       input = {
         kb_layout = "us";
         kb_variant = "dvp";
         kb_options = "compose:ralt,caps:escape";
+
+        follow_mouse = 1;
 
         touchpad = {
           natural_scroll = true;
@@ -261,7 +280,7 @@ in {
 
       exec-once = [
         "${pkgs.wpaperd}/bin/wpaperd"
-        "${pkgs.swayidle}/bin/swayidle"
+        "${swayidleCommand}/bin/swayidle"
       ];
   };
 }
