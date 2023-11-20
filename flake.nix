@@ -66,7 +66,7 @@
     };
 
     persway = {
-      url = "github:johnae/persway";
+      url = "github:johnae/persway/67d7fd81a43bd5693b1d09da37f4b2874e103b84";
       inputs = {
         dream2nix.follows = "dream2nix_legacy";
         fenix.follows = "fenix";
@@ -82,10 +82,6 @@
     };
     blur = {
       url = "github:johnae/blur";
-      flake = false;
-    };
-    rofi-wayland = {
-      url = "github:lbonn/rofi/wayland";
       flake = false;
     };
     fish-kubectl-completions = {
@@ -118,6 +114,10 @@
     };
     argocd-install = {
       url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.7.2/manifests/install.yaml";
+      flake = false;
+    };
+    wezterm = {
+      url = "git+https://github.com/wez/wezterm?rev=600652583594e9f6195a6427d1fabb09068622a7&submodules=1";
       flake = false;
     };
   };
