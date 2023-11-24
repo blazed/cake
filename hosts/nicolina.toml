@@ -1,7 +1,7 @@
 system = "x86_64-linux"
 
 [config]
-publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFqgNL9JxTIJBPk/O3WOmy+Amh+r8LxOkdIKmYBLHPnR"
+publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILorry0hgIzPBoZ4QashHrDcV6F41niZA9yD8D+rFuNx"
 
 profiles = [
   "profiles/hardware/usbcore",
