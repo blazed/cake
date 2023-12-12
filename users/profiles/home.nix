@@ -7,6 +7,7 @@
 in {
   home.packages = with pkgs; [
     carapace
+    codeium
     discord
     firefox-devedition-bin
     fzf
@@ -25,6 +26,7 @@ in {
     lutris
     monero-cli
     monero-gui
+    neovide
     netns-dbus-proxy
     nix-index
     nodejs
@@ -33,7 +35,6 @@ in {
     pwgen
     rnix-lsp
     ruby
-    rust-analyzer-bin
     scripts
     scrot
     signal-desktop
@@ -51,6 +52,7 @@ in {
     VISUAL = EDITOR;
     KUBECONFIG = "/home/${home.username}/.kube/config";
     COLORTERM = "truecolor";
+    XCURSOR_THEME = gtk.cursorTheme.name;
   };
 
   xdg.enable = true;
@@ -91,7 +93,6 @@ in {
     style.package = pkgs.adwaita-qt;
   };
 
-  home.sessionVariables.XCURSOR_THEME = gtk.cursorTheme.name;
 
   gtk = {
     enable = true;
@@ -115,11 +116,6 @@ in {
 
   programs.command-not-found.enable = false;
 
-  programs.eza = {
-    enable = true;
-    enableAliases = true;
-  };
-
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
@@ -140,4 +136,6 @@ in {
     };
     Install.WantedBy = ["timers.target"];
   };
+
+  home.stateVersion = "21.05";
 }

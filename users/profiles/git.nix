@@ -13,7 +13,7 @@ in {
       options.features = "decorations side-by-side line-numbers";
     };
     userName = "Boberg";
-    userEmail = userinfo.email;
+    userEmail = "1823919+blazed@users.noreply.github.com";
     aliases = {
       co = "checkout";
       cob = "checkout -b";

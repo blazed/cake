@@ -22,7 +22,7 @@ age.secrets.restic-env = { file = "secrets/restic-env.age", owner = "1447" }
 
 users.groups.blazed.gid = 1447
 users.users.blazed.uid = 1447
-users.users.blazed.shell = "fish"
+users.users.blazed.shell = "nushell"
 users.users.blazed.hashedPassword = "$6$ai8pClNbaHvh4dHp$DFfY7kC5vIgL8dWPzv24rd60FgmYSSfUu5dbLz623QTeIChQ.hnxoGbJfILKx2jDfqkGGei6ocdF4SUBupyHE/"
 users.users.blazed.openssh.authorizedKeys.keys = [
   "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7jrwDFcxP329CNp2kUlGH3cvvrY5DHTJdB6ZsjhpnK1yEVpRrG87TOkxrdBOX+s8bVL/8vR3xgvkaKl67zav9JG1xk9HOYKnAHJ7laLX0WJSHsdL9MHblUbVHnn7rXXQvzwmTUacQlF8h8LiTfGAcSNmj9hrehOzkU1v+mpeOsga7yAMuJWI1Tb7AJ+gzHO/72dEeA5VG0JC43KGMW4yYd12pG/58d9RkaT0Et/rXK7zpYhzaPSl1JlCxYYl12OcjQCoWTz5Bq5jS2cW5dup6/N6kuGdanTGxI4yUIWlUyLPjHUZ5g7EcyBuAE2/v33QUFiwhQjNvHdvhoaoil/T1hye2YJfZ6i+ghrN+jW4Prw2znZ+txRhFlIIXmeEMCBN4aLx5oTWH6qXHRGYjCSPhoU+P8jcagBKTApC0gzNK8jH4nJ8VhGs+g+N2337u5pjjCy9IAN9E8wiODgAvsButF+dFkHXEEzJ9pOrin4/MFUpVQklFwVTTCYP2mXa66zkI+JqoTNCkY5uJPxraxKdq0+0aWjh3KApr5vGA6ZFbkHX3tZdOAWTFZkM46Z3ZxohzWJfJg+eLyAmBbRjJjYU6X5lvb697aksAaqjV2NlkEBxmQTFf9QgrrzfTQubP1Nxj1wnrJd/ytofMIiVMVZ5JLAVIatetV9ZICmxF4j6Tiw== cardno:000606444817",
@@ -36,6 +36,7 @@ home-manager.users.blazed.userinfo.githubUser = "blazed"
 
 home-manager.users.blazed.profiles = [
   "users/profiles/alacritty",
+  "users/profiles/bat",
   "users/profiles/dunst",
   "users/profiles/easyeffects",
   "users/profiles/fish",
@@ -53,7 +54,7 @@ home-manager.users.blazed.profiles = [
   "users/profiles/sway",
   "users/profiles/tmux",
   "users/profiles/waybar",
-  "users/profiles/wezterm",
+  "users/profiles/zellij",
 ]
 
  networking.extraHosts = """

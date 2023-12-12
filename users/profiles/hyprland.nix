@@ -61,19 +61,8 @@
     '';
   };
 
-  dev-env = name: pkgs.writeShellApplication {
-    inherit name;
-    runtimeInputs = with pkgs; [wezterm];
-    text = ''
-      exec wezterm connect --class=${name} ${name}
-    '';
-  };
-
-  local-dev = dev-env "local-dev";
-  remote-dev = dev-env "remote-dev";
-
   xcursor_theme = config.gtk.cursorTheme.name;
-  terminal-bin = "${pkgs.wezterm}/bin/wezterm start --always-new-process";
+  terminal-bin = "${pkgs.alacritty}/bin/alacritty";
 
   inherit (specialArgs) hostName;
 in {
@@ -133,10 +122,9 @@ in {
         "$mod, Return, exec, ${terminal-bin}"
         "$mod SHIFT, q, killactive"
         "$mod, d, exec, ${pkgs.rofi-wayland}/bin/rofi -show drun"
-        "$mod SHIFT, e, exec, ${local-dev}/bin/local-dev"
-        "$mod SHIFT, r, exec, ${remote-dev}/bin/remote-dev"
         "$mod SHIFT, s, exec, ${screenshot}/bin/screenshot"
         "$mod SHIFT, x, exec, ${swaylockEffects}/bin/swaylock-effects"
+        "$mod SHIFT, e, exec, ${pkgs.neovide}/bin/neovide"
         "$mod, left, movefocus, l"
         "$mod, right, movefocus, r"
         "$mod, up, movefocus, u"

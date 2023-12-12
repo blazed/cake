@@ -1,0 +1,16 @@
+require("editor.editing").keymaps()
+require("editor.navigation").keymaps()
+require("editor.buffers").keymaps()
+require("editor.windows").keymaps()
+require("editor.terminal").keymaps()
+require("editor.debug").keymaps()
+
+require("plugins.lualine").keymaps()
+require("plugins.noice").keymaps()
+require("plugins.spectre").keymaps()
+require("plugins.telescope").keymaps()
+require("plugins.toggleterm").keymaps()
+require("plugins.zen-mode").keymaps()
+
+require("plugins.lsp.lspsaga").keymaps()
+require("plugins.lsp.lsp-lines").keymaps()
