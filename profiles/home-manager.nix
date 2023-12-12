@@ -14,7 +14,6 @@ in {
     mapAttrs (
       user: profiles: {...}: {
         imports = [../users/profiles/home.nix] ++ profiles;
-        home.stateVersion = "22.11";
         home.username = user;
       }
     )

@@ -116,10 +116,6 @@
       url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.7.2/manifests/install.yaml";
       flake = false;
     };
-    wezterm = {
-      url = "git+https://github.com/wez/wezterm?rev=600652583594e9f6195a6427d1fabb09068622a7&submodules=1";
-      flake = false;
-    };
   };
 
   outputs = {

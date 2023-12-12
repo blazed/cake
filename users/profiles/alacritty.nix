@@ -6,13 +6,11 @@
         TERM = "alacritty";
       };
       window = {
-        dimensions.columns = 0;
-        dimensions.lines = 0;
-        padding.x = 0;
+        dimensions.columns = 80;
+        dimensions.lines = 24;
+        padding.x = 2;
         padding.y = 2;
         dynamic_padding = false;
-        decorations = "full";
-        startup_mode = "Windowed";
         opacity = 1.0;
       };
       scrolling = {
@@ -21,14 +19,18 @@
       };
       draw_bold_text_with_bright_colors = true;
       font = {
-        normal.family = "monospace";
-        size = 9.0;
+        normal.family = "JetBrainsMono Nerd Font Mono";
+        size = 10.0;
         offset.x = 0;
         offset.y = 0;
         glyph_offset.x = 0;
         glyph_offset.y = 0;
       };
       mouse.hide_when_typing = true;
+      cursor = {
+        style.blinking = "Never";
+        unfocused_hollow = true;
+      };
     };
   };
 }
