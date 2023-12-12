@@ -116,11 +116,6 @@ in {
 
   programs.command-not-found.enable = false;
 
-  # programs.eza = {
-  #   enable = true;
-  #   enableAliases = true;
-  # };
-
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;

@@ -64,35 +64,9 @@ in {
       telescope-nvim
       todo-comments-nvim
       toggleterm-nvim
+      vim-highlightedyank
       which-key-nvim
       zen-mode-nvim
-      # fzf-vim
-      # lsp_signature-nvim
-      # neoai
-      # neosnippet-snippets
-      # neosnippet-vim
-      # nord-vim
-      # nordic-nvim
-      # nvim-dap
-      # plenary-nvim
-      # rust-vim
-      # tabular
-      # typescript-tools-nvim
-      # vim-fugitive
-      # vim-highlightedyank
-      # vim-jsonnet
-      # vim-markdown
-      # vim-matchup
-      # vim-nix
-      # vim-repeat
-      # vim-rooter
-      # vim-sneak
-      # vim-surround
-      # vim-terraform
-      # vim-toml
-      # vim-vsnip
-      # vim-yaml
-      # vimagit
       (nvim-treesitter.withPlugins (
         plugins:
           with plugins; [
