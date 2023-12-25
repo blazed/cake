@@ -20,7 +20,9 @@ in {
       gopls
       lua-language-server
       marksman
-      nil
+      nil # Nix
+      nodePackages.prettier
+      nodePackages.typescript-language-server
       rust-analyzer
       tailwindcss-language-server
       vscode-langservers-extracted
@@ -44,7 +46,9 @@ in {
       cmp-vsnip
       codeium-vim
       comment-nvim
+      crates-nvim
       direnv-vim
+      gitsigns-nvim
       lsp_lines-nvim
       lspkind-nvim
       lspsaga-nvim
@@ -53,12 +57,14 @@ in {
       neodev-nvim
       noice-nvim
       nui-nvim
+      null-ls-nvim
       nvim-autopairs
       nvim-cmp
       nvim-lspconfig
       nvim-spectre
       nvim-web-devicons
       onedark-nvim
+      plenary-nvim
       rust-tools-nvim
       telescope-file-browser-nvim
       telescope-nvim

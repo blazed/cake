@@ -19,8 +19,15 @@ function M.setup(config)
             },
             reborrowHints = {
               enable = "always",
-            }
-          }
+            },
+          },
+          procMacro = {
+            ignored = {
+              ["async-trait"] = { "async_trait" },
+              ["tracing"] = { "instrument" },
+              ["tokio"] = { "main", "test" },
+            },
+          },
         },
       },
     },

@@ -5,6 +5,8 @@ require("editor.windows").keymaps()
 require("editor.terminal").keymaps()
 require("editor.debug").keymaps()
 
+require("plugins.crates").keymaps()
+require("plugins.gitsigns").keymaps()
 require("plugins.lualine").keymaps()
 require("plugins.noice").keymaps()
 require("plugins.spectre").keymaps()

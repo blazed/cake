@@ -88,6 +88,7 @@ in {
           ];
 
           files = [
+            "/home/${userName}/.config/nushell/history.txt"
             "/home/${userName}/.kube/config"
             "/home/${userName}/.ssh/known_hosts"
           ];

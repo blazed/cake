@@ -15,6 +15,7 @@ function M.setup()
   local lua = require "plugins.lsp.servers.lua"
   local rust = require "plugins.lsp.servers.rust"
   local go = require "plugins.lsp.servers.go"
+  local typescript = require "plugins.lsp.servers.typescript"
   local yaml = require "plugins.lsp.servers.yaml"
 
   vim.diagnostic.config {
@@ -32,6 +33,7 @@ function M.setup()
   lua.setup(config)
   rust.setup(config)
   go.setup(config)
+  typescript.setup(config)
   yaml.setup(config)
 
   config.cssls.setup {}
