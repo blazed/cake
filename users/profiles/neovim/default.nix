@@ -15,8 +15,11 @@ in {
     withRuby = true;
     package = pkgs.neovim-unwrapped;
     extraPackages = with pkgs; [
+      actionlint
+      codeium
       docker-compose-language-service
       dockerfile-language-server-nodejs
+      eslint_d
       gopls
       lua-language-server
       marksman
@@ -24,7 +27,10 @@ in {
       nodePackages.prettier
       nodePackages.typescript-language-server
       rust-analyzer
+      shellcheck
+      statix
       tailwindcss-language-server
+      terraform-ls
       vscode-langservers-extracted
       yaml-language-server
     ];
@@ -44,7 +50,7 @@ in {
       cmp-nvim-lua
       cmp-path
       cmp-vsnip
-      codeium-vim
+      codeium-nvim
       comment-nvim
       crates-nvim
       direnv-vim
