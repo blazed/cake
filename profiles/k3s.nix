@@ -15,12 +15,13 @@ in {
   networking.firewall.trustedInterfaces = ["cni0" "flannel.1" "calico+" "cilium+" "lxc+"];
   environment.state."/keep" = {
     directories = [
+      "/etc/cni"
       "/etc/rancher"
-      "/var/lib/dockershim"
-      "/var/lib/rancher"
-      "/var/lib/kubelet"
       "/var/lib/cni"
       "/var/lib/containerd"
+      "/var/lib/dockershim"
+      "/var/lib/kubelet"
+      "/var/lib/rancher"
     ];
   };
 
