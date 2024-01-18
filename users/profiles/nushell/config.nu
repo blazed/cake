@@ -122,9 +122,9 @@ let light_theme = {
     shape_vardecl: purple
 }
 
-let carapace_completer = {|spans|
-    carapace $spans.0 nushell $spans | from json
-}
+# let carapace_completer = {|spans|
+#     carapace $spans.0 nushell $spans | from json
+# }
 
 # The default config record. This is where much of your global configuration is setup.
 $env.config = {
@@ -201,11 +201,11 @@ $env.config = {
         quick: true    # set this to false to prevent auto-selecting completions when only one remains
         partial: true    # set this to false to prevent partial filling of the prompt
         algorithm: "prefix"    # prefix or fuzzy
-        external: {
-            enable: true
-            max_results: 100
-            completer: $carapace_completer
-        }
+        # external: {
+        #     enable: true
+        #     max_results: 100
+        #     completer: $carapace_completer
+        # }
     }
 
     filesize: {

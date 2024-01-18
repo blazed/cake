@@ -2,10 +2,11 @@
 name = "cake"
 
 packages = [
-  "agenix",
-  "yj",
-  "rage",
   "age-plugin-yubikey",
+  "agenix",
+  "just",
+  "rage",
+  "yj",
 ]
 
 [[commands]]

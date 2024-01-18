@@ -17,7 +17,9 @@
         history = 10000;
         multiplier = 3;
       };
-      draw_bold_text_with_bright_colors = true;
+      colors = {
+        draw_bold_text_with_bright_colors = true;
+      };
       font = {
         normal.family = "JetBrainsMono Nerd Font Mono";
         size = 10.0;

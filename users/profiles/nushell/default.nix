@@ -19,6 +19,7 @@ in {
       source ~/.config/nushell/home.nu
       source ~/.config/nushell/starship.nu
       source ~/.config/nushell/atuin.nu
+      source ~/.config/nushell/carapace.nu
 
       $env.config.hooks.pre_prompt = (
         $env.config.hooks.pre_prompt | append (source ${nu-scripts}/nu-hooks/direnv/config.nu)
@@ -49,5 +50,8 @@ in {
     ${
       lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "$env.${name} = \"${value}\";") home.sessionVariables)
     }
+  '';
+  xdg.configFile."nushell/carapace.nu".source = pkgs.runCommand "carapace.nu" {} ''
+    ${pkgs.carapace}/bin/carapace _carapace nushell > $out
   '';
 }
