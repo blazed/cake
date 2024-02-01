@@ -39,7 +39,7 @@ in {
             "/home/${userName}/.cache/nix"
             "/home/${userName}/.cache/nix-index"
             "/home/${userName}/.cache/rbw"
-            "/home/${userName}/.cache/vim"
+            "/home/${userName}/.cache/nvim"
             "/home/${userName}/.cache/zellij"
             "/home/${userName}/.cargo"
             "/home/${userName}/.codeium"

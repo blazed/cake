@@ -1,5 +1,6 @@
 local g = vim.g
 local opt = vim.opt
+local fn = vim.fn
 
 g.mapleader = ","
 
@@ -18,6 +19,8 @@ opt.showmode = false
 
 opt.clipboard = "unnamedplus"
 opt.completeopt = "menu,menuone,noselect"
+
+opt.history = 1000
 
 opt.expandtab = true
 opt.shiftwidth = 2
@@ -59,6 +62,18 @@ opt.wrap = false
 --     h = true,
 --     l = true,
 -- }
+
+
+local home = fn.expand("$HOME")
+fn.mkdir(home .. "/.backup/undo", "p")
+opt.backupdir = home .. "~/.backup"
+opt.directory = home .. "~/.backup,~/tmp,."
+opt.backup = false
+opt.backupskip = { home .. "~/tmp/*", "/private/tmp/*" }
+opt.swapfile = false
+opt.undofile = true
+opt.undodir = home .. "/.backup/undo,~/tmp,."
+
 
 opt.autoread = true
 opt.autowrite = true

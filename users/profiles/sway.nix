@@ -116,6 +116,7 @@
 
   modifier = "Mod4";
 
+  terminal-bin = "${pkgs.alacritty}/bin/alacritty";
   xcursor_theme = gtk.cursorTheme.name;
 in {
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
@@ -307,7 +308,7 @@ in {
 
         "${modifier}+Shift+a" = ''scratchpad show'';
 
-        "${modifier}+Return" = ''exec ${pkgs.kitty}/bin/kitty'';
+        "${modifier}+Return" = ''exec ${terminal-bin}'';
         "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
 
         "${modifier}+b" = ''exec ${swayBackground}/bin/sway-background'';

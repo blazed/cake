@@ -1,22 +1,23 @@
 {
   pkgs,
   lib,
-  inputs,
   ...
 }: let
   runViaSystemdCat = {
     name,
     cmd,
+    systemdSession,
   }:
     pkgs.writeShellApplication {
       inherit name;
       text = ''
+        trap 'systemctl --user stop ${systemdSession} || true' EXIT
         exec ${pkgs.udev}/bin/systemd-cat --identifier=${name} ${cmd}
       '';
     };
 
     runViaShell = {
-      env? {},
+      env ? {},
       sourceHmVars ? true,
       viaSystemdCat ? true,
       name,
@@ -41,7 +42,10 @@
           ${
             if viaSystemdCat
             then ''
-              exec ${runViaSystemdCat {inherit name cmd;}}/bin/${name}
+              exec ${runViaSystemdCat {
+                inherit name cmd;
+                systemdSession = "${lib.toLower name}-session.target";
+              }}/bin/${name}
             ''
             else ''
               exec ${cmd}
@@ -87,6 +91,14 @@
       name = "Hyprland.desktop";
       path = desktopSession "Hyprland" "${runHyprland}/bin/Hyprland";
     }
+    {
+      name = "nushell.desktop";
+      path = desktopSession "nushell" "${pkgs.nushell}/bin/nu";
+    }
+    {
+      name = "bash.desktop";
+      path = desktopSession "bash" "${pkgs.bashInteractive}/bin/bash";
+    }
   ];
 
   createGreeter = default: sessions: let
@@ -96,7 +108,7 @@
   in
     pkgs.writeShellApplication {
       name = "greeter";
-      runtimeInputs = [runSway runHyprland pkgs.systemd pkgs.greetd.tuigreet];
+      runtimeInputs = [runSway pkgs.bashInteractive pkgs.nushell pkgs.systemd pkgs.greetd.tuigreet];
       text = ''
         tuigreet --sessions ${sessionDir} --time -r --remember-session --power-shutdown 'systemctl poweroff' --power-reboot 'systemctl reboot' --cmd ${default}
       '';
@@ -106,7 +118,7 @@ in {
     enable = true;
     restart = true;
     settings = {
-      default_session.command = "${createGreeter "Hyprland" sessions}/bin/greeter";
+      default_session.command = "${createGreeter "sway" sessions}/bin/greeter";
     };
   };
   systemd.services.greetd.serviceConfig = {

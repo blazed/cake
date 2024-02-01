@@ -50,7 +50,7 @@ in {
       cmp-nvim-lua
       cmp-path
       cmp-vsnip
-      codeium-nvim
+      codeium-vim
       comment-nvim
       crates-nvim
       direnv-vim

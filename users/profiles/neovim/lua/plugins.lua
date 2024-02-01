@@ -1,7 +1,6 @@
 require("plugins.alpha").setup()
 require("plugins.autopairs").setup()
 require("plugins.cmp").setup()
-require("plugins.codeium").setup()
 require("plugins.comment").setup()
 require("plugins.crates").setup()
 require("plugins.devicons").setup()

@@ -113,7 +113,7 @@
       flake = false;
     };
     argocd-install = {
-      url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.7.2/manifests/install.yaml";
+      url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.8.9/manifests/install.yaml";
       flake = false;
     };
   };

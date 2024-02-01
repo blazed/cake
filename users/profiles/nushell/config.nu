@@ -122,9 +122,40 @@ let light_theme = {
     shape_vardecl: purple
 }
 
-# let carapace_completer = {|spans|
-#     carapace $spans.0 nushell $spans | from json
-# }
+let carapace_completer = { |spans: list<string>|
+    carapace $spans.0 nushell ...$spans 
+    | from json
+    | if ($in | default [] | where value =~ '^-.*ERR$' | is-empty) { $in } else { null }
+}
+
+let fish_completer = { |spans|
+  fish --command $'complete "--do-complete=($spans | str join " ")"'
+  | $"value(char tab)description(char newline)" + $in
+  | from tsv --flexible --no-infer
+}
+
+let external_completer = {|spans|
+  let expanded_alias = scope aliases
+  | where name == $spans.0
+  | get -i 0.expansion
+
+  let spans = if $expanded_alias != null {
+    $spans
+    | skip 1
+    | prepend ($expanded_alias | split row " " | take 1)
+    } else {
+      $spans
+    }
+
+    match $spans.0 {
+      nu => $fish_completer
+      git => $fish_completer
+      kubectl => $fish_completer
+      zellij => $fish_completer
+      docker => $fish_completer
+      _ => $carapace_completer
+    } | do $in $spans
+}
 
 # The default config record. This is where much of your global configuration is setup.
 $env.config = {
@@ -201,11 +232,11 @@ $env.config = {
         quick: true    # set this to false to prevent auto-selecting completions when only one remains
         partial: true    # set this to false to prevent partial filling of the prompt
         algorithm: "prefix"    # prefix or fuzzy
-        # external: {
-        #     enable: true
-        #     max_results: 100
-        #     completer: $carapace_completer
-        # }
+        external: {
+            enable: true
+            max_results: 100
+            completer: $external_completer
+        }
     }
 
     filesize: {
