@@ -45,6 +45,7 @@ in {
 
   programs.ssh.startAgent = true;
   programs.dconf.enable = true;
+  programs.steam.enable = true;
 
   services.gvfs.enable = true;
   services.gnome.sushi.enable = true;
@@ -63,29 +64,28 @@ in {
 
   environment.etc."systemd/sleep.conf".text = "HibernateDelaySec=8h";
 
-  environment.etc = {
-    "wireplumber/bluetooth.lua.d/51-bluez-config.lua".text = ''
-        bluez_monitor.properties = {
-            ["bluez5.enable-sbc-xq"] = true,
-            ["bluez5.enable-msbc"] = true,
-            ["bluez5.enable-hw-volume"] = true,
-            ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
-        }
-    '';
-  };
-
   services.pipewire = {
     enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    wireplumber.enable = true;
+    wireplumber = {
+      enable = true;
+      configPackages = [
+        (pkgs.writeTextDir "share/wireplumber/bluetooth.lua.d/51-bluez-config.lua" ''
+          bluez_monitor.properties = {
+            ["bluez5.enable-sbc-xq"] = true,
+            ["bluez5.enable-msbc"] = true,
+            ["bluez5.enable-hw-volume"] = true,
+            ["bluez5.headset-roles"] = "[ hsp_hs hsp_ag hfp_hf hfp_ag ]"
+          }
+        '')
+      ];
+    };
   };
 
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk];
-
-  programs.steam.enable = true;
 
   fonts.packages = with pkgs; [
     google-fonts

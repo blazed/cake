@@ -17,8 +17,8 @@ upgrade flake="github:blazed/cake":
   @nixos-rebuild boot --flake '{{flake}}' --use-remote-sudo -L
   @if (echo initrd kernel kernel-modules | all { |it| (readlink $"/run/booted-system/($it)") != (readlink $"/nix/var/nix/profiles/system/($it)") }) { echo "The system must be rebooted for the changes to take effect" } else { nixos-rebuild switch --flake '{{flake}}' --use-remote-sudo -L }
 
-switch-remote host="" flake="github:blazed/cake":
-  nixos-rebuild switch --flake '{{flake}}' --target-host '{{host}}' --use-remote-sudo -L
+switch-remote host="":
+  nixos-rebuild switch --flake '.#{{host}}' --target-host '{{host}}' --use-remote-sudo -L
 
 build flake="github:blazed/cake":
   @nixos-rebuild build --flake '{{flake}}' --use-remote-sudo -L
