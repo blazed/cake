@@ -8,10 +8,10 @@
   nu-scripts = "${pkgs.nu_scripts}/share/nu_scripts";
 in {
   programs.atuin.enable = true;
-  programs.atuin.enableNushellIntegration = false;
+  programs.atuin.enableNushellIntegration = true;
   programs.direnv.enableNushellIntegration = false;
   programs.zoxide.enable = true;
-  programs.zoxide.enableNushellIntegration = false;
+  programs.zoxide.enableNushellIntegration = true;
   programs.nushell = {
     enable = true;
     package = pkgs.nushell;
@@ -20,11 +20,9 @@ in {
     extraConfig = ''
       source ~/.config/nushell/home.nu
       source ~/.config/nushell/starship.nu
-      source ~/.config/nushell/atuin.nu
-      source ~/.config/nushell/zoxide.nu
 
       $env.config.hooks.pre_prompt = (
-        $env.config.hooks.pre_prompt | append (source ${nu-scripts}/nu-hooks/direnv/config.nu)
+        $env.config.hooks.pre_prompt | append (source ${nu-scripts}/nu-hooks/nu-hooks/direnv/config.nu)
       )
 
       ${
@@ -43,12 +41,6 @@ in {
       }
     '';
   };
-  xdg.configFile."nushell/atuin.nu".source = pkgs.runCommand "atuin.nu" {} ''
-    ${pkgs.atuin}/bin/atuin init nu > $out
-  '';
-  xdg.configFile."nushell/zoxide.nu".source = pkgs.runCommand "zoxide.nu" {} ''
-    ${pkgs.zoxide}/bin/zoxide init nushell > $out
-  '';
   xdg.configFile."nushell/starship.nu".source = ./starship.nu;
   xdg.configFile."nushell/home.nu".source = pkgs.writeText "home.nu" ''
     ${

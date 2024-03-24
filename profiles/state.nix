@@ -69,6 +69,7 @@ in {
             "/home/${userName}/.local/share/fish"
             "/home/${userName}/.local/share/flatpak"
             "/home/${userName}/.local/share/lutris"
+            "/home/${userName}/.local/share/zoxide"
             "/home/${userName}/.local/share/nix"
             "/home/${userName}/.local/share/vulkan"
             "/home/${userName}/.local/state/pipewire/media-session.d"

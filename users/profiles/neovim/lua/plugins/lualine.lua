@@ -115,6 +115,11 @@ function M.setup()
     padding = { left = 0, right = 1 },
   }
 
+  local selectioncount_section = {
+    "selectioncount",
+    padding = { left = 0, right = 1 },
+  }
+
   plugin.setup {
     options = {
       icons_enabled = true,
@@ -149,6 +154,7 @@ function M.setup()
       },
       lualine_z = {
         location_section,
+        selectioncount_section,
       },
     },
     tabline = {

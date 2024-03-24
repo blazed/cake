@@ -12,7 +12,7 @@ in {
     firefox-devedition-bin
     fzf
     gnome.nautilus
-    go_1_20
+    go
     google-cloud-sdk
     insomnia
     kanshi
@@ -33,7 +33,7 @@ in {
     persway
     pueue
     pwgen
-    rnix-lsp
+    # rnix-lsp
     ruby
     scripts
     scrot
