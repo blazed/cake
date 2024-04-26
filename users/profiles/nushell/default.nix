@@ -8,7 +8,7 @@
   nu-scripts = "${pkgs.nu_scripts}/share/nu_scripts";
 in {
   programs.atuin.enable = true;
-  programs.atuin.enableNushellIntegration = true;
+  programs.atuin.enableNushellIntegration = false;
   programs.direnv.enableNushellIntegration = false;
   programs.zoxide.enable = true;
   programs.zoxide.enableNushellIntegration = true;
@@ -20,6 +20,7 @@ in {
     extraConfig = ''
       source ~/.config/nushell/home.nu
       source ~/.config/nushell/starship.nu
+      source ~/.config/nushell/atuin.nu
 
       $env.config.hooks.pre_prompt = (
         $env.config.hooks.pre_prompt | append (source ${nu-scripts}/nu-hooks/nu-hooks/direnv/config.nu)
@@ -42,6 +43,7 @@ in {
     '';
   };
   xdg.configFile."nushell/starship.nu".source = ./starship.nu;
+  xdg.configFile."nushell/atuin.nu".source = ./atuin.nu;
   xdg.configFile."nushell/home.nu".source = pkgs.writeText "home.nu" ''
     ${
       lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "$env.${name} = \"${value}\";") home.sessionVariables)
