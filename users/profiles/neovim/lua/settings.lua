@@ -66,10 +66,10 @@ opt.wrap = false
 
 local home = fn.expand("$HOME")
 fn.mkdir(home .. "/.backup/undo", "p")
-opt.backupdir = home .. "~/.backup"
-opt.directory = home .. "~/.backup,~/tmp,."
+opt.backupdir = home .. "/.backup"
+opt.directory = home .. "/.backup,~/tmp,."
 opt.backup = false
-opt.backupskip = { home .. "~/tmp/*", "/private/tmp/*" }
+opt.backupskip = { home .. "/tmp/*", "/private/tmp/*" }
 opt.swapfile = false
 opt.undofile = true
 opt.undodir = home .. "/.backup/undo,~/tmp,."
