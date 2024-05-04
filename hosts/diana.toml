@@ -49,6 +49,7 @@ home-manager.users.blazed.userinfo.githubUser = "blazed"
 home-manager.users.blazed.profiles = [
   "users/profiles/alacritty",
   "users/profiles/bat",
+  "users/profiles/chromium",
   "users/profiles/dunst",
   "users/profiles/easyeffects",
   "users/profiles/git",
