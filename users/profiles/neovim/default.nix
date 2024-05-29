@@ -71,7 +71,7 @@ in {
       nvim-web-devicons
       onedark-nvim
       plenary-nvim
-      rust-tools-nvim
+      rustaceanvim
       telescope-file-browser-nvim
       telescope-nvim
       todo-comments-nvim

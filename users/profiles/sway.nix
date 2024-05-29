@@ -124,7 +124,7 @@ in {
   home.sessionVariables = {
     GDK_BACKEND = "wayland";
     CLUTTER_BACKEND = "wayland";
-    QT_QPA_PLATFORM = "wayland-egl";
+    QT_QPA_PLATFORM = "";
     SDL_VIDEODRIVER = "wayland";
     MOZ_ENABLE_WAYLAND = "1";
     MOZ_USE_XINPUT2 = "1";
@@ -138,6 +138,7 @@ in {
   wayland.windowManager.sway = {
     enable = true;
     systemd.enable = true;
+    checkConfig = false;
     config = {
       inherit fonts modifier;
 

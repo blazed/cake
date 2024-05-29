@@ -50,15 +50,14 @@ in {
       };
     }
     (
-      builtins.listToAttrs (lib.imap1 (idx: device:
-        {
-          name = "encrypted_root${toString idx}";
-          value = {
-            device = "/dev/disk/by-label/encrypted_root${toString idx}";
-            keyFile = "/dev/mapper/cryptkey";
-            bypassWorkqueues = true;
-            allowDiscards = true;
-          };
-        }) (builtins.tail btrfsDisks))
+      builtins.listToAttrs (lib.imap1 (idx: device: {
+        name = "encrypted_root${toString idx}";
+        value = {
+          device = "/dev/disk/by-label/encrypted_root${toString idx}";
+          keyFile = "/dev/mapper/cryptkey";
+          bypassWorkqueues = true;
+          allowDiscards = true;
+        };
+      }) (builtins.tail btrfsDisks))
     );
 }

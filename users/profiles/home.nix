@@ -15,6 +15,7 @@ in {
     go
     google-cloud-sdk
     insomnia
+    jwt-cli
     kanshi
     krew
     kubectl
@@ -25,7 +26,7 @@ in {
     lm_sensors
     lutris
     monero-cli
-    monero-gui
+    # monero-gui
     neovide
     netns-dbus-proxy
     nix-index
@@ -33,7 +34,6 @@ in {
     persway
     pueue
     pwgen
-    # rnix-lsp
     ruby
     scripts
     scrot
@@ -53,6 +53,7 @@ in {
     KUBECONFIG = "/home/${home.username}/.kube/config";
     COLORTERM = "truecolor";
     XCURSOR_THEME = gtk.cursorTheme.name;
+    USE_GKE_GCLOUD_AUTH_PLUGIN = "True";
   };
 
   xdg.enable = true;
@@ -61,26 +62,26 @@ in {
   xdg.mimeApps = {
     enable = true;
     associations.added = {
-      "application/x-extension-htm" = "firefox.desktop";
-      "application/x-extension-html" = "firefox.desktop";
-      "application/x-extension-shtml" = "firefox.desktop";
-      "application/x-extension-xhtml" = "firefox.desktop";
-      "application/x-extension-xht" = "firefox.desktop";
+      "application/x-extension-htm" = "Chromium.desktop";
+      "application/x-extension-html" = "Chromium.desktop";
+      "application/x-extension-shtml" = "Chromium.desktop";
+      "application/x-extension-xhtml" = "Chromium.desktop";
+      "application/x-extension-xht" = "Chromium.desktop";
     };
 
     defaultApplications = {
-      "text/html" = "firefox.desktop";
-      "x-scheme-handler/http" = "firefox.desktop";
-      "x-scheme-handler/https" = "firefox.desktop";
-      "x-scheme-handler/about" = "firefox.desktop";
-      "x-scheme-handler/unknown" = "firefox.desktop";
-      "x-scheme-handler/chrome" = "firefox.desktop";
-      "application/x-exension-htm" = "firefox.desktop";
-      "application/x-exension-html" = "firefox.desktop";
-      "application/x-exension-shtml" = "firefox.desktop";
-      "application/xhtml+xml" = "firefox.desktop";
-      "application/x-exension-xhtml" = "firefox.desktop";
-      "application/x-exension-xht" = "firefox.desktop";
+      "text/html" = "Chromium.desktop";
+      "x-scheme-handler/http" = "Chromium.desktop";
+      "x-scheme-handler/https" = "Chromium.desktop";
+      "x-scheme-handler/about" = "Chromium.desktop";
+      "x-scheme-handler/unknown" = "Chromium.desktop";
+      "x-scheme-handler/chrome" = "Chromium.desktop";
+      "application/x-exension-htm" = "Chromium.desktop";
+      "application/x-exension-html" = "Chromium.desktop";
+      "application/x-exension-shtml" = "Chromium.desktop";
+      "application/xhtml+xml" = "Chromium.desktop";
+      "application/x-exension-xhtml" = "Chromium.desktop";
+      "application/x-exension-xht" = "Chromium.desktop";
     };
   };
 
@@ -88,11 +89,10 @@ in {
 
   qt = {
     enable = true;
-    platformTheme = "gnome";
+    platformTheme.name = "adwaita";
     style.name = "adwaita-dark";
     style.package = pkgs.adwaita-qt;
   };
-
 
   gtk = {
     enable = true;

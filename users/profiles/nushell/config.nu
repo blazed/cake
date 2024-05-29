@@ -784,8 +784,17 @@ $env.config = {
     ]
 }
 
+def git_main_branch [] {
+  git remote show origin
+    | lines
+    | str trim
+    | find --regex 'HEAD .*?[：: ].+'
+    | first
+    | str replace --regex 'HEAD .*?[：: ](.+)' '$1'
+}
+
 alias e = nvim
-alias en = neovide
+alias en = neovide --fork
 alias cat = bat
 alias gss = git status -s
 alias glol = git log --graph --pretty='%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
@@ -795,5 +804,5 @@ alias gc = git commit -v
 alias gca = git commit -v -a
 alias gl = git pull
 alias gd = git diff
-alias gcm = git checkout main
+alias gcm = git checkout (git_main_branch)
 alias k = kubectl

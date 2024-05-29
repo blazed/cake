@@ -12,6 +12,7 @@ function M.setup()
       { name = "nvim_lua" },
       { name = "buffer" },
       { name = "path" },
+      { name = "crates" },
     },
     snippet = {
       expand = function(args)

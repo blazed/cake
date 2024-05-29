@@ -21,6 +21,7 @@ local autocmds = {
     },
   },
   { { "BufEnter" },    { pattern = { "*.md", "*.mdx" }, command = "setlocal wrap" } },
+  { { "BufEnter" },    { pattern = { "*.tf", "*.tfvars" }, command = "setfiletype hcl" } },
   { { "FocusGained" }, { pattern = "*", command = "checktime" } },
   { { "Filetype" },    { pattern = "markdown", command = "lua vim.b.minitrailspace_disable = true" } },
   { { "TermOpen" },    { pattern = "*", command = "lua vim.b.minitrailspace_disable = true" } },
@@ -30,63 +31,8 @@ local autocmds = {
     {
       pattern = "*",
       callback = function()
-        -- for some reason, ++nested doesn't trigger BufWritePre
-        -- also, when loosing focus when filetree is active, neovide panics - hence `silent!`
-        vim.cmd "silent! doautocmd BufWritePre <afile>"
         vim.cmd "silent! wa"
       end,
-    },
-  },
-  {
-    { "BufWritePre" },
-    {
-      pattern = "*",
-      callback = function()
-        local filetype = vim.bo.filetype
-        local clients = vim.lsp.get_active_clients()
-
-        local client
-
-        for _, c in ipairs(clients) do
-          if c.config ~= nil and c.config.filetypes ~= nil then
-            for _, ft in ipairs(c.config.filetypes) do
-              if ft == filetype and c.server_capabilities.documentFormattingProvider then
-                client = c
-                break
-              end
-            end
-          end
-
-          if client then
-            break
-          end
-        end
-
-        if client then
-          vim.lsp.buf.format { async = false }
-        else
-          local bufname = vim.fn.expand "<afile>"
-          local bufnr = vim.fn.bufnr(bufname)
-
-          if bufnr == -1 then return end
-
-          local modifiable = vim.api.nvim_buf_get_option(bufnr, "modifiable")
-
-          if modifiable then
-            vim.api.nvim_buf_set_lines(0, 0, vim.fn.nextnonblank(1) - 1, true, {})
-          end
-        end
-      end,
-    },
-  },
-  {
-    { "Filetype" },
-    {
-      pattern = "rust",
-      callback = function()
-        vim.api.nvim_buf_del_keymap(0, "n", "<D-r>")
-      end,
-
     },
   },
   {
@@ -94,15 +40,42 @@ local autocmds = {
     {
       pattern = "AlphaReady",
       callback = require("plugins.alpha").on_open,
-    },
+    }
   },
   {
     { "User" },
     {
       pattern = "AlphaClosed",
       callback = require("plugins.alpha").on_close,
+    }
+  },
+  {
+    { "BufWritePre" },
+    {
+      pattern = { "*.tf", "*.tfvars" },
+      callback = function()
+        vim.lsp.buf.format()
+      end,
     },
   },
+  {
+    { "BufWritePre" },
+    {
+      pattern = { "*.rs" },
+      callback = function()
+        vim.lsp.buf.format()
+      end,
+    },
+  },
+  -- {
+  --   { "Filetype" },
+  --   {
+  --     pattern = "rust",
+  --     callback = function()
+  --       vim.api.nvim_buf_del_keymap(0, "n", "<D-r>")
+  --     end,
+  --   },
+  -- },
 }
 
 for _, x in ipairs(autocmds) do

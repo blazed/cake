@@ -1,9 +1,8 @@
 local M = {}
 
-function M.setup(config)
-  local rust_tools = require "rust-tools"
-
-  rust_tools.setup {
+function M.setup()
+  vim.g.rustaceanvim = {
+    tools = {},
     server = {
       settings = {
         ["rust-analyzer"] = {
@@ -31,6 +30,7 @@ function M.setup(config)
         },
       },
     },
+    dap = {},
   }
 end
 

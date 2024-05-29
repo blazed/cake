@@ -31,7 +31,7 @@ function M.setup()
   lsp.handlers["textDocument/hover"] = lsp.with(lsp.handlers.hover, { border = "rounded" })
 
   lua.setup(config)
-  rust.setup(config)
+  rust.setup()
   go.setup(config)
   typescript.setup(config)
   yaml.setup(config)
@@ -44,6 +44,9 @@ function M.setup()
   config.marksman.setup {}
   config.nil_ls.setup {}
   config.tailwindcss.setup {}
+  config.terraformls.setup {
+    filetypes = { "terraform", "tf", "hcl" },
+  }
 end
 
 return M

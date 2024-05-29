@@ -16,6 +16,8 @@ in {
 
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 12288;
+    "net.ipv6.conf.all.disable_ipv6" = 1;
+    "net.ipv6.conf.default.disable_ipv6" = 1;
   };
 
   hardware.opengl.enable = true;
@@ -84,8 +86,23 @@ in {
     };
   };
 
-  xdg.portal.enable = true;
-  xdg.portal.extraPortals = [pkgs.xdg-desktop-portal-hyprland pkgs.xdg-desktop-portal-gtk];
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    extraPortals = [pkgs.xdg-desktop-portal-gtk];
+    config = let
+      wlrConf = {
+        default = ["wlr" "gtk"];
+        "org.freedesktop.impl.portal.Secret" = ["gnome-keyring"];
+      };
+    in {
+      common = {
+        default = ["gtk"];
+        "org.freedesktop.impl.portal.Secret" = ["gnome-keyring"];
+      };
+      sway = wlrConf;
+    };
+  };
 
   fonts.packages = with pkgs; [
     google-fonts
@@ -93,7 +110,7 @@ in {
     powerline-fonts
     roboto
     (pkgs.nerdfonts.override {
-      fonts = ["JetBrainsMono" "RobotoMono"];
+      fonts = ["JetBrainsMono" "DroidSansMono" "Iosevka" "IosevkaTerm" "RobotoMono"];
     })
   ];
 

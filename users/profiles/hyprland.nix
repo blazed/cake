@@ -6,7 +6,6 @@
   specialArgs,
   ...
 }: let
-
   screenshot = pkgs.writeShellApplication {
     name = "screenshot";
     runtimeInputs = [pkgs.slurp pkgs.grim];
@@ -78,7 +77,7 @@ in {
   home.sessionVariables = {
     GDK_BACKEND = "wayland";
     CLUTTER_BACKEND = "wayland";
-    QT_QPA_PLATFORM = "wayland-egl";
+    QT_QPA_PLATFORM = "";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
     QT_WAYLAND_FORCE_DPI = "physical";
     SDL_VIDEODRIVER = "wayland";
@@ -117,158 +116,157 @@ in {
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
     # monitor = ",highres,auto,1";
-    bind =
-      [
-        "$mod, Return, exec, ${terminal-bin}"
-        "$mod SHIFT, q, killactive"
-        "$mod, d, exec, ${pkgs.rofi-wayland}/bin/rofi -show drun"
-        "$mod SHIFT, s, exec, ${screenshot}/bin/screenshot"
-        "$mod SHIFT, x, exec, ${swaylockEffects}/bin/swaylock-effects"
-        "$mod SHIFT, e, exec, ${pkgs.neovide}/bin/neovide"
-        "$mod, left, movefocus, l"
-        "$mod, right, movefocus, r"
-        "$mod, up, movefocus, u"
-        "$mod, down, movefocus, d"
-        "$mod, code:14, workspace, 1"
-        "$mod, code:17, workspace, 2"
-        "$mod, code:13, workspace, 3"
-        "$mod, code:18, workspace, 4"
-        "$mod, code:12, workspace, 5"
-        "$mod, code:19, workspace, 6"
-        "$mod, code:11, workspace, 7"
-        "$mod, code:20, workspace, 8"
-        "$mod, code:15, workspace, 9"
-        "$mod SHIFT, code:14, movetoworkspace, 1"
-        "$mod SHIFT, code:17, movetoworkspace, 2"
-        "$mod SHIFT, code:13, movetoworkspace, 3"
-        "$mod SHIFT, code:18, movetoworkspace, 4"
-        "$mod SHIFT, code:12, movetoworkspace, 5"
-        "$mod SHIFT, code:19, movetoworkspace, 6"
-        "$mod SHIFT, code:11, movetoworkspace, 7"
-        "$mod SHIFT, code:20, movetoworkspace, 8"
-        "$mod SHIFT, code:15, movetoworkspace, 9"
-        "$mod, 0, workspace, 10"
-        "$mod SHIFT, 0, movetoworkspace, 10"
-        "$mod SHIFT, left, movewindow, l"
-        "$mod SHIFT, right, movewindow, r"
-        "$mod SHIFT, up, movewindow, u"
-        "$mod SHIFT, down, movewindow, d"
-        "$mod, f, fullscreen"
-        "$mod, g, togglegroup"
-        "$mod, Tab, changegroupactive"
-        "$mod, space, layoutmsg, swapwithmaster"
-        "$mod, m, movecurrentworkspacetomonitor, +1"
-        "$mod SHIFT, space, togglefloating"
-      ];
+    bind = [
+      "$mod, Return, exec, ${terminal-bin}"
+      "$mod SHIFT, q, killactive"
+      "$mod, d, exec, ${pkgs.rofi-wayland}/bin/rofi -show drun"
+      "$mod SHIFT, s, exec, ${screenshot}/bin/screenshot"
+      "$mod SHIFT, x, exec, ${swaylockEffects}/bin/swaylock-effects"
+      "$mod SHIFT, e, exec, ${pkgs.neovide}/bin/neovide"
+      "$mod, left, movefocus, l"
+      "$mod, right, movefocus, r"
+      "$mod, up, movefocus, u"
+      "$mod, down, movefocus, d"
+      "$mod, code:14, workspace, 1"
+      "$mod, code:17, workspace, 2"
+      "$mod, code:13, workspace, 3"
+      "$mod, code:18, workspace, 4"
+      "$mod, code:12, workspace, 5"
+      "$mod, code:19, workspace, 6"
+      "$mod, code:11, workspace, 7"
+      "$mod, code:20, workspace, 8"
+      "$mod, code:15, workspace, 9"
+      "$mod SHIFT, code:14, movetoworkspace, 1"
+      "$mod SHIFT, code:17, movetoworkspace, 2"
+      "$mod SHIFT, code:13, movetoworkspace, 3"
+      "$mod SHIFT, code:18, movetoworkspace, 4"
+      "$mod SHIFT, code:12, movetoworkspace, 5"
+      "$mod SHIFT, code:19, movetoworkspace, 6"
+      "$mod SHIFT, code:11, movetoworkspace, 7"
+      "$mod SHIFT, code:20, movetoworkspace, 8"
+      "$mod SHIFT, code:15, movetoworkspace, 9"
+      "$mod, 0, workspace, 10"
+      "$mod SHIFT, 0, movetoworkspace, 10"
+      "$mod SHIFT, left, movewindow, l"
+      "$mod SHIFT, right, movewindow, r"
+      "$mod SHIFT, up, movewindow, u"
+      "$mod SHIFT, down, movewindow, d"
+      "$mod, f, fullscreen"
+      "$mod, g, togglegroup"
+      "$mod, Tab, changegroupactive"
+      "$mod, space, layoutmsg, swapwithmaster"
+      "$mod, m, movecurrentworkspacetomonitor, +1"
+      "$mod SHIFT, space, togglefloating"
+    ];
 
-      binde = [
-        ", XF86AudioRaiseVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%"
-        ", XF86AudioLowerVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%"
-        ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"
-        ", XF86MonBrightnessUp, exec, light -A 5"
-        ", XF86MonBrightnessDown, exec, light -U 5"
-      ];
+    binde = [
+      ", XF86AudioRaiseVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%"
+      ", XF86AudioLowerVolume, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%"
+      ", XF86AudioMute, exec, ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle"
+      ", XF86MonBrightnessUp, exec, light -A 5"
+      ", XF86MonBrightnessDown, exec, light -U 5"
+    ];
 
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-      ];
+    bindm = [
+      "$mod, mouse:272, movewindow"
+      "$mod, mouse:273, resizewindow"
+    ];
 
-      misc.disable_hyprland_logo = true;
-      misc.disable_splash_rendering = true;
+    misc.disable_hyprland_logo = true;
+    misc.disable_splash_rendering = true;
 
-      group = {
-        groupbar = {
-          font_size = 12;
-          gradients = false;
-          "col.inactive" = "0x2E344000";
-          "col.active" = "0x5E81AC00";
-        };
+    group = {
+      groupbar = {
+        font_size = 12;
+        gradients = false;
+        "col.inactive" = "0x2E344000";
+        "col.active" = "0x5E81AC00";
       };
+    };
 
-      binds = {
-        workspace_back_and_forth = true;
-        allow_workspace_cycles = true;
-      };
+    binds = {
+      workspace_back_and_forth = true;
+      allow_workspace_cycles = true;
+    };
 
-      animations = {
+    animations = {
+      enabled = true;
+      animation = [
+        "workspaces,1,0.6,default"
+        "windows,1,0.8,default"
+        "fade,1,0.8,default"
+        "border,1,0.6,default"
+        "borderangle,1,0.6,default"
+      ];
+    };
+
+    decoration = {
+      rounding = 4;
+      blur = {
         enabled = true;
-        animation = [
-          "workspaces,1,0.6,default"
-          "windows,1,0.8,default"
-          "fade,1,0.8,default"
-          "border,1,0.6,default"
-          "borderangle,1,0.6,default"
-        ];
+        size = 7;
+        passes = 2;
+        xray = true;
+        ignore_opacity = true;
+        new_optimizations = true;
+        noise = 0.12;
+        contrast = 1.05;
+        brightness = 0.8;
       };
+      drop_shadow = false;
+      shadow_range = 20;
+      shadow_render_power = 2;
+      shadow_offset = "3 3";
+      "col.shadow" = "0x99000000";
+      "col.shadow_inactive" = "0x55000000";
+      active_opacity = 0.95;
+      inactive_opacity = 0.85;
+      fullscreen_opacity = 1.0;
+    };
 
-      decoration = {
-        rounding = 4;
-        blur = {
-          enabled = true;
-          size = 7;
-          passes = 2;
-          xray = true;
-          ignore_opacity = true;
-          new_optimizations = true;
-          noise = 0.12;
-          contrast = 1.05;
-          brightness = 0.8;
-        };
-        drop_shadow = false;
-        shadow_range = 20;
-        shadow_render_power = 2;
-        shadow_offset = "3 3";
-        "col.shadow" = "0x99000000";
-        "col.shadow_inactive" = "0x55000000";
-        active_opacity = 0.95;
-        inactive_opacity = 0.85;
-        fullscreen_opacity = 1.0;
+    general = {
+      layout = "master";
+      border_size = 0;
+      gaps_in = 2;
+      gaps_out = 0;
+      "col.active_border" = "0x36393Eaa";
+    };
+
+    master = {
+      new_is_master = true;
+      orientation = "right";
+      mfact = 0.7;
+    };
+
+    # layerrule = "blur,waybar";
+
+    input = {
+      kb_layout = "us";
+      kb_variant = "dvp";
+      kb_options = "compose:ralt,caps:escape";
+
+      follow_mouse = 1;
+
+      touchpad = {
+        natural_scroll = true;
+        disable_while_typing = true;
+        tap-to-click = true;
       };
+    };
 
-      general = {
-        layout = "master";
-        border_size = 0;
-        gaps_in = 2;
-        gaps_out = 0;
-        "col.active_border" = "0x36393Eaa";
-      };
+    "device:heng-yu-technology-poker-3c" = {
+      kb_layout = "dvp-custom";
+      kb_variant = "";
+      kb_options = "compose:ralt,caps:escape";
+    };
 
-      master = {
-        new_is_master = true;
-        orientation = "right";
-        mfact = 0.7;
-      };
+    exec = [
+      "${pkgs.kanshi}/bin/kanshi"
+    ];
 
-      # layerrule = "blur,waybar";
-
-      input = {
-        kb_layout = "us";
-        kb_variant = "dvp";
-        kb_options = "compose:ralt,caps:escape";
-
-        follow_mouse = 1;
-
-        touchpad = {
-          natural_scroll = true;
-          disable_while_typing = true;
-          tap-to-click = true;
-        };
-      };
-
-      "device:heng-yu-technology-poker-3c" = {
-        kb_layout = "dvp-custom";
-        kb_variant = "";
-        kb_options = "compose:ralt,caps:escape";
-      };
-
-      exec = [
-        "${pkgs.kanshi}/bin/kanshi"
-      ];
-
-      exec-once = [
-        "${pkgs.wpaperd}/bin/wpaperd"
-        "${swayidleCommand}/bin/swayidle"
-      ];
+    exec-once = [
+      "${pkgs.wpaperd}/bin/wpaperd"
+      "${swayidleCommand}/bin/swayidle"
+    ];
   };
 }
