@@ -1,7 +1,7 @@
 system = "x86_64-linux"
 
 [config]
-publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILorry0hgIzPBoZ4QashHrDcV6F41niZA9yD8D+rFuNx"
+publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOkSM4q2znIpCSJA60RtjKYWaz+hBhjjzJfP7SDL32is"
 
 profiles = [
   "profiles/hardware/usbcore",
@@ -79,5 +79,7 @@ services.restic.backups.remote.paths = [
   "/home/blazed/code",
   "/home/blazed/.factorio",
 ]
+
+boot.loader.systemd-boot.memtest86.enable = true
 
 system.autoUpgrade = { enable = false, flake = "github:blazed/cake", allowReboot = true, dates = "*:0/15", randomizedDelaySec = "5min" }
