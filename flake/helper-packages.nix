@@ -6,32 +6,11 @@
       lib
       writeShellApplication
       buildEnv
-      fd
       fire
       hostname
       pass
-      rbw
-      rofi-wayland
-      fuzzel
-      skim
-      wtype
       wpa_supplicant
       ;
-
-    sk-sk = writeShellApplication {
-      name = "sk-sk";
-      runtimeInputs = [skim];
-      text = ''
-        SK_MIN_HEIGHT=''${SK_MIN_HEIGHT:-100}
-        SK_MARGIN=''${SK_MARGIN:-5,5,5,5}
-        SK_PROMPT=''${SK_PROMPT:- >}
-
-        export SKIM_DEFAULT_OPTIONS=''${SK_OPTS:-"--reverse"}
-        exec sk --min-height="$SK_MIN_HEIGHT" \
-            --margin="$SK_MARGIN" \
-            --prompt="$SK_PROMPT"
-      '';
-    };
 
     launch = writeShellApplication {
       name = "launch";

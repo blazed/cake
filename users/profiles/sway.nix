@@ -14,6 +14,7 @@
 
     Service = {
       Type = "simple";
+      Restart = "on-failure";
       inherit ExecStart;
     };
 
@@ -384,6 +385,9 @@ in {
         }
         {
           command = "${pkgs.dbus.out}/bin/dbus-update-activation-environment 2>/dev/null && ${pkgs.dbus.out}/bin/dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK";
+        }
+        {
+          command = "${pkgs.polkit_gnome.out}/libexec/polkit-gnome-authentication-agent-1";
         }
         {
           command = "${swayOnReload}/bin/sway-on-reload";
