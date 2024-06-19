@@ -3,6 +3,7 @@
 result
 nix-repl.nix
 wifi-networks
+cached-iso.iso
 yubikey-identity.txt
 /secrets/**/*
 !/secrets/*.nix
