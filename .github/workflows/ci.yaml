@@ -83,8 +83,7 @@ jobs:
     - uses: cachix/cachix-action@v15
       if: ${{ matrix.pkg != 'pxebooter' }}
       with:
-        name: insane
-        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+        name: blazed
     - name: Run the Magic Nix Cache
       uses: DeterminateSystems/magic-nix-cache-action@v7
     - env:
@@ -92,17 +91,41 @@ jobs:
       run: |
         nix build .#packages.x86_64-linux.$PKG -L
 
+  host_x86_64_linux:
+    needs: hosts_x86_64_linux
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix: ${{ fromJson(needs.hosts_x86_64_linux.outputs.matrix) }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@v12
+      with:
+        extra-conf: |
+          accept-flake-config = true
+    - uses: cachix/cachix-action@v15
+      with:
+        name: blazed
+    - name: Run the Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@v7
+    - env:
+        HOST: ${{ matrix.host }}
+      run: |
+        nix build .#nixosConfigurations.$HOST.config.system.build.toplevel
+
   summarize:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     name: Build (matrix)
-    needs: [pkg_x86_64_linux, nix_lint, nix_check]
+    needs: [host_x86_64_linux, pkg_x86_64_linux, nix_lint, nix_check]
     steps:
       - name: Check linting status
         if: ${{ needs.nix_lint.result != 'success' }}
         run: exit 1
       - name: Check flake check status
         if: ${{ needs.nix_check.result != 'success' }}
+        run: exit 1
+      - name: Check x86_64-linux host build matrix status
+        if: ${{ needs.host_x86_64_linux.result != 'success' }}
         run: exit 1
       - name: Check x86_64-linux package build matrix status
         if: ${{ needs.pkg_x86_64_linux.result != 'success' }}
