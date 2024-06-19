@@ -11,7 +11,7 @@
     '';
   };
 in {
-  name = "world";
+  name = "cake";
 
   packages = with pkgs; [
     age-plugin-yubikey
