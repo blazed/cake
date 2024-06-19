@@ -1,4 +1,4 @@
-{lib, ...}: {
+{
   security.acme.acceptTerms = true;
   security.acme.defaults = {
     email = "certs@exsules.com";
