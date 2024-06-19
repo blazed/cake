@@ -23,9 +23,38 @@
   swaylockTimeout = "300";
   swaylockSleepTimeout = "310";
 
+  swaylockEffects = pkgs.writeShellApplication {
+    name = "swaylock-effects";
+    runtimeInputs = [pkgs.swaylock-effects];
+    text = ''
+      exec swaylock \
+       --screenshots \
+       --indicator-radius 100 \
+       --indicator-thickness 7 \
+       --effect-blur 15x3 \
+       --effect-greyscale \
+       --ring-color ffffff \
+       --ring-clear-color baffba \
+       --ring-ver-color bababa \
+       --ring-wrong-color ffbaba \
+       --key-hl-color bababa \
+       --line-color ffffffaa \
+       --inside-color ffffffaa \
+       --inside-ver-color bababaaa \
+       --line-ver-color bababaaa \
+       --inside-clear-color baffbaaa \
+       --line-clear-color baffbaaa \
+       --inside-wrong-color ffbabaaa \
+       --line-wrong-color ffbabaaa \
+       --separator-color 00000000 \
+       --grace 2 \
+       --fade-in 0.2
+    '';
+  };
+
   swayidleCommand = pkgs.writeShellApplication {
     name = "swayidle";
-    runtimeInputs = [pkgs.sway pkgs.bash pkgs.swaylock-dope pkgs.swayidle];
+    runtimeInputs = [pkgs.sway pkgs.bash swaylockEffects pkgs.swayidle];
     text = ''
       swayidle -d -w timeout ${swaylockTimeout} swaylock-dope \
                      timeout ${swaylockSleepTimeout} 'swaymsg "output * dpms off"' \
@@ -301,7 +330,7 @@ in {
         "${modifier}+x" = ''mode "disabled keybindings"'';
         "${modifier}+r" = ''mode "resize"'';
 
-        "${modifier}+Shift+x" = ''exec ${pkgs.swaylock-dope}/bin/swaylock-dope'';
+        "${modifier}+Shift+x" = ''exec ${swaylockEffects}/bin/swaylock-effects'';
 
         "${modifier}+i" = ''exec ${pkgs.sway}/bin/swaymsg inhibit_idle open'';
         "${modifier}+Shift+i" = ''exec ${pkgs.sway}/bin/swaymsg inhibit_idle none'';

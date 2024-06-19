@@ -1,20 +1,60 @@
 {
   hostName,
-  lib,
   pkgs,
-  config,
   ...
-}: let
-  inherit (lib) options mkIf;
-  cfg = config.services.k3s;
-in {
-  services.k3s.enable = true;
-  services.k3s.settings.node-label.hostname = hostName;
-  services.k3s.disable = ["traefik" "metrics-server"];
-  services.k3s.package = pkgs.k3s_1_29;
+}: {
+  imports = [
+    ../profiles/tailscale.nix
+    ../profiles/zram.nix
+  ];
 
-  networking.firewall.trustedInterfaces = ["cni0" "flannel.1" "calico+" "cilium+" "lxc+"];
-  environment.state."/keep" = {
+  systemd.services.metadata = let
+    cloudInitScript = pkgs.writeShellScript "cloud-init" ''
+      mkdir -p /run/nixos
+      touch /run/nixos/metadata
+      cat<<META>/run/nixos/metadata
+      NODENAME=${hostName}
+      REGION=se
+      ZONE=se-a
+      META
+    '';
+  in {
+    description = "Metadata Service";
+    after = ["network.target"];
+    before = ["tailscale-auth.service" "tailscaled.service" "k3s.service"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = cloudInitScript;
+    };
+  };
+
+  services.k3s = {
+    enable = true;
+    after = ["tailscale-auth.service" "tailscaled.service"];
+    settings = {
+      token-file = "/run/agenix/k3s-token";
+      flannel-iface = "tailscale0";
+      node-name = hostName;
+      node-ip = "\"$(get-iface-ip tailscale0)\"";
+      node-external-ip = "\"$(get-iface-ip eth0)\"";
+      node-label."topology.kubernetes.io/region" = "\"$REGION\"";
+      node-label."topology.kubernetes.io/zone" = "\"$ZONE\"";
+      node-label."hostname" = hostName;
+    };
+  };
+
+  services.tailscale.auth = {
+    enable = true;
+    args.advertise-tags = ["tag:server"];
+    args.ssh = true;
+    args.accept-routes = false;
+    args.accept-dns = true;
+    args.auth-key = "file:/var/run/agenix/ts";
+  };
+
+  networking.firewall.trustedInterfaces = ["cni+" "flannel.1" "calico+" "cilium+" "lxc+"];
+  environment.persistence."/keep" = {
     directories = [
       "/etc/cni"
       "/etc/rancher"

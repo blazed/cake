@@ -1,7 +1,9 @@
+.devenv
 .direnv
 result
 nix-repl.nix
 wifi-networks
+yubikey-identity.txt
 /secrets/**/*
 !/secrets/*.nix
 !/secrets/*.age

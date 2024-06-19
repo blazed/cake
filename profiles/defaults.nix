@@ -2,20 +2,43 @@
   hostName,
   pkgs,
   inputs,
+  config,
+  lib,
   ...
-}: {
-  imports = [
-    ../cachix.nix
-  ];
+}: let
+  inherit (lib // builtins) attrNames hasAttr mkIf length;
+  restic-pkgs =
+    lib.mapAttrsToList (
+      name: value:
+        pkgs.writeShellApplication {
+          name = "restic-${name}";
+          runtimeInputs = [pkgs.restic];
+          text = ''
+            while read -r line;
+            do
+              eval "export $line"
+            done < ${value.environmentFile}
+            export RESTIC_PASSWORD_FILE=${value.passwordFile}
+            export RESTIC_REPOSITORY=${value.repository}
+
+            restic "$@"
+          '';
+        }
+    )
+    config.services.restic.backups;
+  hasState =
+    hasAttr "persistence" config.environment
+    && (length (attrNames config.environment.persistence)) > 0;
+  hasSecrets = config.age.secrets != {};
+in {
   nix = {
     settings.trusted-users = ["root"];
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
       keep-derivations = true
+      tarball-ttl = 900
     '';
-
-    registry.nixpkgs.flake = inputs.nixpkgs;
 
     nixPath = ["nixpkgs=${inputs.nixpkgs}"];
 
@@ -28,47 +51,48 @@
     package = pkgs.nix;
   };
 
-  nixpkgs.config.allowUnfree = true;
-
-  environment.systemPackages = [
-    pkgs.binutils
-    pkgs.bmon
-    pkgs.bottom
-    pkgs.bridge-utils
-    pkgs.cacert
-    pkgs.curl
-    pkgs.fd
-    pkgs.file
-    pkgs.fish
-    pkgs.git
-    pkgs.gnupg
-    pkgs.htop
-    pkgs.hyperfine
-    pkgs.iftop
-    pkgs.iptables
-    pkgs.jq
-    pkgs.lsof
-    pkgs.man-pages
-    pkgs.mkpasswd
-    pkgs.nmap
-    pkgs.openssl
-    pkgs.pavucontrol
-    pkgs.pciutils
-    pkgs.powertop
-    pkgs.procs
-    pkgs.psmisc
-    pkgs.ripgrep
-    pkgs.sd
-    pkgs.socat
-    pkgs.tmux
-    pkgs.tree
-    pkgs.unzip
-    pkgs.usbutils
-    pkgs.vim
-    pkgs.wget
-    pkgs.wireguard-tools
-    pkgs.zip
-  ];
+  environment.systemPackages = 
+    [
+      pkgs.binutils
+      pkgs.blueman
+      pkgs.bmon
+      pkgs.bottom
+      pkgs.bridge-utils
+      pkgs.cacert
+      pkgs.curl
+      pkgs.fd
+      pkgs.file
+      pkgs.fish
+      pkgs.git
+      pkgs.gnupg
+      pkgs.htop
+      pkgs.hyperfine
+      pkgs.iftop
+      pkgs.iptables
+      pkgs.jq
+      pkgs.lsof
+      pkgs.man-pages
+      pkgs.mkpasswd
+      pkgs.nmap
+      pkgs.openssl
+      pkgs.pavucontrol
+      pkgs.pciutils
+      pkgs.powertop
+      pkgs.procs
+      pkgs.psmisc
+      pkgs.ripgrep
+      pkgs.sd
+      pkgs.socat
+      pkgs.tmux
+      pkgs.tree
+      pkgs.unzip
+      pkgs.usbutils
+      pkgs.vim
+      pkgs.wget
+      pkgs.wireguard-tools
+      pkgs.zip
+    ]
+    ++ restic-pkgs;
 
   home-manager.useUserPackages = true;
   home-manager.useGlobalPkgs = true;
@@ -83,6 +107,15 @@
   i18n.defaultLocale = "en_US.UTF-8";
   console.keyMap = "dvorak-programmer";
   time.timeZone = "Europe/Stockholm";
+
+  security.pam.loginLimits = [
+    {
+      domain = "*";
+      type = "-";
+      item = "nofile";
+      value = "16384";
+    }
+  ];
 
   environment.shells = [pkgs.bashInteractive pkgs.zsh pkgs.fish];
 
@@ -100,8 +133,13 @@
   };
 
   services.sshguard.enable = true;
+  services.fstrim.enable = true;
 
-  services.btrfs.autoScrub.enable = true;
+  systemd.extraConfig = ''
+    DefaultTimeoutStopSec=90
+  '';
+
+  users.mutableUsers = false;
 
   security.wrappers.netns-exec = {
     source = "${pkgs.netns-exec}/bin/netns-exec";
@@ -110,11 +148,9 @@
     setuid = true;
   };
 
-  ## This just auto-creates /nix/var/nix/{profiles,gcroots}/per-user/<USER>
-  ## for all extraUsers setup on the system. Without this home-manager refuses
-  ## to run on boot when setup as a nix module and the user has yet to install
-  ## anything through nix (which is the case on a completely new install).
-  ## I tend to install the full system from an iso so I really want home-manager
-  ## to run properly on boot.
+  system.stateVersion = "24.05";
+
+  system.activationScripts.agenixNewGeneration = mkIf (hasSecrets && hasState) {deps = ["persist-files"];};
+
   services.nix-dirs.enable = true;
 }

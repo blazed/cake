@@ -1,11 +1,4 @@
 {
-  config,
-  pkgs,
-  lib,
-  ...
-}: let
-  inherit (config) userinfo;
-in {
   programs.git = {
     enable = true;
     delta = {
@@ -24,6 +17,9 @@ in {
         editor = "nvim";
         whitespace = "cr-at-eol";
       };
+      gpg.format = "ssh";
+      commit.gpgSign = true;
+      tag.forceSignAnnotated = true;
       init.defaultBranch = "main";
       pull.rebase = true;
       push.default = "simple";

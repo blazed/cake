@@ -7,447 +7,106 @@
       "https://nix-community.cachix.org"
       "https://blazed.cachix.org"
       "https://cachix.cachix.org"
+      "https://hyprland.cachix.org"
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       "blazed.cachix.org-1:e9Rx3vtlQSp3nckCdGYpSFJbOb/hi1KuTyvWTBkiwAI="
       "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
   };
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixos-hardware.url = "github:nixos/nixos-hardware";
+    agenix.inputs.home-manager.follows = "nixpkgs";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
+    agenix.inputs.systems.follows = "systems";
+    agenix.url = "github:ryantm/agenix";
+    age-plugin-yubikey.flake = false;
+    age-plugin-yubikey.url = "github:str4d/age-plugin-yubikey";
+    cachix.url = "github:cachix/cachix";
+    cachix.inputs = {
+      devenv.follows = "devenv";
+      flake-compat.follows = "flake-compat";
+      nixpkgs.follows = "nixpkgs";
+      pre-commit-hooks.follows = "pre-commit-hooks";
+    };
+    crane.inputs.nixpkgs.follows = "nixpkgs";
+    crane.url = "github:ipetkov/crane";
+    devenv.inputs.flake-compat.follows = "flake-compat";
+    devenv.inputs.nixpkgs.follows = "nixpkgs";
+    devenv.inputs.pre-commit-hooks.follows = "pre-commit-hooks";
+    devenv.inputs.cachix.follows = "cachix";
+    devenv.url = "github:cachix/devenv";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+    disko.url = "github:nix-community/disko";
+    fenix.inputs.nixpkgs.follows = "nixpkgs";
+    fenix.url = "github:nix-community/fenix";
+    flake-compat.flake = false;
+    flake-compat.url = "github:edolstra/flake-compat";
     flake-utils.url = "github:numtide/flake-utils";
+    flake-utils.inputs.systems.follows = "systems";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    home-manager.url = "github:nix-community/home-manager";
+    impermanence.url = "github:nix-community/impermanence";
+    kured.flake = false;
+    kured.url = "github:kubereboot/kured";
+    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
+    netns-exec.flake = false;
+    netns-exec.url = "github:johnae/netns-exec";
+    nix2container.inputs.flake-utils.follows = "flake-utils";
+    nix2container.inputs.nixpkgs.follows = "nixpkgs";
+    nix2container.url = "github:nlewo/nix2container";
+    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-generators.url = "github:nix-community/nixos-generators";
+    nixos-hardware.url = "github:nixos/nixos-hardware";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
-    fenix = {
-      url = "github:nix-community/fenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    devshell.url = "github:numtide/devshell";
-    devshell.inputs.flake-utils.follows = "flake-utils";
-    devshell.inputs.nixpkgs.follows = "nixpkgs";
-
-    # neovim-nightly-overlay = {
-    #   url = "github:nix-community/neovim-nightly-overlay";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-
-    alejandra = {
-      url = "github:kamadorueda/alejandra";
-      inputs = {
-        fenix.follows = "fenix";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
-
-    dream2nix = {
-      url = "github:nix-community/dream2nix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
-
-    dream2nix_legacy = {
-      url = "github:nix-community/dream2nix/legacy";
-    };
-
-    persway = {
-      url = "github:johnae/persway/67d7fd81a43bd5693b1d09da37f4b2874e103b84";
-      inputs = {
-        dream2nix.follows = "dream2nix_legacy";
-        fenix.follows = "fenix";
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
-
-    ## non flakes
-    age-plugin-yubikey = {
-      url = "github:str4d/age-plugin-yubikey";
-      flake = false;
-    };
-    blur = {
-      url = "github:johnae/blur";
-      flake = false;
-    };
-    fish-kubectl-completions = {
-      url = "github:evanlucas/fish-kubectl-completions";
-      flake = false;
-    };
-    google-cloud-sdk-fish-completion = {
-      url = "github:Doctusoft/google-cloud-sdk-fish-completion";
-      flake = false;
-    };
-    nixpkgs-fmt = {
-      url = "github:nix-community/nixpkgs-fmt";
-      flake = false;
-    };
-    netns-exec = {
-      url = "github:johnae/netns-exec";
-      flake = false;
-    };
-    wf-recorder = {
-      url = "github:ammen99/wf-recorder";
-      flake = false;
-    };
-    wl-clipboard = {
-      url = "github:bugaevc/wl-clipboard";
-      flake = false;
-    };
-    kured = {
-      url = "github:weaveworks/kured";
-      flake = false;
-    };
-    argocd-install = {
-      url = "https://raw.githubusercontent.com/argoproj/argo-cd/v2.8.9/manifests/install.yaml";
-      flake = false;
-    };
+    persway.inputs.crane.follows = "crane";
+    persway.inputs.devenv.follows = "devenv";
+    persway.inputs.fenix.follows = "fenix";
+    persway.inputs.flake-parts.follows = "flake-parts";
+    persway.inputs.flake-utils.follows = "flake-utils";
+    persway.inputs.mk-shell-bin.follows = "mk-shell-bin";
+    persway.inputs.nix2container.follows = "nix2container";
+    persway.inputs.nixpkgs.follows = "nixpkgs";
+    persway.url = "github:johnae/persway";
+    pre-commit-hooks.inputs.flake-compat.follows = "flake-compat";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    rust-overlay.inputs.flake-utils.follows = "flake-utils";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    systems.url = "github:nix-systems/default";
+    zjstatus.inputs.crane.follows = "crane";
+    zjstatus.inputs.flake-utils.follows = "flake-utils";
+    zjstatus.inputs.nixpkgs.follows = "nixpkgs";
+    zjstatus.inputs.rust-overlay.follows = "rust-overlay";
+    zjstatus.url = "github:dj95/zjstatus";
+    zwift.url = "github:johnae/zwift";
+    zwift.inputs.crane.follows = "crane";
+    zwift.inputs.devenv.follows = "devenv";
+    zwift.inputs.fenix.follows = "fenix";
+    zwift.inputs.flake-parts.follows = "flake-parts";
+    zwift.inputs.flake-utils.follows = "flake-utils";
+    zwift.inputs.mk-shell-bin.follows = "mk-shell-bin";
+    zwift.inputs.nix2container.follows = "nix2container";
+    zwift.inputs.nixpkgs.follows = "nixpkgs";
+    zwift.inputs.rust-overlay.follows = "rust-overlay";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-    ...
-  } @ inputs: let
-    l = nixpkgs.lib // builtins;
-
-    inherit
-      (l)
-      attrByPath
-      elem
-      filter
-      filterAttrs
-      filterAttrsRecursive
-      fromTOML
-      hasAttr
-      hasPrefix
-      isDerivation
-      makeOverridable
-      mapAttrs
-      mapAttrs'
-      mapAttrsToList
-      mkForce
-      mkIf
-      mkOverride
-      nameValuePair
-      nixosSystem
-      pathExists
-      readDir
-      readFile
-      recursiveUpdate
-      replaceStrings
-      substring
-      ;
-
-    packageOverlays = import ./packages/overlays.nix {
-      inherit inputs;
-      inherit (nixpkgs) lib;
-    };
-
-    cakeOverlays = {
-      pixieboot = final: prev: {inherit (prev.callPackage ./utils/cake.nix {}) pixieboot;};
-      lint = final: prev: {inherit (prev.callPackage ./utils/cake.nix {}) lint;};
-    };
-
-    overlays =
-      [
-        inputs.devshell.overlays.default
-        inputs.nur.overlay
-        inputs.persway.overlays.default
-        inputs.agenix.overlays.default
-        # inputs.neovim-nightly-overlay.overlay
-        inputs.fenix.overlays.default
-        (import ./kubernetes/overlay.nix {inherit inputs;})
-        (
-          final: prev: {
-            nixos-upgrade = let
-              default_flake = "github:blazed/cake";
-              flags = "--use-remote-sudo -L";
-            in
-              prev.writeShellApplication {
-                name = "nixos-upgrade";
-                text = ''
-                  echo Clearing fetcher cache
-                  echo rm -rf ~/.cache/nix/fetcher-cache-v1.sqlite*
-                  rm -rf ~/.cache/nix/fetcher-cache-v1.sqlite*
-                  flake=''${1:-${default_flake}}
-                  echo nixos-rebuild boot --flake "$flake" ${flags}
-                  nixos-rebuild boot --flake "$flake" ${flags}
-                  booted="$(readlink /run/booted-system/{initrd,kernel,kernel-modules})"
-                  built="$(readlink /nix/var/nix/profiles/system/{initrd,kernel,kernel-modules})"
-                  if [ "$booted" = "$built" ]; then
-                    echo nixos-rebuild switch --flake "$flake" ${flags}
-                    nixos-rebuild switch --flake "$flake" ${flags}
-                  else
-                    cat<<MSG
-                    The system must be rebooted for the changes to take effect
-                    this is because either all of or some of the kernel, the kernel
-                    modules or initrd were updated
-                  MSG
-                  fi
-                '';
-              };
-          }
-        )
-      ]
-      ++ mapAttrsToList (_: value: value) (packageOverlays // cakeOverlays);
-
-    pkgsFor = system:
-      import nixpkgs {
-        inherit system overlays;
-      };
-
-    forAllNixosSystems = fn:
-      flake-utils.lib.eachSystem ["x86_64-linux"]
-      (system: fn system (pkgsFor system));
-
-    forAllDefaultSystems = fn:
-      flake-utils.lib.eachSystem ["x86_64-linux"]
-      (system: fn system (pkgsFor system));
-
-    hostConfigurations = mapAttrs' (
-      filename: _: let
-        name = replaceStrings [".toml"] [""] filename;
-      in {
-        inherit name;
-        value = fromTOML (readFile (./hosts + "/${filename}"));
-      }
-    ) (readDir ./hosts);
-
-    nixosConfig = hostName: config: let
-      fileOrDir = path: let
-        basePath = toString (./. + "/${path}");
-      in
-        if pathExists basePath
-        then basePath
-        else "${basePath}.nix";
-
-      hostConf = config.config;
-      profiles = map fileOrDir hostConf.profiles;
-
-      userProfiles = mapAttrs (
-        _: user: let
-          profiles = attrByPath ["profiles"] {} user;
-        in
-          map fileOrDir profiles
-      ) (attrByPath ["home-manager" "users"] {} hostConf);
-
-      modules = [./modules];
-
-      inherit (config) system;
-
-      cfg =
-        filterAttrsRecursive (
-          name: _:
-            name != "profiles"
-        )
-        hostConf;
-    in
-      makeOverridable nixosSystem {
-        inherit system;
-        specialArgs = {
-          inherit hostName inputs userProfiles;
-          hostConfiguration = cfg;
-          hostConfigurations = mapAttrs (_: conf: conf.config) hostConfigurations;
-        };
-        modules = [
-          {
-            system.configurationRevision = mkIf (self ? rev) self.rev;
-            system.nixos.versionSuffix = mkForce "git.${substring 0 11 nixpkgs.rev}";
-            nixpkgs.overlays = overlays;
-          }
-          (
-            {pkgs, ...}: {
-              environment.systemPackages = [pkgs.nixos-upgrade];
-            }
-          )
-          inputs.nixpkgs.nixosModules.notDetected
-          inputs.home-manager.nixosModules.home-manager
-          inputs.agenix.nixosModules.age
-          {
-            imports = modules ++ profiles;
-          }
-        ];
-      };
-
-    nixosConfigurations = mapAttrs nixosConfig hostConfigurations;
-
-    exportedPackages = forAllDefaultSystems (
-      system: pkgs: let
-        pkgFilter = name: _:
-          hasAttr name pkgs
-          && isDerivation pkgs.${name}
-          && elem system (attrByPath ["meta" "platforms"] [system] pkgs.${name});
-      in {
-        packages =
-          mapAttrs (name: _: pkgs.${name})
-          (filterAttrs pkgFilter (packageOverlays
-            // (filterAttrs (name: _: hasPrefix "images/" name) pkgs)
-            // cakeOverlays
-            // {
-              persway = true;
-              kured-yaml = true;
-              argocd-yaml = true;
-            }));
-      }
-    );
-
-    nixosPackages = forAllNixosSystems (system: _: let
-      bootSystem = makeOverridable nixosSystem {
-        inherit system;
-        modules = [
-          {
-            system.configurationRevision = mkIf (self ? rev) self.rev;
-            system.nixos.versionSuffix = mkForce "git.${substring 0 11 nixpkgs.rev}";
-            nixpkgs.overlays = overlays;
-          }
-          inputs.nixpkgs.nixosModules.notDetected
-          ({
-            modulesPath,
-            pkgs,
-            lib,
-            ...
-          }: {
-            imports = [
-              "${modulesPath}/installer/netboot/netboot-minimal.nix"
-              ./cachix.nix
-            ];
-            nix = {
-              settings.trusted-users = ["root"];
-              extraOptions = ''
-                experimental-features = nix-command flakes
-                accept-flake-config = true
-              '';
-            };
-            environment.systemPackages = with pkgs; [git curl jq skim];
-            boot.supportedFilesystems = lib.mkForce ["btrfs" "vfat"];
-            boot.kernelPackages = pkgs.linuxPackages_latest;
-            services.getty.autologinUser = mkForce "root";
-            # Enable sshd which gets disabled by netboot-minimal.nix
-            systemd.services.sshd.wantedBy = mkOverride 0 ["multi-user.target"];
-            users.users.root.openssh.authorizedKeys.keys = [
-              "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC7jrwDFcxP329CNp2kUlGH3cvvrY5DHTJdB6ZsjhpnK1yEVpRrG87TOkxrdBOX+s8bVL/8vR3xgvkaKl67zav9JG1xk9HOYKnAHJ7laLX0WJSHsdL9MHblUbVHnn7rXXQvzwmTUacQlF8h8LiTfGAcSNmj9hrehOzkU1v+mpeOsga7yAMuJWI1Tb7AJ+gzHO/72dEeA5VG0JC43KGMW4yYd12pG/58d9RkaT0Et/rXK7zpYhzaPSl1JlCxYYl12OcjQCoWTz5Bq5jS2cW5dup6/N6kuGdanTGxI4yUIWlUyLPjHUZ5g7EcyBuAE2/v33QUFiwhQjNvHdvhoaoil/T1hye2YJfZ6i+ghrN+jW4Prw2znZ+txRhFlIIXmeEMCBN4aLx5oTWH6qXHRGYjCSPhoU+P8jcagBKTApC0gzNK8jH4nJ8VhGs+g+N2337u5pjjCy9IAN9E8wiODgAvsButF+dFkHXEEzJ9pOrin4/MFUpVQklFwVTTCYP2mXa66zkI+JqoTNCkY5uJPxraxKdq0+0aWjh3KApr5vGA6ZFbkHX3tZdOAWTFZkM46Z3ZxohzWJfJg+eLyAmBbRjJjYU6X5lvb697aksAaqjV2NlkEBxmQTFf9QgrrzfTQubP1Nxj1wnrJd/ytofMIiVMVZ5JLAVIatetV9ZICmxF4j6Tiw=="
-              "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDDd9ZjCyGAjtjM6lCVZ46+c3PZvYDzFxECpa3NRwZG8zGnPcbIsFIyQzOdk0eywHFZikNeTxxxiDYXeTnuHuMkweVw5mYIwb8hXj8ts7qoCOVJP9P+KnnEb4WS/edG+Arv1nVeNIXswjHKjOtUSRtoNlRuY0x4kyF9EAbVTrHrB5HDtr7GTGQAGAEp33jQqHrIqFoWmNm9GQ3jqP0b4AcZVRXjAj+amqUQ2+gRt4r1r1kzLuvmOrTbOxnNB/N2hGNCkTbIqP1tDVq03EY0ISOWG+1+TW79ASkSYIdnmQBoB+x6Eh+9CGe65wjM0Op3Q564ZS3Qde1GzMchx5A4W7rrMAOzLXJaQ8Mi7gjsDjrqxBfDDXUU5JL5xn0PhhI1teXvQ5aR90cSs424PS3Yrbqs/pHsybcB/kh25MlO9rGXA9MHh7LlVCPIvus/SDopVgTgNIvhYbQh9xdogkG1XdkvyzXmvAJ6Gk/TR/KRWURwQyp1WJxJ8nHr/zUWrU55zXrN/5gWbDB5k9zuR5G4EGrZshM3EuNeQtjMlHcLWfoZuwaOmar/NOmaXzrBCZb/jXNhQkh6M94krXWE0DIkwsu+5n14llMo/OCxneIEqx4FqZePC8x8qpqfKRzSetOG5PVdCO/8w1erhkg8uETguiPTK4uCfCgtZ75ISpv+7nEwuQ=="
-              "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA0LuxetOJ9SPC0v/icZQxL1+8c58y8I4pp0eb0U8ecQ"
-              "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo="
-            ];
-            environment.etc."profile.local".text = ''
-              attempt=0
-              max_attempts=5
-              wait_secs=3
-              while ! curl -sf --connect-timeout 5 --max-time 5 http://www.google.com > /dev/null; do
-                if [ "$attempt" -ge "$max_attempts" ]; then
-                  echo Fail - no internet, tried "$max_attempts" times over $((max_attempts * wait_secs)) seconds
-                  exit 1
-                fi
-                sleep "$wait_secs"
-              done
-              if [ -z "$_INSTALLER_HAS_RUN" ]; then
-                _INSTALLER_HAS_RUN=y
-                export _INSTALLER_HAS_RUN
-                git clone https://github.com/blazed/cake /tmp/cake
-                cd /tmp/cake
-                echo 'Which config should be installed?'
-                host="$(nix eval --apply builtins.attrNames .#nixosConfigurations --json | jq -r '.[]' | sk)"
-                nix build .#"$host"-diskformat
-                ./result/bin/diskformat 2>&1 | tee -a diskformat.log
-                mount
-                nixos-install --flake .#"$host" --no-root-passwd --impure | tee -a nixos-install.log
-              else
-                echo installer has already been run
-              fi
-              bash
-            '';
-          })
-        ];
-      };
-    in {
-      packages.pxebooter = bootSystem.pkgs.symlinkJoin {
-        name = "netboot";
-        paths = with bootSystem.config.system.build; [
-          netbootRamdisk
-          kernel
-          netbootIpxeScript
-        ];
-        preferLocalBuild = true;
-      };
-    });
-
-    diskFormatters = forAllNixosSystems (
-      _: pkgs: {packages = mapAttrs' (hostName: config: diskFormatter hostName config pkgs) nixosConfigurations;}
-    );
-
-    diskFormatter = hostName: config: pkgs:
-      nameValuePair "${hostName}-diskformat" (
-        pkgs.callPackage ./utils/diskformat.nix {
-          inherit hostName config;
-        }
-      );
-  in
-    (forAllDefaultSystems (
-      _: pkgs: {
-        apps =
-          mapAttrs (
-            name: drv: {
-              type = "app";
-              program = "${drv}/bin/${name}";
-            }
-          ) {
-            inherit (pkgs) pixieboot;
-            inherit (pkgs) lint;
-            inherit (pkgs) nixos-upgrade;
-            update-cargo-vendor-sha = pkgs.cake-updaters;
-            update-all-cargo-vendor-shas = pkgs.cake-updaters;
-            update-fixed-output-derivation-sha = pkgs.cake-updaters;
-            update-all-fixed-output-derivation-shas = pkgs.cake-updaters;
-          };
-        devShells.default = pkgs.devshell.mkShell {
-          imports = [
-            (pkgs.devshell.importTOML ./devshell.toml)
-          ];
-        };
-      }
-    ))
-    // (
-      forAllDefaultSystems (
-        _: pkgs: {
-          formatter = pkgs.alejandra;
-        }
-      )
-    )
-    // {
-      inherit nixosConfigurations hostConfigurations;
-
-      packages = recursiveUpdate (recursiveUpdate nixosPackages.packages exportedPackages.packages) diskFormatters.packages;
-
-      overlays =
-        packageOverlays
-        // cakeOverlays
-        // {
-          persway = inputs.persway.overlays.default;
-        };
-
-      github-actions-package-matrix-x86-64-linux = let
-        pkgs = pkgsFor "x86_64-linux";
-        skip = mapAttrsToList (name: _: name) (filterAttrs (name: _: hasPrefix "images/" name) pkgs);
-      in {
-        os = ["ubuntu-latest"];
-        pkg = filter (item: !(elem item skip)) (mapAttrsToList (name: _: name) exportedPackages.packages.x86_64-linux);
-      };
-
-      github-actions-host-matrix-x86-64-linux = {
-        os = ["ubuntu-latest"];
-        host = mapAttrsToList (name: _: name) (filterAttrs (_: config: config.system == "x86_64-linux") hostConfigurations);
-      };
+  outputs = inputs @ {flake-parts, ...}:
+    flake-parts.lib.mkFlake {inherit inputs;} {
+      imports = [
+        ./flake/devenv.nix
+        ./flake/github-actions.nix
+        ./flake/helper-packages.nix
+        ./flake/hosts.nix
+        ./flake/kubernetes.nix
+        ./flake/packages.nix
+        ./flake/setup.nix
+      ];
+      systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
     };
 }
+
