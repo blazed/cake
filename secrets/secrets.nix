@@ -31,7 +31,7 @@ let
 
   hasAttrsFilter = attrsList: filter (attr: all (key: hasAttr key attr) attrsList);
 
-  hostConfigsList = map (host: host.config) (attrValues (getFlake (toString ../.)).hostConfigurations);
+  hostConfigsList = map (host: host.config) (attrValues (getFlake (toString ../.)).nixosConfigurations);
 
   hostsWithSecrets = hasAttrsFilter ["publicKey" "age"] hostConfigsList;
 

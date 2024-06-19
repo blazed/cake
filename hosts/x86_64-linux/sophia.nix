@@ -1,4 +1,6 @@
 {
+  lib,
+  pkgs,
   adminUser,
   hostName,
   ...
@@ -37,16 +39,15 @@
   networking.interfaces.eno4.useDHCP = false;
 
   age.secrets = {
-    codeium-token = {
-      file = ../../secrets/codeium-token.age;
-      owner = "${toString adminUser.uid}";
-      path = "/home/${adminUser.name}/.local/share/.codeium/config.json";
-    };
     k3s-token = {
       file = ../../secrets/k3s/token.age;
     };
     wg-private = {
       file = ../../secrets/${hostName}/wg-private.age;
+    };
+    ts = {
+      file = ../../secrets/ts.age;
+      owner = "1447";
     };
   };
 
@@ -64,6 +65,8 @@
       persistentKeepalive = 25;
     }
   ];
+
+  users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 
   system.autoUpgrade = {
     enable = true;
