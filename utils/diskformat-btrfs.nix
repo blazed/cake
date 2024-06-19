@@ -325,7 +325,6 @@ in
       waitForPath "/dev/disk/by-label/${diskLabels.boot}"
 
       mount -t tmpfs none /mnt
-      mkdir -p /mnt/keep
       mkdir -p "/mnt/tmproot" ${concatStringsSep " " (map (v: "/mnt/${replaceStrings ["@"] [""] v}") subvolumes)} "/mnt/boot"
       mkdir -p /mnt/tmp
       chmod 777 /mnt/tmp
@@ -362,7 +361,6 @@ in
       # now create the btrfs subvolumes we're interested in having
       echo Creating btrfs subvolumes at /mnt/tmproot
       cd /mnt/tmproot
-      btrfs sub create keep
       ${concatStringsSep "\n" (map (v: "btrfs sub create ${v}") subvolumes)}
 
       cd "$DIR"
@@ -377,7 +375,6 @@ in
       echo Devices with labels
       ls -lah /dev/disk/by-label/
 
-      mount -o rw,noatime,compress=zstd,subvol=keep /dev/disk/by-label/${diskLabels.root} /mnt/keep
       ${concatStringsSep "\n" (map (v: ''mount -o rw,noatime,compress=zstd,subvol=${v} /dev/disk/by-label/${diskLabels.root} /mnt/${replaceStrings ["@"] [""] v}'') subvolumes)}
 
       # and mount the boot partition

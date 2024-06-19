@@ -33,7 +33,7 @@ in {
     };
     btrfs.subvolumes = mkOption {
       type = listOf str;
-      default = ["nix" "home" "var"];
+      default = ["@nix" "@keep"];
     };
     bcachefs.disks = mkOption {
       type = listOf str;
