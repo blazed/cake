@@ -1,10 +1,8 @@
 {
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    interfaceName = "tailscale0";
+  };
 
   networking.firewall.trustedInterfaces = ["tailscale0"];
-  environment.state."/keep" = {
-    directories = [
-      "/var/lib/tailscale"
-    ];
-  };
 }

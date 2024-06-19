@@ -1,22 +1,23 @@
 let
   inherit
     (builtins)
-    any
     all
-    replaceStrings
-    filter
-    foldl'
-    elem
-    listToAttrs
+    any
     attrValues
     concatMap
-    isList
-    mapAttrs
-    fromTOML
-    readFile
-    hasAttr
+    elem
+    elemAt
+    filter
+    foldl'
     getFlake
+    hasAttr
+    isList
+    length
+    listToAttrs
+    split
     ;
+
+  last = list: elemAt list (length list - 1);
 
   flatten = x:
     if isList x
@@ -30,17 +31,19 @@ let
 
   hasAttrsFilter = attrsList: filter (attr: all (key: hasAttr key attr) attrsList);
 
-  hostConfigsList = map (host: host.config) (attrValues (getFlake (toString ../.)).hostConfigurations);
+  hostConfigsList = map (host: host.config) (attrValues (getFlake (toString ../.)).nixosConfigurations);
 
   hostsWithSecrets = hasAttrsFilter ["publicKey" "age"] hostConfigsList;
 
-  toLocalSecretPath = replaceStrings ["secrets/"] [""];
+  toLocalSecretPath = path: last (split "/secrets/" path);
 
-  secretsList = unique (flatten (map (host: map (s: toLocalSecretPath s.file) (attrValues host.age.secrets)) hostsWithSecrets));
+  secretsList = unique (flatten (map (host: map (s: toLocalSecretPath (toString s.file)) (attrValues host.age.secrets)) hostsWithSecrets));
 
   mapSecretToPublicKeys = secret:
-    map (host: host.publicKey)
-    (filter (host: any (s: secret == toLocalSecretPath s.file) (attrValues host.age.secrets)) hostsWithSecrets);
+    unique (
+      map (host: host.publicKey)
+      (filter (host: any (s: secret == toLocalSecretPath (toString s.file)) (attrValues host.age.secrets)) hostsWithSecrets)
+    );
 
   blazed = [
     "age1yubikey1q0k3xmsmjjh5mduf7r588s9g4hhz66ervpgwr9aejcxyxdrea0gg6972h4y"

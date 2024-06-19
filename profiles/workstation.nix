@@ -1,14 +1,9 @@
 {
   config,
   pkgs,
-  lib,
   inputs,
   ...
-}: let
-  inherit (lib) mapAttrs' nameValuePair filterAttrs;
-  inherit (builtins) toString;
-  inherit (config.users) users;
-in {
+}: {
   imports = [
     ./defaults.nix
     inputs.nixos-hardware.nixosModules.common-pc-ssd
@@ -23,6 +18,7 @@ in {
   hardware.opengl.enable = true;
   hardware.opengl.driSupport = true;
   hardware.opengl.driSupport32Bit = true;
+
   hardware.opengl.extraPackages = [
     pkgs.intel-media-driver
     pkgs.vaapiIntel
@@ -35,27 +31,37 @@ in {
 
   sound.enable = false;
   security.rtkit.enable = true;
+  hardware.bluetooth.enable = true;
+  networking.wireless.iwd.enable = true;
+
+  environment.pathsToLink = ["/etc/gconf"];
 
   security.pam.services.swaylock = {
     text = ''
       auth include login
     '';
   };
-  environment.pathsToLink = ["/etc/gconf"];
 
-  virtualisation.docker.enable = true;
+  powerManagement.enable = true;
+  powerManagement.powertop.enable = true;
+
+  environment.persistence."/keep".directories = ["/var/cache/powertop"];
+
+  virtualisation.docker.enable = false;
+  virtualisation.podman.enable = true;
+  virtualisation.podman.dockerCompat = true;
 
   programs.ssh.startAgent = true;
+
+  services.pcscd.enable = true;
+
   programs.dconf.enable = true;
-  programs.steam.enable = true;
 
   services.gvfs.enable = true;
   services.gnome.sushi.enable = true;
   services.openssh.enable = true;
 
   services.fwupd.enable = true;
-
-  services.flatpak.enable = true;
 
   services.dbus.packages = with pkgs; [gcr dconf gnome.sushi];
   services.udev.packages = with pkgs; [gnome.gnome-settings-daemon];
@@ -65,6 +71,8 @@ in {
   '';
 
   environment.etc."systemd/sleep.conf".text = "HibernateDelaySec=8h";
+
+  services.write-iwd-secrets.enable = true;
 
   services.pipewire = {
     enable = true;

@@ -10,27 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: cachix/install-nix-action@v25
+    - uses: DeterminateSystems/nix-installer-action@v12
       with:
-        extra_nix_config: |
-          access-tokens = github.com=${{ secrets.GH_ACCESS_TOKEN }}
-          substituters = https://nixpkgs.cachix.org https://nix-community.cachix.org https://blazed.cachix.org https://cachix.cachix.org https://cache.nixos.org/
-          trusted-public-keys = nixpkgs.cachix.org-1:q91R6hxbwFvDqTSDKwDAV4T5PxqXGxswD8vhONFMeOE= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= blazed.cachix.org-1:e9Rx3vtlQSp3nckCdGYpSFJbOb/hi1KuTyvWTBkiwAI= cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
-          experimental-features = nix-command flakes
+        extra-conf: |
+          accept-flake-config = true
+    - name: Run the Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@v7
     - run: |
         nix shell nixpkgs#git -c git config user.name 'Boberg'
         nix shell nixpkgs#git -c git config user.email 'blazed@users.noreply.github.com'
-
-        nix build .#cake-updaters
         nix flake update
-
-        ./result/bin/update-all-cargo-vendor-shas
-        ./result/bin/update-all-fixed-output-derivation-shas
-
-        nix shell nixpkgs#git -c git commit -am "Update inputs"
+        nix shell nixpkgs#git -c git commit -am "[auto] update flake inputs"
 
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
+      uses: peter-evans/create-pull-request@v6
       id: cpr
       with:
         token: ${{ secrets.GH_ACCESS_TOKEN }}

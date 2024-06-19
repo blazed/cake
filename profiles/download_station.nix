@@ -93,7 +93,7 @@ in {
     group = "deluge";
   };
 
-  environment.state."/keep".directories = [
+  environment.persistence."/keep".directories = [
     "/var/lib/jellyfin"
     "/var/lib/deluge"
     "/var/lib/radarr"

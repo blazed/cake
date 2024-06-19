@@ -1,34 +1,24 @@
 {
-  inputs,
   config,
   lib,
-  pkgs,
-  hostConfigurations,
   ...
 }: let
   inherit
     (lib)
     mkIf
-    mkForce
     mkMerge
     splitString
-    nameValuePair
-    mapAttrs'
     mkOption
     mkEnableOption
     mapAttrsToList
-    recursiveUpdate
     ;
   inherit
     (builtins)
     head
     tail
-    foldl'
-    attrValues
     attrNames
     mapAttrs
     concatStringsSep
-    listToAttrs
     ;
 
   cfg = config.services.router;
@@ -157,7 +147,7 @@ in {
         '')
         internalInterfaces));
 
-    environment.state."/keep".directories = ["/var/lib/dnsmasq"];
+    environment.persistence."/keep".directories = ["/var/lib/dnsmasq"];
 
     services.dnsmasq.enable = true;
     services.dnsmasq.resolveLocalQueries = true;

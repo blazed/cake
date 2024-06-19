@@ -65,13 +65,6 @@
 
   inherit (specialArgs) hostName;
 in {
-  xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
-    [default]
-    path = "~/Pictures/wallpapers"
-    duration = "30m"
-    sorting = "random"
-    apply-shadow = false
-  '';
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
 
   home.sessionVariables = {

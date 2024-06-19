@@ -1,13 +1,6 @@
-{
-  config,
-  lib,
-  ...
-}: let
-  inherit (lib) mapAttrs' nameValuePair filterAttrs;
-  inherit (builtins) toString;
-  inherit (config.users) users;
-in {
-  environment.state."/keep" = {
+{adminUser, ...}:{
+  environment.persistence."/keep" = {
+    hideMounts = true;
     directories = [
       "/root"
       "/var/lib/bluetooth"
@@ -20,7 +13,6 @@ in {
       "/var/lib/wireguard"
       "/var/log"
     ];
-
     files = [
       "/etc/machine-id"
       "/etc/ssh/ssh_host_ed25519_key"
@@ -29,73 +21,69 @@ in {
       "/etc/ssh/ssh_host_rsa_key.pub"
     ];
 
-    users = mapAttrs' (
-      userName: conf:
-        nameValuePair (toString conf.uid) {
-          directories = [
-            "/home/${userName}/.backup/undo"
-            "/home/${userName}/.cache/chromium"
-            "/home/${userName}/.cache/monero-project"
-            "/home/${userName}/.cache/mu"
-            "/home/${userName}/.cache/nix"
-            "/home/${userName}/.cache/nix-index"
-            "/home/${userName}/.cache/nvim"
-            "/home/${userName}/.cache/rbw"
-            "/home/${userName}/.cache/zellij"
-            "/home/${userName}/.cargo"
-            "/home/${userName}/.codeium"
-            "/home/${userName}/.config/Insomnia"
-            "/home/${userName}/.config/Signal"
-            "/home/${userName}/.config/WowUpCf"
-            "/home/${userName}/.config/chromium"
-            "/home/${userName}/.config/discord"
-            "/home/${userName}/.config/easyeffects"
-            "/home/${userName}/.config/gcloud"
-            "/home/${userName}/.config/gh"
-            "/home/${userName}/.config/github-copilot"
-            "/home/${userName}/.config/lutris"
-            "/home/${userName}/.config/monero-project"
-            "/home/${userName}/.config/obs-studio"
-            "/home/${userName}/.config/pipewire"
-            "/home/${userName}/.config/pulse"
-            "/home/${userName}/.config/spotify"
-            "/home/${userName}/.config/warcraftlogs"
-            "/home/${userName}/.factorio"
-            "/home/${userName}/.gnupg"
-            "/home/${userName}/.local/share/.codeium"
-            "/home/${userName}/.local/share/Steam"
-            "/home/${userName}/.local/share/TelegramDesktop"
-            "/home/${userName}/.local/share/atuin"
-            "/home/${userName}/.local/share/containers"
-            "/home/${userName}/.local/share/direnv"
-            "/home/${userName}/.local/share/fish"
-            "/home/${userName}/.local/share/flatpak"
-            "/home/${userName}/.local/share/lutris"
-            "/home/${userName}/.local/share/zoxide"
-            "/home/${userName}/.local/share/nix"
-            "/home/${userName}/.local/share/vulkan"
-            "/home/${userName}/.local/state/pipewire/media-session.d"
-            "/home/${userName}/.local/state/wireplumber"
-            "/home/${userName}/.mail"
-            "/home/${userName}/.mozilla"
-            "/home/${userName}/.steam"
-            "/home/${userName}/.terraform.d"
-            "/home/${userName}/.var"
-            "/home/${userName}/.wine"
-            "/home/${userName}/Documents"
-            "/home/${userName}/Downloads"
-            "/home/${userName}/Games"
-            "/home/${userName}/Photos"
-            "/home/${userName}/Pictures"
-            "/home/${userName}/code"
-          ];
-
-          files = [
-            "/home/${userName}/.config/nushell/history.txt"
-            "/home/${userName}/.kube/config"
-            "/home/${userName}/.ssh/known_hosts"
-          ];
-        }
-    ) (filterAttrs (_: user: user.isNormalUser) users);
+    users.${adminUser.name} = {
+      directories = [
+        ".backup/undo"
+        ".cache/chromium"
+        ".cache/monero-project"
+        ".cache/mu"
+        ".cache/nix"
+        ".cache/nix-index"
+        ".cache/nvim"
+        ".cache/rbw"
+        ".cache/zellij"
+        ".cargo"
+        ".codeium"
+        ".config/Insomnia"
+        ".config/Signal"
+        ".config/WowUpCf"
+        ".config/chromium"
+        ".config/discord"
+        ".config/easyeffects"
+        ".config/gcloud"
+        ".config/gh"
+        ".config/github-copilot"
+        ".config/lutris"
+        ".config/monero-project"
+        ".config/obs-studio"
+        ".config/pipewire"
+        ".config/pulse"
+        ".config/spotify"
+        ".config/warcraftlogs"
+        ".factorio"
+        ".gnupg"
+        ".local/share/.codeium"
+        ".local/share/Steam"
+        ".local/share/TelegramDesktop"
+        ".local/share/atuin"
+        ".local/share/containers"
+        ".local/share/direnv"
+        ".local/share/fish"
+        ".local/share/flatpak"
+        ".local/share/lutris"
+        ".local/share/zoxide"
+        ".local/share/nix"
+        ".local/share/vulkan"
+        ".local/state/pipewire/media-session.d"
+        ".local/state/wireplumber"
+        ".mail"
+        ".mozilla"
+        ".steam"
+        ".terraform.d"
+        ".var"
+        ".wine"
+        "Documents"
+        "Downloads"
+        "Games"
+        "Photos"
+        "Pictures"
+        "code"
+      ];
+      files = [
+        ".config/nushell/history.txt"
+        ".kube/config"
+        ".ssh/known_hosts"
+      ];
+    };
   };
 }
