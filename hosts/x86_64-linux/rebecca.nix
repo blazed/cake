@@ -4,17 +4,12 @@
   adminUser,
   ...
 }: {
-  # publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOrJCuQh8JV7yArBzBL8rGtpKGyvqiXthl1tQmtVmTKg";
-
-  bcachefs = {
-    disks = ["/dev/nvme0n1"];
-    devices = ["/dev/mapper/encrypted_root"];
-  };
+  # publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOqbcQhiCel7y2UCyTiK3S8xEBc+BVm22s7Zw87ArNqZ";
 
   imports = [
     ../../profiles/hardware/nuc.nix
     ../../profiles/admin-user/user.nix
-    ../../profiles/disk/bcachefs-on-luks.nix
+    ../../profiles/disk/btrfs-on-luks.nix
     # ../../profiles/k3s-agent.nix
     ../../profiles/server.nix
     ../../profiles/state.nix
