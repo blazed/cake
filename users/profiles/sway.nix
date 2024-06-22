@@ -233,6 +233,9 @@ in {
         "3897:1558:Heng_Yu_Technology_POKER_3C" = {
           xkb_layout = "dvp-custom";
         };
+        "12815:20541:SONiX_USB_DEVICE_Keyboard" = {
+          xkb_layout = "dvp-custom";
+        };
         "1739:52710:DLL096D:01_06CB:CDE6_Touchpad" = {
           dwt = "true";
           natural_scroll = "true";

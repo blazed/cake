@@ -36,6 +36,16 @@
   programs.steam.enable = true;
   services.flatpak.enable = true;
 
+  services.input-remapper.enable = true;
+
+  environment.persistence."/keep" = {
+    users.${adminUser.name} = {
+      directories = [
+        ".config/input-remapper-2"
+      ];
+    };
+  };
+
   home-manager = {
     users.${adminUser.name} = {
       imports = [../../users/profiles/workstation.nix];
