@@ -6,13 +6,13 @@
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINS32enSwJ3QsudwfrRcerKR/2zLZwERJhimbgBcye67";
 
   imports = [
-    ../../profiles/hardware/xps9300.nix
     ../../profiles/admin-user/home-manager.nix
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
-    ../../profiles/laptop.nix
     ../../profiles/greetd.nix
+    ../../profiles/hardware/xps9300.nix
     ../../profiles/home-manager.nix
+    ../../profiles/laptop.nix
     ../../profiles/restic-backup.nix
     ../../profiles/state.nix
     ../../profiles/tailscale.nix

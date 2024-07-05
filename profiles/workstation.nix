@@ -1,4 +1,5 @@
 {
+  adminUser,
   config,
   pkgs,
   inputs,
@@ -121,6 +122,14 @@
       fonts = ["JetBrainsMono" "DroidSansMono" "Iosevka" "IosevkaTerm" "RobotoMono"];
     })
   ];
+
+  fileSystems."/home/${adminUser.name}/Documents/nfs/blazed" = {
+    device = "storage01.tailef5cf.ts.net:/volume1/blazed";
+    fsType = "nfs";
+    options = [
+      "x-systemd.automount"  "noauto"
+    ];
+  };
 
   machinePurpose = "workstation";
 }
