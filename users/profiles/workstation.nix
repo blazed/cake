@@ -18,13 +18,14 @@ in {
     home.packages = with pkgs; [
       discord
       firefox-devedition-bin
-      gnome.nautilus
+      nautilus
       insomnia
       kanshi
       neovide
       nordic
       persway
       scrot
+      shotcut
       signal-desktop
       spotify
       tdesktop ## Telegram
