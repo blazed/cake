@@ -20,7 +20,7 @@ jobs:
         nix shell nixpkgs#git -c git config user.name 'Boberg'
         nix shell nixpkgs#git -c git config user.email 'blazed@users.noreply.github.com'
         nix flake update
-        nix shell nixpkgs#git -c git commit -am "[auto] update flake inputs"
+        nix shell nixpkgs#git -c git commit -am "Update flake inputs"
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
