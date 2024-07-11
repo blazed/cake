@@ -16,11 +16,20 @@
     "net.ipv6.conf.default.disable_ipv6" = 1;
   };
 
-  hardware.opengl.enable = true;
-  hardware.opengl.driSupport = true;
-  hardware.opengl.driSupport32Bit = true;
+  hardware.graphics.enable = true;
+  hardware.graphics.enable32Bit = true;
 
-  hardware.opengl.extraPackages = [
+  hardware.graphics.extraPackages = [
+    pkgs.intel-media-driver
+    pkgs.vaapiIntel
+    pkgs.vaapiVdpau
+    pkgs.libvdpau-va-gl
+    pkgs.rocm-opencl-icd
+    pkgs.rocm-opencl-runtime
+    pkgs.amdvlk
+  ];
+
+  hardware.graphics.extraPackages32 = [
     pkgs.intel-media-driver
     pkgs.vaapiIntel
     pkgs.vaapiVdpau
@@ -64,7 +73,7 @@
 
   services.fwupd.enable = true;
 
-  services.dbus.packages = with pkgs; [gcr dconf gnome.sushi];
+  services.dbus.packages = with pkgs; [gcr dconf sushi];
   services.udev.packages = with pkgs; [gnome.gnome-settings-daemon];
   services.udev.extraRules = ''
     ## ledger
