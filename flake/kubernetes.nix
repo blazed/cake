@@ -20,6 +20,7 @@
                       value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/run/wrappers/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
                   command:
                     - /usr/bin/kured
+                    - --reboot-sentinel=/sentinel/reboot-required
                     - --reboot-command=/run/current-system/sw/bin/systemctl reboot
                     - --period=10m
               tolerations:
