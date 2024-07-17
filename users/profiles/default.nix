@@ -13,6 +13,7 @@ in {
     ./git.nix
     ./neovim/default.nix
     ./nushell/default.nix
+    ./rbw.nix
     ./ssh.nix
     ./starship.nix
     ./zellij.nix

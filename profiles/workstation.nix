@@ -39,7 +39,6 @@
     pkgs.amdvlk
   ];
 
-  sound.enable = false;
   security.rtkit.enable = true;
   hardware.bluetooth.enable = true;
   networking.wireless.iwd.enable = true;
