@@ -16,7 +16,7 @@ in {
     ];
 
     home.packages = with pkgs; [
-      bruno 
+      bruno
       discord
       firefox-devedition-bin
       kanshi
