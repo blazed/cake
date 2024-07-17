@@ -5,7 +5,7 @@ in {
     [./default.nix]
     ++ [
       ./chromium.nix
-      ./easyeffects.nix
+      # ./easyeffects.nix
       ./hyprland.nix
       ./kanshi.nix
       ./obs.nix
@@ -16,11 +16,11 @@ in {
     ];
 
     home.packages = with pkgs; [
+      bruno 
       discord
       firefox-devedition-bin
-      nautilus
-      insomnia
       kanshi
+      nautilus
       neovide
       nordic
       persway
