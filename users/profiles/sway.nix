@@ -73,46 +73,6 @@
     '';
   };
 
-  randomBackground = pkgs.writeShellApplication {
-    name = "random-background";
-    runtimeInputs = [pkgs.curl];
-    text = ''
-      curl --silent --fail-with-body -Lo /tmp/background.jpg 'https://source.unsplash.com/featured/2560x1440/?space,nature' 2>/dev/null
-      if [ "$(stat -c "%s" "/tmp/background.jpg")" -le 50000 ]; then
-        exit 1
-      fi
-      if [ -e "$HOME"/Pictures/background.jpg ]; then
-        mv "$HOME"/Pictures/background.jpg "$HOME"/Pictures/prev-background.jpg
-      fi
-      mv /tmp/background.jpg "$HOME"/Pictures/background.jpg
-      echo "$HOME"/Pictures/background.jpg
-    '';
-  };
-
-  swayBackground = pkgs.writeShellApplication {
-    name = "sway-background";
-    runtimeInputs = [randomBackground];
-    text = ''
-      BG=$(random-background)
-      exec swaymsg "output * bg '$BG' fill"
-    '';
-  };
-
-  rotatingBackground = pkgs.writeShellApplication {
-    name = "rotating-background";
-    runtimeInputs = [swayBackground pkgs.sway];
-    text = ''
-      while true; do
-      if ! sway-background; then
-        if [ -e "$HOME/Pictures/background.jpg" ]; then
-            exec swaymsg "output * bg '$HOME/Pictures/background.jpg' fill"
-        fi
-      fi
-      sleep 600
-      done
-    '';
-  };
-
   swayOnReload = pkgs.writeShellApplication {
     name = "sway-on-reload";
     runtimeInputs = [pkgs.sway];
@@ -244,9 +204,6 @@ in {
       };
 
       output = {
-        "*" = {
-          bg = "~/Pictures/background.jpg fill";
-        };
         "ASUSTek COMPUTER INC PG279QE #ASMJ3N131Wnd" = {
           mode = "2560x1440@143.998Hz";
           pos = "2560 0";
@@ -346,8 +303,6 @@ in {
         "${modifier}+Return" = ''exec ${terminal-bin}'';
         "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
 
-        "${modifier}+b" = ''exec ${swayBackground}/bin/sway-background'';
-
         XF86AudioRaiseVolume = ''exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%'';
         XF86AudioLowerVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
         XF86AudioMute = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
@@ -393,6 +348,9 @@ in {
           command = "${pkgs.polkit_gnome.out}/libexec/polkit-gnome-authentication-agent-1";
         }
         {
+          command = "${pkgs.wpaperd}/bin/wpaperd";
+        }
+        {
           command = "${swayOnReload}/bin/sway-on-reload";
           always = true;
         }
@@ -422,7 +380,6 @@ in {
   };
 
   systemd.user.services = {
-    rotating-background = swayservice "Rotating background service" "${rotatingBackground}/bin/rotating-background";
     persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway daemon -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d stack_main";
     swayidle = swayservice "Sway Idle Service" "${swayidleCommand}/bin/swayidle";
   };

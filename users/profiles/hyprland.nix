@@ -1,9 +1,7 @@
 {
-  inputs,
   config,
   lib,
   pkgs,
-  specialArgs,
   ...
 }: let
   screenshot = pkgs.writeShellApplication {
@@ -53,17 +51,15 @@
     name = "swayidle";
     runtimeInputs = [pkgs.bash swaylockEffects pkgs.swayidle];
     text = ''
-      exec swayidle -d -w timeout ${swaylockTimeout} swaylock-effects \
+      exec swayidle -d -w timeout ${swaylockTimeout} swaylock-dope \
                      timeout ${swaylockSleepTimeout} 'hyprctl dispatch dpms off' \
                      resume 'hyprctl dispatch dpms on' \
-                     before-sleep swaylock-effects
+                     before-sleep swaylock-dope
     '';
   };
 
   xcursor_theme = config.gtk.cursorTheme.name;
   terminal-bin = "${pkgs.alacritty}/bin/alacritty";
-
-  inherit (specialArgs) hostName;
 in {
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
 
@@ -77,8 +73,10 @@ in {
     MOZ_ENABLE_WAYLAND = "1";
     MOZ_USE_XINPUT2 = "1";
     XCURSOR_THEME = xcursor_theme;
+    XCURSOR_SIZE = "24";
     QT_STYLE_OVERRIDE = lib.mkForce "gtk";
     _JAVA_AWT_WM_NONREPARENTING = "1";
+    NIXOS_OZONE_WL = "1";
   };
 
   wayland.windowManager.hyprland.enable = true;
@@ -104,11 +102,29 @@ in {
     bind=,escape,submap,reset
     bind=,return,submap,reset
     submap=reset
+
+    workspace=1,monitor:DP-1,default:true
+    workspace=3,monitor:DP-1
+    workspace=5,monitor:DP-1
+
+    workspace=2,monitor:DP-2,default:true
+    workspace=4,monitor:DP-2
+    workspace=6,monitor:DP-2
+
+    workspace=7,monitor:DP-3,default:true
+
+    windowrule=workspace 2,class:(chromium-browser)
+
+    windowrulev2=workspace 4,class:(org.telegram.desktop)
+    windowrulev2=workspace 4,class:(Signal)
+
+    windowrulev2=workspace 6,class:(discord)
+
+    windowrulev2=workspace 7,class:(Spotify)
   '';
 
   wayland.windowManager.hyprland.settings = {
     "$mod" = "SUPER";
-    # monitor = ",highres,auto,1";
     bind = [
       "$mod, Return, exec, ${terminal-bin}"
       "$mod SHIFT, q, killactive"
@@ -140,13 +156,15 @@ in {
       "$mod SHIFT, code:15, movetoworkspace, 9"
       "$mod, 0, workspace, 10"
       "$mod SHIFT, 0, movetoworkspace, 10"
-      "$mod SHIFT, left, movewindow, l"
-      "$mod SHIFT, right, movewindow, r"
-      "$mod SHIFT, up, movewindow, u"
-      "$mod SHIFT, down, movewindow, d"
+      "$mod SHIFT, left, movewindoworgroup, l"
+      "$mod SHIFT, right, movewindoworgroup, r"
+      "$mod SHIFT, up, movewindoworgroup, u"
+      "$mod SHIFT, down, movewindoworgroup, d"
       "$mod, f, fullscreen"
       "$mod, g, togglegroup"
-      "$mod, Tab, changegroupactive"
+      "$mod SHIFT, g, lockactivegroup, toggle"
+      "$mod, Tab, changegroupactive, f"
+      "$mod SHIFT, Tab, changegroupactive, b"
       "$mod, space, layoutmsg, swapwithmaster"
       "$mod, m, movecurrentworkspacetomonitor, +1"
       "$mod SHIFT, space, togglefloating"
@@ -226,12 +244,10 @@ in {
     };
 
     master = {
-      new_is_master = true;
+      new_status = "master";
       orientation = "right";
       mfact = 0.7;
     };
-
-    # layerrule = "blur,waybar";
 
     input = {
       kb_layout = "us";
@@ -247,7 +263,8 @@ in {
       };
     };
 
-    "device:heng-yu-technology-poker-3c" = {
+    device = {
+      name = "heng-yu-technology-poker-3c";
       kb_layout = "dvp-custom";
       kb_variant = "";
       kb_options = "compose:ralt,caps:escape";
@@ -260,6 +277,8 @@ in {
     exec-once = [
       "${pkgs.wpaperd}/bin/wpaperd"
       "${swayidleCommand}/bin/swayidle"
+      "${pkgs.hyprland}/bin/hyprctl setcursor ${xcursor_theme} 24"
+      "${pkgs.polkit_gnome.out}/libexec/polkit-gnome-authentication-agent-1"
     ];
   };
 }

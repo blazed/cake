@@ -5,9 +5,10 @@
   services.k3s = {
     enable = true;
     role = "agent";
-    after = ["tailscale-auth.service" "tailscaled.service"];
 
     settings = {
+      node-ip = "\"$(get-iface-ip wlan0)\"";
+      flannel-iface = "wlan0";
       token-file = "/run/agenix/k3s-token";
     };
   };
