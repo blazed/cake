@@ -33,13 +33,9 @@
   };
 
   services.k3s.settings = {
-    server = "https://10.0.10.33:6443";
+    server = "https://sophia.tailef5cf.ts.net:6443";
     node-external-ip = lib.mkForce "\"$(get-iface-ip wlan0)\"";
-    node-ip = lib.mkForce "\"$(get-iface-ip wlan0)\"";
-    flannel-iface = lib.mkForce "wlan0";
   };
-
-  networking.firewall.trustedInterfaces = ["wlan0"];
 
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 

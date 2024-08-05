@@ -21,7 +21,7 @@
   in {
     description = "Metadata Service";
     after = ["network.target"];
-    before = ["k3s.service"];
+    before = ["tailscale-auth.service" "tailscaled.service" "k3s.service"];
     wantedBy = ["multi-user.target"];
     serviceConfig = {
       Type = "oneshot";
@@ -31,9 +31,12 @@
 
   services.k3s = {
     enable = true;
+    after = ["tailscale-auth.service" "tailscaled.service"];
     settings = {
       token-file = "/run/agenix/k3s-token";
+      flannel-iface = "tailscale0";
       node-name = hostName;
+      node-ip = "\"$(get-iface-ip tailscale0)\"";
       node-external-ip = "\"$(get-iface-ip eth0)\"";
       node-label."topology.kubernetes.io/region" = "\"$REGION\"";
       node-label."topology.kubernetes.io/zone" = "\"$ZONE\"";
