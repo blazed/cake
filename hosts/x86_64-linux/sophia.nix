@@ -55,7 +55,10 @@
     node-external-ip = lib.mkForce "\"$(get-iface-ip eth0)\"";
     node-ip = lib.mkForce "\"$(get-iface-ip eth0)\"";
     flannel-iface = lib.mkForce "eth0";
+    advertise-address = "\"$(get-iface-ip eth0)\"";
   };
+
+  networking.firewall.trustedInterfaces = ["eth0"];
 
   networking.private-wireguard.enable = true;
   networking.private-wireguard.ips = [

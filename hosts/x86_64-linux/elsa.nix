@@ -39,6 +39,8 @@
     flannel-iface = lib.mkForce "wlan0";
   };
 
+  networking.firewall.trustedInterfaces = ["wlan0"];
+
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 
   system.autoUpgrade = {
