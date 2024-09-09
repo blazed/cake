@@ -19,6 +19,8 @@
           "/home/${adminUser.name}/Pictures"
           "/home/${adminUser.name}/code"
           "/home/${adminUser.name}/.factorio"
+          "/home/${adminUser.name}/.var/app/com.usebottles.bottles/data/bottles/bottles/Games/drive_c/Program Files (x86)/World of Warcraft/_retail_/Interface"
+          "/home/${adminUser.name}/.var/app/com.usebottles.bottles/data/bottles/bottles/Games/drive_c/Program Files (x86)/World of Warcraft/_retail_/WTF"
         ];
         environmentFile = "/run/agenix/restic-env";
         passwordFile = "/run/agenix/restic-pw";

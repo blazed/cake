@@ -37,10 +37,13 @@ in {
 
     xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
     [default]
-    path = "~/Sync/wallpapers"
+    path = "~/Pictures/wallpapers"
     duration = "30m"
     sorting = "random"
     apply-shadow = false
+
+    [any]
+    group = "1"
   '';
 
   xdg.configFile."mimeapps.list".force = true;
@@ -71,7 +74,7 @@ in {
     };
   };
 
-  home.file."Pictures/default-background.jpg".source = "${pkgs.adapta-backgrounds}/share/backgrounds/adapta/tri-fadeno.jpg";
+  home.file."Pictures/wallpapers/default-background.jpg".source = "${pkgs.adapta-backgrounds}/share/backgrounds/adapta/tri-fadeno.jpg";
 
   base16-theme.enable = true;
 

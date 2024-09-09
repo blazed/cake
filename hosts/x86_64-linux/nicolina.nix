@@ -25,6 +25,8 @@
     systemd.enable = true;
   };
 
+  services.ratbagd.enable = true;
+
   age.secrets = {
     codeium-token = {
       file = ../../secrets/codeium-token.age;
