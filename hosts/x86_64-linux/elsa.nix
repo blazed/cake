@@ -4,7 +4,7 @@
   adminUser,
   ...
 }: {
-  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOrJCuQh8JV7yArBzBL8rGtpKGyvqiXthl1tQmtVmTKg";
+  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPdjb2aWeDCRA5ncL1ZP31g+wClwV0EaptrnmwwJtHfj";
 
   imports = [
     ../../profiles/hardware/nuc.nix
