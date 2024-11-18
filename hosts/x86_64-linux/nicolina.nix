@@ -13,6 +13,7 @@
     ../../profiles/desktop.nix
     ../../profiles/greetd.nix
     ../../profiles/home-manager.nix
+    ../../profiles/ollama.nix
     ../../profiles/restic-backup.nix
     ../../profiles/state.nix
     ../../profiles/tailscale.nix
@@ -39,6 +40,8 @@
   services.flatpak.enable = true;
 
   services.input-remapper.enable = true;
+
+  services.ollama.acceleration = "rocm";
 
   environment.persistence."/keep" = {
     users.${adminUser.name} = {

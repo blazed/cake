@@ -13,6 +13,7 @@
       "/var/lib/tailscale"
       "/var/lib/wireguard"
       "/var/log"
+      "/var/private/ollama"
     ];
     files = [
       "/etc/machine-id"
