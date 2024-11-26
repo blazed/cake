@@ -16,11 +16,11 @@ in {
     package = pkgs.neovim-unwrapped;
     extraPackages = with pkgs; [
       actionlint
-      codeium
       docker-compose-language-service
       dockerfile-language-server-nodejs
       eslint_d
       gopls
+      lsp-ai
       lua-language-server
       marksman
       nil # Nix
@@ -50,7 +50,6 @@ in {
       cmp-nvim-lua
       cmp-path
       cmp-vsnip
-      codeium-vim
       comment-nvim
       crates-nvim
       direnv-vim

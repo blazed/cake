@@ -12,6 +12,7 @@ function M.setup()
 
   local config = require "lspconfig"
 
+  -- local ai = require "plugins.lsp.servers.ai"
   local lua = require "plugins.lsp.servers.lua"
   local rust = require "plugins.lsp.servers.rust"
   local go = require "plugins.lsp.servers.go"
@@ -30,6 +31,7 @@ function M.setup()
 
   lsp.handlers["textDocument/hover"] = lsp.with(lsp.handlers.hover, { border = "rounded" })
 
+  -- ai.setup()
   lua.setup(config)
   rust.setup()
   go.setup(config)
