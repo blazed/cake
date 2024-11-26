@@ -13,7 +13,8 @@
       "/var/lib/tailscale"
       "/var/lib/wireguard"
       "/var/log"
-      "/var/private/ollama"
+      "/var/lib/private/ollama"
+      "/var/lib/private/open-webui"
     ];
     files = [
       "/etc/machine-id"

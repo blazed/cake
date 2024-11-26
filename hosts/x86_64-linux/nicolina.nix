@@ -42,6 +42,7 @@
   services.input-remapper.enable = true;
 
   services.ollama.acceleration = "rocm";
+  services.ollama.rocmOverrideGfx = "10.3.0";
 
   environment.persistence."/keep" = {
     users.${adminUser.name} = {

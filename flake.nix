@@ -29,13 +29,10 @@
       devenv.follows = "devenv";
       flake-compat.follows = "flake-compat";
       nixpkgs.follows = "nixpkgs";
-      pre-commit-hooks.follows = "pre-commit-hooks";
     };
-    crane.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
     devenv.inputs.flake-compat.follows = "flake-compat";
     devenv.inputs.nixpkgs.follows = "nixpkgs";
-    devenv.inputs.pre-commit-hooks.follows = "pre-commit-hooks";
     devenv.inputs.cachix.follows = "cachix";
     devenv.url = "github:cachix/devenv";
     disko.inputs.nixpkgs.follows = "nixpkgs";
@@ -74,7 +71,6 @@
     pre-commit-hooks.inputs.flake-compat.follows = "flake-compat";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    rust-overlay.inputs.flake-utils.follows = "flake-utils";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     rust-overlay.url = "github:oxalica/rust-overlay";
     systems.url = "github:nix-systems/default";
