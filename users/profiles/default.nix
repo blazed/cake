@@ -29,7 +29,7 @@ in {
 
   home.packages = with pkgs; [
     carapace
-    codeium
+    devenv
     fzf
     go
     google-cloud-sdk
