@@ -22,7 +22,6 @@ function M.setup()
           },
           procMacro = {
             ignored = {
-              ["async-trait"] = { "async_trait" },
               ["tracing"] = { "instrument" },
               ["tokio"] = { "main", "test" },
             },
