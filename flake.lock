@@ -659,16 +659,16 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1733759999,
-        "narHash": "sha256-463SNPWmz46iLzJKRzO3Q2b0Aurff3U1n0nYItxq7jU=",
+        "lastModified": 1733925265,
+        "narHash": "sha256-SD/Gr1y7fhndRohoZy/edif3RM3+W84E4Vlzzejn0bI=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "a73246e2eef4c6ed172979932bc80e1404ba2d56",
+        "rev": "8cd84794deeea7d0d03c4bd3d0f6fdc32d806582",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-unstable",
+        "ref": "nixos-unstable-small",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -800,9 +800,7 @@
         "persway": "persway",
         "pre-commit-hooks": "pre-commit-hooks",
         "rust-overlay": "rust-overlay",
-        "systems": "systems",
-        "zjstatus": "zjstatus",
-        "zwift": "zwift"
+        "systems": "systems"
       }
     },
     "rust-analyzer-src": {
@@ -875,79 +873,6 @@
       "original": {
         "owner": "numtide",
         "repo": "treefmt-nix",
-        "type": "github"
-      }
-    },
-    "zjstatus": {
-      "inputs": {
-        "crane": [
-          "crane"
-        ],
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "rust-overlay": [
-          "rust-overlay"
-        ]
-      },
-      "locked": {
-        "lastModified": 1733851126,
-        "narHash": "sha256-xlXGSVPADUVuWXOxCHlQXAaZtC0fkUJXFaQj1rfX+KM=",
-        "owner": "dj95",
-        "repo": "zjstatus",
-        "rev": "008eb2cf6a86bb0660e7d33f2dbda249682624e5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "dj95",
-        "repo": "zjstatus",
-        "type": "github"
-      }
-    },
-    "zwift": {
-      "inputs": {
-        "crane": [
-          "crane"
-        ],
-        "devenv": [
-          "devenv"
-        ],
-        "fenix": [
-          "fenix"
-        ],
-        "flake-parts": [
-          "flake-parts"
-        ],
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "mk-shell-bin": [
-          "mk-shell-bin"
-        ],
-        "nix2container": [
-          "nix2container"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "rust-overlay": [
-          "rust-overlay"
-        ]
-      },
-      "locked": {
-        "lastModified": 1726087947,
-        "narHash": "sha256-/v6u8x1Y9FBQfXMzWmJ7Dw5ATwHV6TEiThUekk3LKCk=",
-        "owner": "johnae",
-        "repo": "zwift",
-        "rev": "ead5b57c50b41bae573b7e069a75dd5dd53f9aac",
-        "type": "github"
-      },
-      "original": {
-        "owner": "johnae",
-        "repo": "zwift",
         "type": "github"
       }
     }

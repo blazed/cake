@@ -34,8 +34,6 @@
             just -f ${../Justfile} -d "$(pwd)" "$@"
           '';
         };
-        zjstatus = inputs.zjstatus.packages.${system}.default;
-        zwift = inputs.zwift.packages.${system}.default;
         persway = inputs.persway.packages.${system}.default;
       };
   };
