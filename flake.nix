@@ -57,7 +57,7 @@
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-hardware.url = "github:nixos/nixos-hardware";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable-small";
     nur.url = "github:nix-community/NUR";
     persway.inputs.crane.follows = "crane";
     persway.inputs.devenv.follows = "devenv";
@@ -74,21 +74,6 @@
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     rust-overlay.url = "github:oxalica/rust-overlay";
     systems.url = "github:nix-systems/default";
-    zjstatus.inputs.crane.follows = "crane";
-    zjstatus.inputs.flake-utils.follows = "flake-utils";
-    zjstatus.inputs.nixpkgs.follows = "nixpkgs";
-    zjstatus.inputs.rust-overlay.follows = "rust-overlay";
-    zjstatus.url = "github:dj95/zjstatus";
-    zwift.url = "github:johnae/zwift";
-    zwift.inputs.crane.follows = "crane";
-    zwift.inputs.devenv.follows = "devenv";
-    zwift.inputs.fenix.follows = "fenix";
-    zwift.inputs.flake-parts.follows = "flake-parts";
-    zwift.inputs.flake-utils.follows = "flake-utils";
-    zwift.inputs.mk-shell-bin.follows = "mk-shell-bin";
-    zwift.inputs.nix2container.follows = "nix2container";
-    zwift.inputs.nixpkgs.follows = "nixpkgs";
-    zwift.inputs.rust-overlay.follows = "rust-overlay";
   };
 
   outputs = inputs @ {flake-parts, ...}:

@@ -124,9 +124,11 @@
     font-awesome_5
     powerline-fonts
     roboto
-    (pkgs.nerdfonts.override {
-      fonts = ["JetBrainsMono" "DroidSansMono" "Iosevka" "IosevkaTerm" "RobotoMono"];
-    })
+    nerd-fonts.jetbrains-mono
+    nerd-fonts.droid-sans-mono
+    nerd-fonts.iosevka
+    nerd-fonts.iosevka-term
+    nerd-fonts.roboto-mono
   ];
 
   fileSystems."/home/${adminUser.name}/Documents/nfs/blazed" = {
