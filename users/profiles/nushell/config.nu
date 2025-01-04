@@ -820,6 +820,7 @@ def git_main_branch [] {
 }
 
 alias e = nvim
+alias c = gitui
 alias en = neovide --fork
 alias cat = bat
 alias gss = git status -s

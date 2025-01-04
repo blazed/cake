@@ -60,8 +60,8 @@
   networking.private-wireguard.peers = [
     {
       publicKey = "FKodo9V6BehkNphL+neI0g4/G/cjbZyYhoptSWf3Si4=";
-      allowedIPs = [ "0.0.0.0/0" "::0/0" ];
-      endpoint = "185.204.1.219:51820"; 
+      allowedIPs = ["0.0.0.0/0" "::0/0"];
+      endpoint = "185.204.1.219:51820";
       persistentKeepalive = 25;
     }
   ];

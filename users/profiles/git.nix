@@ -1,4 +1,4 @@
-{
+{pkgs, ...}: {
   programs.git = {
     enable = true;
     delta = {
@@ -57,5 +57,8 @@
         pv = "pr view";
       };
     };
+    extensions = [
+      pkgs.gh-copilot
+    ];
   };
 }

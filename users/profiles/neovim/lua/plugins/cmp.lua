@@ -7,6 +7,7 @@ function M.setup()
 
   plugin.setup {
     sources = {
+      { name = "copilot" },
       { name = "luasnip" },
       { name = "nvim_lsp" },
       { name = "nvim_lua" },
@@ -48,6 +49,7 @@ function M.setup()
             buffer = "Buf",
             path = "Path",
           },
+          symbol_map = { Copilot = "" },
           maxwidth = 50,
         })(entry, vim_item)
         local strings = vim.split(kind.kind, "%s", { trimempty = true })

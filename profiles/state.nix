@@ -1,4 +1,4 @@
-{adminUser, ...}:{
+{adminUser, ...}: {
   environment.persistence."/keep" = {
     hideMounts = true;
     directories = [
@@ -36,9 +36,9 @@
         ".cache/rbw"
         ".cache/zellij"
         ".cargo"
-        ".codeium"
         ".config/Signal"
         ".config/WowUpCf"
+        ".config/beekeeper-studio"
         ".config/bruno"
         ".config/chromium"
         ".config/discord"
@@ -55,7 +55,6 @@
         ".config/warcraftlogs"
         ".factorio"
         ".gnupg"
-        ".local/share/.codeium"
         ".local/share/Steam"
         ".local/share/TelegramDesktop"
         ".local/share/atuin"

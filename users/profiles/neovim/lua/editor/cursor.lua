@@ -50,6 +50,7 @@ function M.shake()
       vim.cmd "normal `z"
       vim.cmd "delmarks z"
     end
+  end
 end
 
 return M

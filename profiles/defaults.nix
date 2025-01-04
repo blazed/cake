@@ -51,7 +51,7 @@ in {
     package = pkgs.nix;
   };
 
-  environment.systemPackages = 
+  environment.systemPackages =
     [
       pkgs.binutils
       pkgs.blueman

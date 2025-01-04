@@ -35,6 +35,13 @@
           '';
         };
         persway = inputs.persway.packages.${system}.default;
+
+        inherit
+          (inputs.hyprland.packages.${system})
+          hyprland
+          hyprland-unwrapped
+          xdg-desktop-portal-hyprland
+          ;
       };
   };
 }

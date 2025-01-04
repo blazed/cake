@@ -12,7 +12,7 @@
       inherit name;
       text = ''
         trap 'systemctl --user stop ${systemdSession} || true' EXIT
-        exec ${pkgs.udev}/bin/systemd-cat --identifier=${name} ${cmd}
+        exec ${pkgs.systemd}/bin/systemd-cat --identifier=${name} ${cmd}
       '';
     };
 
@@ -108,17 +108,38 @@
   in
     pkgs.writeShellApplication {
       name = "greeter";
-      runtimeInputs = [runSway pkgs.bashInteractive pkgs.nushell pkgs.systemd pkgs.greetd.tuigreet];
+      runtimeInputs = [runSway runHyprland pkgs.bashInteractive pkgs.nushell pkgs.systemd pkgs.greetd.tuigreet];
       text = ''
         tuigreet --sessions ${sessionDir} --time -r --remember-session --power-shutdown 'systemctl poweroff' --power-reboot 'systemctl reboot' --cmd ${default}
       '';
     };
 in {
+  programs.regreet.enable = true;
+
+  environment.systemPackages = [pkgs.nordic pkgs.nordzy-cursor-theme pkgs.arc-icon-theme];
+
+  programs.regreet.settings = {
+    commands = {
+      reboot = ["systemctl" "reboot"];
+      poweroff = ["systemctl" "poweroff"];
+    };
+    appearance = {
+      greeting_msg = "Welcome back!";
+    };
+    GTK = {
+      curser_theme_name = lib.mkForce "Nordzy-cursors";
+      font_name = lib.mkForce "Roboto Medium 14";
+      icon_theme_name = lib.mkForce "Nordzy-dark";
+      theme_name = lib.mkForce "Nordic-darker";
+      application_prefer_dark_theme = lib.mkForce true;
+    };
+  };
+
   services.greetd = {
     enable = true;
     restart = true;
     settings = {
-      default_session.command = "${createGreeter "sway" sessions}/bin/greeter";
+      default_session.command = "${createGreeter "${runHyprland}/bin/Hyprland" sessions}/bin/greeter";
     };
   };
   systemd.services.greetd.serviceConfig = {
