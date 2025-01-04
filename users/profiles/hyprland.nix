@@ -224,12 +224,12 @@ in {
         contrast = 1.05;
         brightness = 0.8;
       };
-      drop_shadow = false;
-      shadow_range = 20;
-      shadow_render_power = 2;
-      shadow_offset = "3 3";
-      "col.shadow" = "0x99000000";
-      "col.shadow_inactive" = "0x55000000";
+      # drop_shadow = false;
+      # shadow_range = 20;
+      # shadow_render_power = 2;
+      # shadow_offset = "3 3";
+      # "col.shadow" = "0x99000000";
+      # "col.shadow_inactive" = "0x55000000";
       active_opacity = 0.95;
       inactive_opacity = 0.85;
       fullscreen_opacity = 1.0;
@@ -269,6 +269,20 @@ in {
       kb_variant = "";
       kb_options = "compose:ralt,caps:escape";
     };
+
+    windowrulev2 = [
+      "dimaround,class:gitui"
+      "float,class:gitui"
+      "size 60% 60%,class:gitui"
+      "center,class:gitui"
+      "dimaround,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
+      "float,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
+      "size 60% 60%,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
+      "center,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
+      "dimaround,title:Open File"
+      "float,title:Open File"
+      "center,title:Open File"
+    ];
 
     exec = [
       "${pkgs.kanshi}/bin/kanshi"

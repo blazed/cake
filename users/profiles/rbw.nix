@@ -1,4 +1,8 @@
-{pkgs, config, ...}: let
+{
+  pkgs,
+  config,
+  ...
+}: let
   inherit (config) userinfo;
 in {
   programs.rbw.enable = true;

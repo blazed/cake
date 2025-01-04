@@ -43,6 +43,7 @@ in {
       require "commands"
     '';
     plugins = with pkgs.vimPlugins; [
+      CopilotChat-nvim
       alpha-nvim
       cmp-buffer
       cmp-cmdline
@@ -51,6 +52,8 @@ in {
       cmp-path
       cmp-vsnip
       comment-nvim
+      copilot-cmp
+      copilot-lua
       crates-nvim
       direnv-vim
       gitsigns-nvim
@@ -76,6 +79,7 @@ in {
       todo-comments-nvim
       toggleterm-nvim
       vim-highlightedyank
+      vim-jjdescription
       which-key-nvim
       zen-mode-nvim
       (nvim-treesitter.withPlugins (

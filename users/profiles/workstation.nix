@@ -1,4 +1,8 @@
-{pkgs,config,...}: let
+{
+  pkgs,
+  config,
+  ...
+}: let
   inherit (config) gtk;
 in {
   imports =
@@ -15,27 +19,27 @@ in {
       ./waybar.nix
     ];
 
-    home.packages = with pkgs; [
-      bruno
-      discord
-      firefox-devedition-bin
-      kanshi
-      nautilus
-      neovide
-      nordic
-      persway
-      scrot
-      shotcut
-      signal-desktop
-      spotify
-      tdesktop ## Telegram
-      vulkan-loader
-      wl-clipboard
-      wl-clipboard-x11
-      xdg-utils
-    ];
+  home.packages = with pkgs; [
+    beekeeper-studio
+    bruno
+    discord
+    kanshi
+    nautilus
+    neovide
+    nordic
+    persway
+    scrot
+    shotcut
+    signal-desktop
+    spotify
+    tdesktop ## Telegram
+    vulkan-loader
+    wl-clipboard
+    wl-clipboard-x11
+    xdg-utils
+  ];
 
-    xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
+  xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
     [default]
     path = "~/Pictures/wallpapers"
     duration = "30m"
@@ -43,7 +47,7 @@ in {
     apply-shadow = false
 
     [any]
-    group = "1"
+    group = 1
   '';
 
   xdg.configFile."mimeapps.list".force = true;

@@ -11,6 +11,8 @@ in {
     ./chromium.nix
     ./dunst.nix
     ./git.nix
+    ./gitui.nix
+    ./jujutsu.nix
     ./neovim/default.nix
     ./nushell/default.nix
     ./rbw.nix
@@ -24,7 +26,6 @@ in {
     VISUAL = "nvim";
     KUBECONFIG = "/home/${username}/.kube/config";
     COLORTERM = "truecolor";
-    USE_GKE_GCLOUD_AUTH_PLUGIN = "True";
   };
 
   home.packages = with pkgs; [

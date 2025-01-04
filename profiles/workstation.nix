@@ -135,7 +135,7 @@
     device = "storage01.tailef5cf.ts.net:/volume1/blazed";
     fsType = "nfs";
     options = [
-      "x-systemd.automount" 
+      "x-systemd.automount"
       "noauto"
       "x-systemd.idle-timeout=600"
     ];

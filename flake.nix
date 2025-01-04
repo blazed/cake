@@ -45,6 +45,7 @@
     flake-utils.inputs.systems.follows = "systems";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
+    hyprland.url = "github:hyprwm/Hyprland";
     impermanence.url = "github:nix-community/impermanence";
     kured.flake = false;
     kured.url = "github:kubereboot/kured";
@@ -90,4 +91,3 @@
       systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
     };
 }
-

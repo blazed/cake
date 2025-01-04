@@ -1,7 +1,4 @@
-{
-  adminUser,
-  ...
-}: {
+{adminUser, ...}: {
   home-manager = {
     users.${adminUser.name} = {
       home.username = "${adminUser.name}";
