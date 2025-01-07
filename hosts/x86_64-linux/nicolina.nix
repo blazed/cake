@@ -14,7 +14,6 @@
     ../../profiles/desktop.nix
     ../../profiles/greetd.nix
     ../../profiles/home-manager.nix
-    ../../profiles/ollama.nix
     ../../profiles/restic-backup.nix
     ../../profiles/state.nix
     ../../profiles/tailscale.nix

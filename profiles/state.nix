@@ -82,6 +82,7 @@
         "code"
       ];
       files = [
+        ".cockroachsql_history"
         ".config/nushell/history.txt"
         ".kube/config"
         ".ssh/known_hosts"
