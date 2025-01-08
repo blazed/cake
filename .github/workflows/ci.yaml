@@ -84,6 +84,7 @@ jobs:
       if: ${{ matrix.pkg != 'pxebooter' }}
       with:
         name: blazed
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - name: Run the Magic Nix Cache
       uses: DeterminateSystems/magic-nix-cache-action@v8
     - env:
