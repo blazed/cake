@@ -86,18 +86,28 @@ in {
     group = "deluge";
   };
 
-  services.jackett = {
+  services.prowlarr = {
     enable = true;
     openFirewall = true;
-    user = "deluge";
-    group = "deluge";
+  };
+
+  systemd.services.prowlarr.serviceConfig = {
+    DynamicUser = lib.mkForce false;
+    StateDirectory = lib.mkForce null;
+    User = "deluge";
+    Group = "deluge";
+  };
+
+  services.flaresolverr = {
+    enable = true;
+    openFirewall = true;
   };
 
   environment.persistence."/keep".directories = [
-    "/var/lib/jellyfin"
     "/var/lib/deluge"
+    "/var/lib/jellyfin"
+    "/var/lib/prowlarr"
     "/var/lib/radarr"
     "/var/lib/sonarr"
-    "/var/lib/jackett"
   ];
 }
