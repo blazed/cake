@@ -1,5 +1,5 @@
 {pkgs, ...}: {
-  home.packages = [pkgs.lazyjj];
+  # home.packages = [pkgs.lazyjj];
   programs.jujutsu = {
     enable = true;
     ediff = false;
