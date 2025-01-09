@@ -20,25 +20,8 @@
         rev = "6f69acaa23bfbcaa5d91723bb49f58a7924077e7";
         shallow = true;
       }) {
-        system = "x86_64-linux";
+        inherit system;
       };
-
-    python = pkgs.python3.withPackages (
-      ps:
-        with ps; [
-          bottle
-          func-timeout
-          prometheus-client
-          selenium
-          waitress
-          xvfbwrapper
-
-          # For `undetected_chromedriver`
-          looseversion
-          requests
-          websockets
-        ]
-    );
   in {
     packages =
       (
@@ -76,15 +59,6 @@
               --replace-fail \
                 'PATCHED_DRIVER_PATH = None' \
                 'PATCHED_DRIVER_PATH = "${lib.getExe old_pkgs.undetected-chromedriver}"'
-          '';
-
-          installPhase = ''
-            mkdir -p $out/{bin,share/${oa.pname}-${oa.version}}
-            cp -r * $out/share/${oa.pname}-${oa.version}/.
-
-            makeWrapper ${python}/bin/python $out/bin/flaresolverr \
-              --add-flags "$out/share/${oa.pname}-${oa.version}/src/flaresolverr.py" \
-              --prefix PATH : "${lib.makeBinPath [pkgs.xorg.xvfb]}"
           '';
         });
 
