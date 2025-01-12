@@ -203,11 +203,11 @@ in {
     animations = {
       enabled = true;
       animation = [
-        "workspaces,1,0.6,default"
-        "windows,1,0.8,default"
-        "fade,1,0.8,default"
-        "border,1,0.6,default"
-        "borderangle,1,0.6,default"
+        "workspaces,1,2,default"
+        "windows,1,3,default"
+        "fade,1,3,default"
+        "border,1,2,default"
+        "borderangle,1,2,default"
       ];
     };
 
