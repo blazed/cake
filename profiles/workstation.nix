@@ -48,6 +48,7 @@
       auth include login
     '';
   };
+  security.pam.services.hyprlock = {};
 
   powerManagement.enable = true;
   powerManagement.powertop.enable = true;

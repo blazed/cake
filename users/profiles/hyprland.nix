@@ -13,51 +13,6 @@
     '';
   };
 
-  swaylockTimeout = "300";
-  swaylockSleepTimeout = "310";
-
-  swaylockEffects = pkgs.writeShellApplication {
-    name = "swaylock-effects";
-    runtimeInputs = [pkgs.swaylock-effects];
-    text = ''
-      exec swaylock \
-       --screenshots \
-       --clock \
-       --indicator \
-       --indicator-radius 100 \
-       --indicator-thickness 7 \
-       --effect-blur 15x3 \
-       --effect-greyscale \
-       --ring-color ffffff \
-       --ring-clear-color baffba \
-       --ring-ver-color bababa \
-       --ring-wrong-color ffbaba \
-       --key-hl-color bababa \
-       --line-color ffffffaa \
-       --inside-color ffffffaa \
-       --inside-ver-color bababaaa \
-       --line-ver-color bababaaa \
-       --inside-clear-color baffbaaa \
-       --line-clear-color baffbaaa \
-       --inside-wrong-color ffbabaaa \
-       --line-wrong-color ffbabaaa \
-       --separator-color 00000000 \
-       --grace 2 \
-       --fade-in 0.2
-    '';
-  };
-
-  swayidleCommand = pkgs.writeShellApplication {
-    name = "swayidle";
-    runtimeInputs = [pkgs.bash swaylockEffects pkgs.swayidle];
-    text = ''
-      exec swayidle -d -w timeout ${swaylockTimeout} swaylock-dope \
-                     timeout ${swaylockSleepTimeout} 'hyprctl dispatch dpms off' \
-                     resume 'hyprctl dispatch dpms on' \
-                     before-sleep swaylock-dope
-    '';
-  };
-
   xcursor_theme = config.gtk.cursorTheme.name;
   terminal-bin = "${pkgs.alacritty}/bin/alacritty";
 in {
@@ -77,6 +32,74 @@ in {
     QT_STYLE_OVERRIDE = lib.mkForce "gtk";
     _JAVA_AWT_WM_NONREPARENTING = "1";
     NIXOS_OZONE_WL = "1";
+  };
+
+  programs.hyprlock = {
+    enable = true;
+    settings = {
+      general = {
+        disable_loading_bar = true;
+        grace = 5;
+        hide_cursor = true;
+        no_fade_in = false;
+      };
+      background = [
+        {
+          path = "screenshot";
+          blur_passes = 3;
+          blur_size = 8;
+        }
+      ];
+      label = [
+        {
+          monitor = "";
+          text = ''cmd[update:1000] echo "<span foreground='##ff2222'>"$(date +"%-I:%M")"</span>"'';
+          color = "rgba(242, 243, 244, 0.75)";
+          font_size = 95;
+          font_family = "JetBrains Mono Extrabold";
+          position = "0, 200";
+          halign = "center";
+          valign = "center";
+        }
+      ];
+      input-field = [
+        {
+          size = "200, 50";
+          position = "0, -80";
+          monitor = "";
+          dots_center = true;
+          fade_on_empty = false;
+          font_color = "rgb(202, 211, 245)";
+          inner_color = "rgb(91, 96, 120)";
+          outer_color = "rgb(24, 25, 38)";
+          outline_thickness = 5;
+          placeholder_text = ''<span foreground="##cad3f5">Password...</span>'';
+          shadow_passes = 2;
+        }
+      ];
+    };
+  };
+
+  services.hypridle = {
+    enable = true;
+    settings = {
+      general = {
+        after_sleep_cmd = "hyprctl dispatch dpms on";
+        ignore_dbus_inhibit = false;
+        lock_cmd = "hyprlock";
+      };
+      listener = [
+        {
+          timeout = 300;
+          on-timeout = "hyprlock";
+        }
+        {
+          timeout = 1200;
+          on-timeout = "hyprctl dispatch dpms off";
+          on-resume = "hyprctl dispatch dpms off";
+        }
+      ];
+    };
   };
 
   wayland.windowManager.hyprland.enable = true;
@@ -130,7 +153,7 @@ in {
       "$mod SHIFT, q, killactive"
       "$mod, d, exec, ${pkgs.rofi-wayland}/bin/rofi -show drun"
       "$mod SHIFT, s, exec, ${screenshot}/bin/screenshot"
-      "$mod SHIFT, x, exec, ${swaylockEffects}/bin/swaylock-effects"
+      "$mod SHIFT, x, exec, hyprlock"
       "$mod SHIFT, e, exec, ${pkgs.neovide}/bin/neovide"
       "$mod, left, movefocus, l"
       "$mod, right, movefocus, r"
@@ -290,7 +313,6 @@ in {
 
     exec-once = [
       "${pkgs.wpaperd}/bin/wpaperd"
-      "${swayidleCommand}/bin/swayidle"
       "${pkgs.hyprland}/bin/hyprctl setcursor ${xcursor_theme} 24"
       "${pkgs.polkit_gnome.out}/libexec/polkit-gnome-authentication-agent-1"
     ];
