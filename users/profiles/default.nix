@@ -29,6 +29,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    awscli2
     carapace
     devenv
     fzf
