@@ -19,7 +19,9 @@ in {
       docker-compose-language-service
       dockerfile-language-server-nodejs
       eslint_d
+      gofumpt
       gopls
+      gotools
       lsp-ai
       lua-language-server
       marksman
