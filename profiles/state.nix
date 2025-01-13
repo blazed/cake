@@ -26,6 +26,7 @@
 
     users.${adminUser.name} = {
       directories = [
+        ".aws"
         ".backup/undo"
         ".cache/chromium"
         ".cache/monero-project"
