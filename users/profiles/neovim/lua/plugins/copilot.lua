@@ -11,6 +11,10 @@ function M.setup()
     panel = {
       enabled = false
     },
+    -- server = {
+    --   type = "binary",
+    --   custom_server_filepath = "$COPILOT_LSP_BIN",
+    -- }
   }
 
   cmp.setup {}

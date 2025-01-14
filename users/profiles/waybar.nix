@@ -11,12 +11,7 @@
       disable-scroll-wraparound = true;
     };
     "hyprland/workspaces" = {
-      format = "{name}";
-      format-icons = {
-        active = "";
-        default = "";
-        persistent = "";
-      };
+      format = "{id}";
       on-scroll-up = "hyprctl dispatch workspace e-1";
       on-scroll-down = "hyprctl dispatch workspace e+1";
       all-outputs = false;
@@ -104,9 +99,11 @@
       border-top: 2px solid transparent;
     }
 
-    #workspaces button.focused {
-      color: white;
-      background: transparent;
+    #workspaces button.visible {
+      border-top: 2px solid #606060;
+    }
+
+    #workspaces button.active {
       border-top: 2px solid #c9545d;
     }
 
