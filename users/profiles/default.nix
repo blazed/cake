@@ -6,9 +6,11 @@
   inherit (config.home) username;
 in {
   imports = [
+    ./aider.nix
     ./alacritty.nix
     ./bat.nix
     ./chromium.nix
+    ./claude.nix
     ./dunst.nix
     ./git.nix
     ./gitui.nix
@@ -20,6 +22,7 @@ in {
     ./starship.nix
     ./wezterm/default.nix
     ./zellij.nix
+    ./zen-browser.nix
   ];
 
   home.sessionVariables = {
@@ -30,6 +33,7 @@ in {
   };
 
   home.packages = with pkgs; [
+    aws-vault
     awscli2
     carapace
     devenv

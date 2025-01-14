@@ -44,6 +44,7 @@
 
     ignores = [
       ".nvimlog" # TODO(blazed): find out why this is needed?
+      ".aider*"
     ];
   };
 

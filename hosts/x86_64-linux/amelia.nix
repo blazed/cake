@@ -35,6 +35,19 @@
     wifi-networks = {
       file = ../../secrets/wifi-networks.age;
     };
+    copilot-apps-json = {
+      file = ../../secrets/copilot-apps-json.age;
+      owner = "${toString adminUser.uid}";
+      path = "/home/${adminUser.name}/.config/github-copilot/apps.json";
+    };
+    anthropic-api-key = {
+      file = ../../secrets/anthropic-api-key.age;
+      owner = "${toString adminUser.uid}";
+    };
+    copilot-api-key = {
+      file = ../../secrets/copilot-api-key.age;
+      owner = "${toString adminUser.uid}";
+    };
   };
 
   home-manager = {

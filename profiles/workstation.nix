@@ -49,6 +49,7 @@
     '';
   };
   security.pam.services.hyprlock = {};
+  security.pam.services.hyprland.enableGnomeKeyring = true;
 
   powerManagement.enable = true;
   powerManagement.powertop.enable = true;
@@ -60,6 +61,7 @@
   virtualisation.podman.dockerCompat = true;
 
   programs.ssh.startAgent = true;
+  services.gnome.gcr-ssh-agent.enable = false;
 
   services.pcscd.enable = true;
 
@@ -81,6 +83,8 @@
   environment.etc."systemd/sleep.conf".text = "HibernateDelaySec=8h";
 
   services.write-iwd-secrets.enable = true;
+
+  services.gnome.gnome-keyring.enable = true;
 
   services.pipewire = {
     enable = true;
