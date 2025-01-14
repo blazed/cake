@@ -58,6 +58,7 @@ in {
       pkgs.bmon
       pkgs.bottom
       pkgs.bridge-utils
+      pkgs.btop
       pkgs.cacert
       pkgs.curl
       pkgs.fd

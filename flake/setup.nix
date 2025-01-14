@@ -18,7 +18,7 @@
         "aspnetcore-runtime-wrapped-6.0.36"
         "aspnetcore-runtime-6.0.36"
         "dotnet-sdk-6.0.428"
-        "beekeeper-studio-5.1.5"
+        "beekeeper-studio-5.2.9"
       ];
       overlays = [
         inputs.agenix.overlays.default
