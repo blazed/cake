@@ -7,8 +7,10 @@ rustPlatform.buildRustPackage {
   pname = "netns-exec";
   version = inputs.netns-exec.rev;
 
+  useFetchCargoVendor = true;
+
   src = inputs.netns-exec;
-  cargoSha256 = "sha256-a10IAp+PGnJAmLJIkKlRKI3a82SbV1jj5jEB64DZr6o=";
+  cargoHash = "sha256-L0IWaoVsI175QkSHD0+aAzA1Lf6RCmEtmzvnR67LhKo=";
 
   doCheck = false;
 
