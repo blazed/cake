@@ -32,6 +32,10 @@
       ## uBlock Origin
       id = "cjpalhdlnbpafiamejdnhcphjbkeiagm";
     }
+    {
+      ## Consent-O-Matic
+      id = "mdjildafknihdffpkfmmpnpoiajfjnjd";
+    }
   ];
   commandLineArgs = [
     "-enable-features=UseOzonePlatform"

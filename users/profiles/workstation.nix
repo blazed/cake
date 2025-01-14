@@ -11,7 +11,7 @@ in {
       ./chromium.nix
       # ./easyeffects.nix
       ./hyprland.nix
-      ./kanshi.nix
+      # ./kanshi.nix
       ./obs.nix
       ./pueue.nix
       ./rofi.nix
@@ -20,10 +20,10 @@ in {
     ];
 
   home.packages = with pkgs; [
+    # kanshi
     beekeeper-studio
     bruno
     discord
-    kanshi
     nautilus
     neovide
     nordic
@@ -31,6 +31,7 @@ in {
     scrot
     shotcut
     signal-desktop
+    slack
     spotify
     tdesktop ## Telegram
     vulkan-loader
