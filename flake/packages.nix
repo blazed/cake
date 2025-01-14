@@ -46,6 +46,8 @@
         persway = inputs.persway.packages.${system}.default;
 
         flaresolverr-patched = pkgs.flaresolverr.overrideAttrs (oa: {
+          meta = oa.meta // { broken = false; };
+
           postPatch = ''
             substituteInPlace src/undetected_chromedriver/patcher.py \
               --replace-fail \
