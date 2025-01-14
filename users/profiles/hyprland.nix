@@ -99,9 +99,9 @@ in {
           on-timeout = "hyprlock";
         }
         {
-          timeout = 1200;
+          timeout = 900;
           on-timeout = "hyprctl dispatch dpms off";
-          on-resume = "hyprctl dispatch dpms off";
+          on-resume = "hyprctl dispatch dpms on";
         }
       ];
     };
@@ -152,6 +152,11 @@ in {
   '';
 
   wayland.windowManager.hyprland.settings = {
+    monitor = [
+      "DP-1, 2560x1440@143.998, 2560x0, 1"
+      "DP-2, 2560x1440@144.000, 5120x0, 1"
+      "DP-3, 2560x1440@144.000, 0x0, 1"
+    ];
     "$mod" = "SUPER";
     bind = [
       "$mod, Return, exec, ${terminal-bin}"
@@ -232,25 +237,33 @@ in {
       enabled = true;
       animation = [
         "workspaces,1,2,default"
-        "windows,1,3,default"
+        "windows,1,1,default"
         "fade,1,3,default"
-        "border,1,2,default"
-        "borderangle,1,2,default"
+        "border,1,1,default"
+        "borderangle,1,1,default"
       ];
     };
 
     decoration = {
-      rounding = 4;
+      rounding = 10;
       blur = {
         enabled = true;
         size = 7;
-        passes = 2;
+        passes = 4;
         xray = true;
-        ignore_opacity = true;
+        ignore_opacity = false;
         new_optimizations = true;
-        noise = 0.12;
+        noise = 0.02;
         contrast = 1.05;
-        brightness = 0.8;
+        brightness = 1.3;
+      };
+      shadow = {
+        enabled = true;
+        range = 20;
+        render_power = 2;
+        color = "0x99000000";
+        color_inactive = "0x55000000";
+
       };
       # drop_shadow = false;
       # shadow_range = 20;
@@ -276,6 +289,8 @@ in {
       orientation = "right";
       mfact = 0.7;
     };
+
+    layerrule = ["blur,waybar" "ignorealpha,waybar"];
 
     input = {
       kb_layout = "us";
@@ -313,7 +328,7 @@ in {
     ];
 
     exec = [
-      "${pkgs.kanshi}/bin/kanshi"
+      # "${pkgs.kanshi}/bin/kanshi"
     ];
 
     exec-once = [
