@@ -18,6 +18,7 @@ in {
     ./rbw.nix
     ./ssh.nix
     ./starship.nix
+    ./wezterm/default.nix
     ./zellij.nix
   ];
 

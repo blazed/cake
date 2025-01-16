@@ -14,7 +14,7 @@
   };
 
   xcursor_theme = config.gtk.cursorTheme.name;
-  terminal-bin = "${pkgs.alacritty}/bin/alacritty";
+  terminal-bin = "${pkgs.wezterm}/bin/wezterm start --always-new-process";
 in {
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
 
