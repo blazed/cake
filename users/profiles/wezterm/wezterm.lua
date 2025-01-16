@@ -109,7 +109,7 @@ config.hide_tab_bar_if_only_one_tab = true
 config.tab_bar_at_bottom = true
 config.font = wezterm.font "JetBrainsMono Nerd Font"
 config.font_size = 10
-config.color_scheme = "One Dark (Gogh)"
+config.color_scheme = "Nord (Gogh)"
 config.window_background_opacity = 0.90
 config.switch_to_last_active_tab_when_closing_tab = true
 
