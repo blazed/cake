@@ -123,7 +123,7 @@ function M.setup()
   plugin.setup {
     options = {
       icons_enabled = true,
-      theme = "onedark",
+      theme = "onenord",
       component_separators = "",
       section_separators = {
         left = "",

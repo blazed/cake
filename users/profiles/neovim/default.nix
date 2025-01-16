@@ -74,6 +74,7 @@ in {
       nvim-spectre
       nvim-web-devicons
       onedark-nvim
+      onenord-nvim
       plenary-nvim
       rustaceanvim
       telescope-file-browser-nvim
