@@ -3,12 +3,12 @@
   config,
   ...
 }: {
-  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP/WquqAPOAkYE10UcU+P1b2IagzlZ1uQyG2g4WnO5/X";
+  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHFFeGviKto0uzeSJBZglLrAQmpwGqIQie61A6MqmiOT";
 
   imports = [
     ../../profiles/admin-user/home-manager.nix
     ../../profiles/admin-user/user.nix
-    ../../profiles/disk/bcachefs-on-luks.nix
+    ../../profiles/disk/btrfs-on-luks.nix
     ../../profiles/greetd.nix
     ../../profiles/hardware/usbcore.nix
     ../../profiles/hardware/framework-13-amd.nix
@@ -20,10 +20,7 @@
     ../../profiles/zram.nix
   ];
 
-  bcachefs = {
-    disks = ["/dev/nvme0n1"];
-    devices = ["/dev/mapper/encrypted_root"];
-  };
+  boot.loader.systemd-boot.memtest86.enable = true;
 
   boot.initrd = {
     systemd.enable = true;
