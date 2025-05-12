@@ -106,7 +106,7 @@
 
   modifier = "Mod4";
 
-  terminal-bin = "${pkgs.alacritty}/bin/alacritty";
+  terminal-bin = "${pkgs.wezterm}/bin/wezterm start --always-new-process";
   xcursor_theme = gtk.cursorTheme.name;
 in {
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
@@ -188,10 +188,11 @@ in {
         "*" = {
           xkb_layout = "us,us";
           xkb_options = "compose:ralt,caps:escape";
-          xkb_variant = "dvp,";
+          xkb_variant = "dvp";
         };
         "3897:1558:Heng_Yu_Technology_POKER_3C" = {
           xkb_layout = "dvp-custom";
+          #xkb_variant = "basic";
         };
         "12815:20541:SONiX_USB_DEVICE_Keyboard" = {
           xkb_layout = "dvp-custom";
