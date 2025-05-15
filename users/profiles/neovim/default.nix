@@ -14,8 +14,10 @@ in {
     withNodeJs = true;
     withRuby = true;
     package = pkgs.neovim-unwrapped;
-    extraPackages = with pkgs; [
+    extraPackages = with pkgs;
+    with nodePackages_latest; [
       actionlint
+      copilot-language-server
       docker-compose-language-service
       dockerfile-language-server-nodejs
       eslint_d
@@ -26,13 +28,13 @@ in {
       lua-language-server
       marksman
       nil # Nix
-      nodePackages.prettier
-      nodePackages.typescript-language-server
+      prettier
       rust-analyzer
       shellcheck
       statix
       tailwindcss-language-server
       terraform-ls
+      typescript-language-server
       vscode-langservers-extracted
       yaml-language-server
     ];
@@ -44,8 +46,13 @@ in {
       require "keymaps"
       require "commands"
     '';
+    extraWrapperArgs = [
+      "--suffix"
+      "COPILOT_LSP_BIN"
+      ":"
+      "${pkgs.copilot-language-server}/bin/copilot-language-server"
+    ];
     plugins = with pkgs.vimPlugins; [
-      CopilotChat-nvim
       alpha-nvim
       cmp-buffer
       cmp-cmdline
@@ -67,7 +74,7 @@ in {
       neodev-nvim
       noice-nvim
       nui-nvim
-      null-ls-nvim
+      none-ls-nvim
       nvim-autopairs
       nvim-cmp
       nvim-lspconfig

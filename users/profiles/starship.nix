@@ -9,40 +9,35 @@
       gcloud = {
         format = "on [$symbol(\\($project\\))]($style) ";
       };
-      custom.jjstate = {
+      custom.jj = {
         detect_folders = [".jj"];
+        symbol = "🥋 ";
         command = ''
-          jj log -r@ -n1 --no-graph -T "" --stat | tail -n1 | sd "(\d+) files? changed, (\d+) insertions?\(\+\), (\d+) deletions?\(-\)" ' $${1}m $${2}+ $${3}-' | sd " 0." ""
+          jj log -r::@ -n2 --no-graph --ignore-working-copy --color always --template '
+            separate(" ",
+              " ",
+              change_id.shortest(4),
+              bookmarks,
+              tags,
+              "|",
+              concat(
+                if(conflict, "💥"),
+                if(divergent, "🚧"),
+                if(hidden, "👻"),
+                if(immutable, "🔒"),
+              ),
+              raw_escape_sequence("\x1b[1;32m") ++ if(empty, "(empty)"),
+              raw_escape_sequence("\x1b[1;32m") ++ if(description.first_line().len() == 0,
+                "(no description set)",
+                if(description.first_line().substr(0, 29) == description.first_line(),
+                  description.first_line(),
+                  description.first_line().substr(0, 29) ++ "…",
+                )
+              ) ++ raw_escape_sequence("\x1b[0m"),
+            )
+          '
         '';
       };
-      # custom.jj = {
-      #   detect_folders = [".jj"];
-      #   symbol = "🥋 ";
-      #   command = ''
-      #     jj log -r::@ -n2 --ignore-working-copy --no-graph --color always  -T '
-      #       separate(" ",
-      #         bookmarks.map(|x| if(
-      #             x.name().substr(0, 10).starts_with(x.name()),
-      #             x.name().substr(0, 10),
-      #             x.name().substr(0, 9) ++ "…")
-      #           ).join(" "),
-      #         tags.map(|x| if(
-      #             x.name().substr(0, 10).starts_with(x.name()),
-      #             x.name().substr(0, 10),
-      #             x.name().substr(0, 9) ++ "…")
-      #           ).join(" "),
-      #         if(
-      #            description.first_line().substr(0, 24).starts_with(description.first_line()),
-      #            description.first_line().substr(0, 24),
-      #            description.first_line().substr(0, 23) ++ "…"
-      #         ),
-      #         if(conflict, "conflict"),
-      #         if(divergent, "divergent"),
-      #         if(hidden, "hidden"),
-      #       )
-      #     ' | head -n1
-      #   '';
-      # };
     };
   };
 }

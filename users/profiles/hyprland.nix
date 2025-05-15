@@ -263,7 +263,6 @@ in {
         render_power = 2;
         color = "0x99000000";
         color_inactive = "0x55000000";
-
       };
       # drop_shadow = false;
       # shadow_range = 20;
