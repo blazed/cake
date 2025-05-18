@@ -152,6 +152,9 @@ in {
   '';
 
   wayland.windowManager.hyprland.settings = {
+    ecosystem = {
+      no_update_news = true;
+    };
     monitor = [
       "DP-1, 2560x1440@143.998, 2560x0, 1"
       "DP-2, 2560x1440@144.000, 5120x0, 1"
