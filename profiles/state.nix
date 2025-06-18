@@ -37,6 +37,7 @@
         ".cache/rbw"
         ".cache/zellij"
         ".cargo"
+        ".claude"
         ".config/Signal"
         ".config/Slack"
         ".config/WowUpCf"
@@ -64,6 +65,7 @@
         ".local/share/direnv"
         ".local/share/fish"
         ".local/share/flatpak"
+        ".local/share/keyrings"
         ".local/share/lutris"
         ".local/share/nix"
         ".local/share/vulkan"
@@ -84,6 +86,7 @@
         "code"
       ];
       files = [
+        ".claude.json"
         ".cockroachsql_history"
         ".config/nushell/history.txt"
         ".kube/config"
