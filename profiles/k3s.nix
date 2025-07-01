@@ -32,6 +32,11 @@
   services.k3s = {
     enable = true;
     after = ["tailscale-auth.service" "tailscaled.service"];
+    disable = [
+      "servicelb"
+      "traefik"
+      "metrics-server"
+    ];
     settings = {
       token-file = "/run/agenix/k3s-token";
       flannel-iface = "tailscale0";
