@@ -2,9 +2,11 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (config.home) username;
-in {
+in
+{
   imports = [
     ./aider.nix
     ./alacritty.nix
@@ -15,7 +17,7 @@ in {
     ./git.nix
     ./gitui.nix
     ./jujutsu.nix
-    ./neovim/default.nix
+    ./neovim.nix
     ./nushell/default.nix
     ./rbw.nix
     ./ssh.nix
@@ -52,6 +54,8 @@ in {
     pwgen
     ruby
     scripts
+
+    gemini-cli
   ];
 
   xdg.enable = true;
@@ -80,7 +84,7 @@ in {
       OnCalendar = "*-*-* 4:00:00";
       Unit = "nix-index.service";
     };
-    Install.WantedBy = ["timers.target"];
+    Install.WantedBy = [ "timers.target" ];
   };
 
   home.stateVersion = "21.05";

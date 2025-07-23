@@ -1,4 +1,5 @@
-{adminUser, ...}: {
+{ adminUser, ... }:
+{
   environment.persistence."/keep" = {
     hideMounts = true;
     directories = [
@@ -13,8 +14,11 @@
       "/var/lib/tailscale"
       "/var/lib/wireguard"
       "/var/log"
-      "/var/lib/private/ollama"
-      "/var/lib/private/open-webui"
+      "/var/lib/github-runner"
+      {
+        directory = "/var/lib/private";
+        mode = "0700";
+      }
     ];
     files = [
       "/etc/machine-id"
@@ -57,6 +61,7 @@
         ".config/spotify"
         ".config/warcraftlogs"
         ".factorio"
+        ".gemini"
         ".gnupg"
         ".local/share/Steam"
         ".local/share/TelegramDesktop"

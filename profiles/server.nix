@@ -3,9 +3,11 @@
   pkgs,
   inputs,
   ...
-}: let
+}:
+let
   inherit (inputs) nixos-hardware;
-in {
+in
+{
   imports = [
     "${nixos-hardware}/common/pc/ssd"
     ./defaults.nix
@@ -13,6 +15,8 @@ in {
 
   networking.usePredictableInterfaceNames = false;
   networking.useDHCP = true;
+
+  virtualisation.docker.enable = true;
 
   environment.systemPackages = [
     pkgs.wget
@@ -40,7 +44,7 @@ in {
   services.openssh.enable = true;
   services.openssh.settings.PasswordAuthentication = false;
 
-  networking.firewall.allowedTCPPorts = [22];
+  networking.firewall.allowedTCPPorts = [ 22 ];
 
   services.smartd.enable = true;
 

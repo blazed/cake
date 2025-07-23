@@ -3,7 +3,8 @@
   pkgs,
   adminUser,
   ...
-}: {
+}:
+{
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPdjb2aWeDCRA5ncL1ZP31g+wClwV0EaptrnmwwJtHfj";
 
   imports = [
@@ -17,6 +18,8 @@
     ../../profiles/uuid_disk_crypt.nix
     ../../profiles/wifi.nix
     ../../profiles/zram.nix
+
+    ../../profiles/github-runner.nix
   ];
 
   age.secrets = {
@@ -29,6 +32,10 @@
     ts = {
       file = ../../secrets/ts.age;
       owner = "1447";
+    };
+    github-runner = {
+      file = ../../secrets/github-runner-token-exsules.age;
+      owner = "${toString adminUser.uid}";
     };
   };
 
