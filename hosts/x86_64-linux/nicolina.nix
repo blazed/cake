@@ -77,6 +77,5 @@
     };
   };
 
-
   networking.wireguard.enable = true;
 }

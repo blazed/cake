@@ -62,6 +62,8 @@
     nur.url = "github:nix-community/NUR";
     persway.inputs.crane.follows = "crane";
     persway.inputs.devenv.follows = "devenv";
+    candle.url = "github:blazed/candle/add-nixvim";
+    candle.inputs.nixpkgs.follows = "nixpkgs";
     persway.inputs.fenix.follows = "fenix";
     persway.inputs.flake-parts.follows = "flake-parts";
     persway.inputs.flake-utils.follows = "flake-utils";

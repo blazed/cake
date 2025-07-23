@@ -44,6 +44,7 @@
           '';
         };
         persway = inputs.persway.packages.${system}.default;
+        candle = inputs.candle.packages.${system}.default;
 
         flaresolverr-patched = pkgs.flaresolverr.overrideAttrs (oa: {
           meta = oa.meta // {broken = false;};
