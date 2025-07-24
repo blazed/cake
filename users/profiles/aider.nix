@@ -1,7 +1,7 @@
 {pkgs, ...}: let
   aider = pkgs.writeShellApplication {
     name = "aider";
-    runtimeInputs = [ pkgs.aider-chat ];
+    runtimeInputs = [pkgs.aider-chat];
     text = ''
       OPENAI_API_KEY="$(cat /run/agenix/copilot-api-key)"
       OPENAI_API_BASE=https://api.githubcopilot.com
@@ -10,5 +10,5 @@
     '';
   };
 in {
-  home.packages = [ aider ];
+  home.packages = [aider];
 }

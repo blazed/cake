@@ -15,7 +15,7 @@ in {
     ./git.nix
     ./gitui.nix
     ./jujutsu.nix
-    ./neovim/default.nix
+    ./neovim.nix
     ./nushell/default.nix
     ./rbw.nix
     ./ssh.nix
