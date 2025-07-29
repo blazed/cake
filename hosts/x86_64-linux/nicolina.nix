@@ -2,7 +2,8 @@
   adminUser,
   config,
   ...
-}: {
+}:
+{
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOkSM4q2znIpCSJA60RtjKYWaz+hBhjjzJfP7SDL32is";
 
   imports = [
@@ -18,6 +19,8 @@
     ../../profiles/state.nix
     ../../profiles/tailscale.nix
     ../../profiles/zram.nix
+
+    ../../profiles/github-runner.nix
   ];
 
   boot.loader.systemd-boot.memtest86.enable = true;
@@ -47,6 +50,10 @@
       file = ../../secrets/copilot-api-key.age;
       owner = "${toString adminUser.uid}";
     };
+    github-runner = {
+      file = ../../secrets/github-runner-token-exsules.age;
+      owner = "${toString adminUser.uid}";
+    };
   };
 
   programs.steam.enable = true;
@@ -67,8 +74,9 @@
 
   home-manager = {
     users.${adminUser.name} = {
-      imports = [../../users/profiles/workstation.nix];
-      programs.git.extraConfig.user.signingKey = "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=";
+      imports = [ ../../users/profiles/workstation.nix ];
+      programs.git.extraConfig.user.signingKey =
+        "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=";
       programs.jujutsu.settings.signing = {
         behavior = "own";
         backend = "ssh";
@@ -76,7 +84,6 @@
       };
     };
   };
-
 
   networking.wireguard.enable = true;
 }

@@ -4,7 +4,8 @@
   adminUser,
   hostName,
   ...
-}: {
+}:
+{
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBthY9m7Dxs2I5uvU/UeudSV27X52avhWaSuOaM/urpm";
 
   imports = [
@@ -19,6 +20,8 @@
     ../../profiles/tailscale.nix
     ../../profiles/uuid_disk_crypt.nix
     ../../profiles/zram.nix
+
+    ../../profiles/github-runner.nix
   ];
 
   boot.initrd = {
@@ -49,6 +52,10 @@
       file = ../../secrets/ts.age;
       owner = "1447";
     };
+    github-runner = {
+      file = ../../secrets/github-runner-token-exsules.age;
+      owner = "${toString adminUser.uid}";
+    };
   };
 
   networking.private-wireguard.enable = true;
@@ -60,7 +67,10 @@
   networking.private-wireguard.peers = [
     {
       publicKey = "FKodo9V6BehkNphL+neI0g4/G/cjbZyYhoptSWf3Si4=";
-      allowedIPs = ["0.0.0.0/0" "::0/0"];
+      allowedIPs = [
+        "0.0.0.0/0"
+        "::0/0"
+      ];
       endpoint = "185.204.1.219:51820";
       persistentKeepalive = 25;
     }
