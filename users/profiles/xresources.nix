@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   xresources.extraConfig = builtins.readFile (
     pkgs.fetchFromGitHub {
       owner = "pinpox";

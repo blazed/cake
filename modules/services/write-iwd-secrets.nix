@@ -4,9 +4,11 @@
   pkgs,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.services.write-iwd-secrets;
-in {
+in
+{
   options.services.write-iwd-secrets = {
     enable = mkEnableOption "write iwd network secrets";
   };
@@ -45,7 +47,7 @@ in {
         EOF
         done
       '';
-      wantedBy = ["network.target"];
+      wantedBy = [ "network.target" ];
     };
   };
 }

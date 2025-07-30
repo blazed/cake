@@ -1,6 +1,5 @@
 let
-  inherit
-    (builtins)
+  inherit (builtins)
     all
     any
     attrValues
@@ -19,30 +18,36 @@ let
 
   last = list: elemAt list (length list - 1);
 
-  flatten = x:
-    if isList x
-    then concatMap flatten x
-    else [x];
+  flatten = x: if isList x then concatMap flatten x else [ x ];
 
-  unique = foldl' (acc: e:
-    if elem e acc
-    then acc
-    else acc ++ [e]) [];
+  unique = foldl' (acc: e: if elem e acc then acc else acc ++ [ e ]) [ ];
 
   hasAttrsFilter = attrsList: filter (attr: all (key: hasAttr key attr) attrsList);
 
-  hostConfigsList = map (host: host.config) (attrValues (getFlake (toString ../.)).nixosConfigurations);
+  hostConfigsList = map (host: host.config) (
+    attrValues (getFlake (toString ../.)).nixosConfigurations
+  );
 
-  hostsWithSecrets = hasAttrsFilter ["publicKey" "age"] hostConfigsList;
+  hostsWithSecrets = hasAttrsFilter [ "publicKey" "age" ] hostConfigsList;
 
   toLocalSecretPath = path: last (split "/secrets/" path);
 
-  secretsList = unique (flatten (map (host: map (s: toLocalSecretPath (toString s.file)) (attrValues host.age.secrets)) hostsWithSecrets));
+  secretsList = unique (
+    flatten (
+      map (
+        host: map (s: toLocalSecretPath (toString s.file)) (attrValues host.age.secrets)
+      ) hostsWithSecrets
+    )
+  );
 
-  mapSecretToPublicKeys = secret:
+  mapSecretToPublicKeys =
+    secret:
     unique (
-      map (host: host.publicKey)
-      (filter (host: any (s: secret == toLocalSecretPath (toString s.file)) (attrValues host.age.secrets)) hostsWithSecrets)
+      map (host: host.publicKey) (
+        filter (
+          host: any (s: secret == toLocalSecretPath (toString s.file)) (attrValues host.age.secrets)
+        ) hostsWithSecrets
+      )
     );
 
   blazed = [
@@ -50,8 +55,9 @@ let
     "age1yubikey1q2k0cy4anjwggg5spvjrglyy7jgjclnmjddja460yhaqm6wcc5dhjmuxcqh"
   ];
 in
-  listToAttrs (map (name: {
-      inherit name;
-      value.publicKeys = blazed ++ (mapSecretToPublicKeys name);
-    })
-    secretsList)
+listToAttrs (
+  map (name: {
+    inherit name;
+    value.publicKeys = blazed ++ (mapSecretToPublicKeys name);
+  }) secretsList
+)

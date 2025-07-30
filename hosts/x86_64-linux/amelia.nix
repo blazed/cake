@@ -2,7 +2,8 @@
   adminUser,
   config,
   ...
-}: {
+}:
+{
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHFFeGviKto0uzeSJBZglLrAQmpwGqIQie61A6MqmiOT";
 
   imports = [
@@ -52,7 +53,7 @@
 
   home-manager = {
     users.${adminUser.name} = {
-      imports = [../../users/profiles/workstation.nix];
+      imports = [ ../../users/profiles/workstation.nix ];
       programs.git.extraConfig.user.signingKey = config.age.secrets.id_ed25519.path;
       programs.jujutsu.settings.signing = {
         behavior = "own";

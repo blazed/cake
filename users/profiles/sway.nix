@@ -3,7 +3,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (config) gtk;
   swayservice = Description: ExecStart: {
     Unit = {
@@ -18,7 +19,7 @@
       inherit ExecStart;
     };
 
-    Install.WantedBy = ["sway-session.target"];
+    Install.WantedBy = [ "sway-session.target" ];
   };
 
   swaylockTimeout = "300";
@@ -26,7 +27,7 @@
 
   swaylockEffects = pkgs.writeShellApplication {
     name = "swaylock-effects";
-    runtimeInputs = [pkgs.swaylock-effects];
+    runtimeInputs = [ pkgs.swaylock-effects ];
     text = ''
       exec swaylock \
        --screenshots \
@@ -55,7 +56,12 @@
 
   swayidleCommand = pkgs.writeShellApplication {
     name = "swayidle";
-    runtimeInputs = [pkgs.sway pkgs.bash swaylockEffects pkgs.swayidle];
+    runtimeInputs = [
+      pkgs.sway
+      pkgs.bash
+      swaylockEffects
+      pkgs.swayidle
+    ];
     text = ''
       swayidle -d -w timeout ${swaylockTimeout} swaylock-dope \
                      timeout ${swaylockSleepTimeout} 'swaymsg "output * dpms off"' \
@@ -66,7 +72,10 @@
 
   screenshot = pkgs.writeShellApplication {
     name = "screenshot";
-    runtimeInputs = [pkgs.slurp pkgs.grim];
+    runtimeInputs = [
+      pkgs.slurp
+      pkgs.grim
+    ];
     text = ''
       mkdir -p ~/Pictures/screenshots
       slurp | grim -g - ~/Pictures/screenshots/"$(date +'%Y-%m-%dT%H%M%S.png')"
@@ -75,7 +84,7 @@
 
   swayOnReload = pkgs.writeShellApplication {
     name = "sway-on-reload";
-    runtimeInputs = [pkgs.sway];
+    runtimeInputs = [ pkgs.sway ];
     text = ''
       LID=/proc/acpi/button/lid/LID
       if [ ! -e "$LID" ]; then
@@ -89,17 +98,20 @@
         fi
       fi
 
-      ${
-        lib.optionalString config.services.kanshi.enable
-        ''
-          systemctl restart --user kanshi.service
-        ''
-      }
+      ${lib.optionalString config.services.kanshi.enable ''
+        systemctl restart --user kanshi.service
+      ''}
     '';
   };
 
   fonts = {
-    names = ["Roboto" "Font Awesome 5 Free" "Font Awesome 5 Brands" "Arial" "sans-serif"];
+    names = [
+      "Roboto"
+      "Font Awesome 5 Free"
+      "Font Awesome 5 Brands"
+      "Arial"
+      "sans-serif"
+    ];
     style = "Bold";
     size = 10.0;
   };
@@ -108,7 +120,8 @@
 
   terminal-bin = "${pkgs.wezterm}/bin/wezterm start --always-new-process";
   xcursor_theme = gtk.cursorTheme.name;
-in {
+in
+{
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
 
   home.sessionVariables = {
@@ -140,44 +153,46 @@ in {
 
       workspaceAutoBackAndForth = true;
 
-      window = let
-        command = "floating enable, resize set width 100ppt height 120ppt";
-        floatCommand = "floating enable";
-      in {
-        titlebar = false;
-        border = 1;
-        hideEdgeBorders = "smart";
-        commands = [
-          {
-            inherit command;
-            criteria.class = "scripts";
-          }
-          {
-            inherit command;
-            criteria.title = "scripts";
-          }
-          {
-            inherit command;
-            criteria.app_id = "scripts";
-          }
-          {
-            command = floatCommand;
-            criteria.class = "input-window";
-          }
-          {
-            command = floatCommand;
-            criteria.class = "gcr-prompter";
-          }
-          {
-            command = "inhibit_idle fullscreen";
-            criteria.shell = ".*";
-          }
-          {
-            command = "kill";
-            criteria.title = "Firefox - Sharing Indicator";
-          }
-        ];
-      };
+      window =
+        let
+          command = "floating enable, resize set width 100ppt height 120ppt";
+          floatCommand = "floating enable";
+        in
+        {
+          titlebar = false;
+          border = 1;
+          hideEdgeBorders = "smart";
+          commands = [
+            {
+              inherit command;
+              criteria.class = "scripts";
+            }
+            {
+              inherit command;
+              criteria.title = "scripts";
+            }
+            {
+              inherit command;
+              criteria.app_id = "scripts";
+            }
+            {
+              command = floatCommand;
+              criteria.class = "input-window";
+            }
+            {
+              command = floatCommand;
+              criteria.class = "gcr-prompter";
+            }
+            {
+              command = "inhibit_idle fullscreen";
+              criteria.shell = ".*";
+            }
+            {
+              command = "kill";
+              criteria.title = "Firefox - Sharing Indicator";
+            }
+          ];
+        };
 
       floating = {
         titlebar = false;
@@ -253,13 +268,13 @@ in {
       };
 
       assigns = {
-        "2" = [{app_id = "firefox";}];
+        "2" = [ { app_id = "firefox"; } ];
         "4" = [
-          {app_id = "telegramdesktop";}
-          {class = "Signal";}
+          { app_id = "telegramdesktop"; }
+          { class = "Signal"; }
         ];
-        "6" = [{class = "^discord$";}];
-        "7" = [{class = "^Spotify$";}];
+        "6" = [ { class = "^discord$"; } ];
+        "7" = [ { class = "^Spotify$"; } ];
       };
 
       keybindings = lib.mkOptionDefault {
@@ -273,10 +288,14 @@ in {
         "${modifier}+Shift+k" = "move up";
         "${modifier}+Shift+l" = "move right";
 
-        "${modifier}+Control+Tab" = "[con_mark=_swap] unmark _swap; mark --add _swap; [con_mark=_prev] focus; swap container with mark _swap; [con_mark=_swap] unmark _swap";
-        "${modifier}+Control+Left" = "[con_mark=_swap] unmark _swap; mark --add _swap; focus left; swap container with mark _swap; [con_mark=_swap] unmark _swap";
-        "${modifier}+Control+Right" = "[con_mark=_swap] unmark _swap; mark --add _swap; focus right; swap container with mark _swap; [con_mark=_swap] unmark _swap";
-        "${modifier}+Control+Down" = "[con_mark=_swap] unmark _swap; mark --add _swap; focus down; swap container with mark _swap; [con_mark=_swap] unmark _swap";
+        "${modifier}+Control+Tab" =
+          "[con_mark=_swap] unmark _swap; mark --add _swap; [con_mark=_prev] focus; swap container with mark _swap; [con_mark=_swap] unmark _swap";
+        "${modifier}+Control+Left" =
+          "[con_mark=_swap] unmark _swap; mark --add _swap; focus left; swap container with mark _swap; [con_mark=_swap] unmark _swap";
+        "${modifier}+Control+Right" =
+          "[con_mark=_swap] unmark _swap; mark --add _swap; focus right; swap container with mark _swap; [con_mark=_swap] unmark _swap";
+        "${modifier}+Control+Down" =
+          "[con_mark=_swap] unmark _swap; mark --add _swap; focus down; swap container with mark _swap; [con_mark=_swap] unmark _swap";
 
         "${modifier}+space" = "exec persway stack-swap-main";
         "${modifier}+Control+space" = "exec persway stack-main-rotate-next";
@@ -357,7 +376,7 @@ in {
         }
       ];
 
-      bars = [];
+      bars = [ ];
     };
     extraConfig = ''
       workspace 1 output DP-1

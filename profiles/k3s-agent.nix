@@ -5,7 +5,10 @@
   services.k3s = {
     enable = true;
     role = "agent";
-    after = ["tailscale-auth.service" "tailscaled.service"];
+    after = [
+      "tailscale-auth.service"
+      "tailscaled.service"
+    ];
 
     settings = {
       node-ip = "\"$(get-iface-ip tailscale0)\"";

@@ -2,9 +2,11 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   mod = "Mod4";
-in {
+in
+{
   xsession.windowManager.i3 = {
     enable = true;
 
@@ -34,17 +36,17 @@ in {
         titlebar = false;
       };
       assigns = {
-        "2" = [{class = "Firefox Developer Edition";}];
+        "2" = [ { class = "Firefox Developer Edition"; } ];
         "3" = [
-          {class = "Lutris";}
-          {class = "bottles";}
+          { class = "Lutris"; }
+          { class = "bottles"; }
         ];
         "4" = [
-          {class = "TelegramDesktop";}
-          {class = "Signal";}
+          { class = "TelegramDesktop"; }
+          { class = "Signal"; }
         ];
-        "6" = [{class = "^discord$";}];
-        "7" = [{class = "Spotify";}];
+        "6" = [ { class = "^discord$"; } ];
+        "7" = [ { class = "Spotify"; } ];
       };
       keybindings = lib.mkOptionDefault {
         "${mod}+j" = "focus left";
@@ -83,7 +85,10 @@ in {
         {
           statusCommand = "${pkgs.i3status-rust}/bin/i3status-rs ~/.config/i3status-rust/config-default.toml";
           fonts = {
-            names = ["DejaVu Sans Mono" "FontAwesome"];
+            names = [
+              "DejaVu Sans Mono"
+              "FontAwesome"
+            ];
             size = 12.0;
           };
           position = "top";

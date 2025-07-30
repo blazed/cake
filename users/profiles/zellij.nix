@@ -3,7 +3,8 @@
   config,
   lib,
   ...
-}: {
+}:
+{
   xdg.configFile."zellij/config.kdl".text = ''
     keybinds clear-defaults=true {
       locked {

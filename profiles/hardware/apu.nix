@@ -1,8 +1,15 @@
-{lib, ...}: {
-  boot.initrd.availableKernelModules = ["xhci_pci" "ahci" "ehci_pci" "sd_mod" "sdhci_pci"];
-  boot.initrd.kernelModules = [];
-  boot.kernelModules = ["kvm-amd"];
-  boot.extraModulePackages = [];
+{ lib, ... }:
+{
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "ahci"
+    "ehci_pci"
+    "sd_mod"
+    "sdhci_pci"
+  ];
+  boot.initrd.kernelModules = [ ];
+  boot.kernelModules = [ "kvm-amd" ];
+  boot.extraModulePackages = [ ];
 
   networking.usePredictableInterfaceNames = lib.mkForce true;
 
@@ -13,7 +20,7 @@
   boot.loader.grub.version = 2;
   boot.loader.grub.device = "/dev/sda";
 
-  boot.kernelParams = ["console=ttyS0,115200n8"];
+  boot.kernelParams = [ "console=ttyS0,115200n8" ];
 
   boot.loader.grub.extraConfig = "
     serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1

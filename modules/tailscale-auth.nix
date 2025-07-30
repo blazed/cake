@@ -3,9 +3,9 @@
   pkgs,
   lib,
   ...
-}: let
-  inherit
-    (lib // builtins)
+}:
+let
+  inherit (lib // builtins)
     types
     mkOption
     mkEnableOption
@@ -22,30 +22,36 @@
   tsAuthScript = pkgs.writeShellScript "tsauth" ''
     ${pkgs.tailscale}/bin/tailscale up ${concatStringsSep " " tsAuth.args}
   '';
-in {
+in
+{
   options.services.tailscale.auth = {
     enable = mkEnableOption "tailscale automatic auth service";
     after = mkOption {
       type = types.listOf types.str;
-      default = [];
+      default = [ ];
       example = "[\"metadata.service\"]";
     };
     args = mkOption {
-      type = types.attrsOf (types.oneOf [(types.listOf types.str) types.str types.number types.bool]);
-      apply = value:
+      type = types.attrsOf (
+        types.oneOf [
+          (types.listOf types.str)
+          types.str
+          types.number
+          types.bool
+        ]
+      );
+      apply =
+        value:
         mapAttrsToList (name: value: "--${name}${value}") (
           mapAttrs (
             _: value:
-              if isBool value
-              then
-                if value
-                then "=true"
-                else "=false"
-              else if isList value
-              then " ${concatStringsSep "," value}"
-              else " ${toString value}"
-          )
-          value
+            if isBool value then
+              if value then "=true" else "=false"
+            else if isList value then
+              " ${concatStringsSep "," value}"
+            else
+              " ${toString value}"
+          ) value
         );
     };
   };
@@ -53,9 +59,9 @@ in {
   config = mkIf tsAuth.enable {
     systemd.services.tailscale-auth = {
       description = "Tailscale automatic authentoication";
-      wantedBy = ["tailscaled.service"];
-      after = ["tailscaled.service"] ++ tsAuth.after;
-      restartTriggers = [tsAuthScript];
+      wantedBy = [ "tailscaled.service" ];
+      after = [ "tailscaled.service" ] ++ tsAuth.after;
+      restartTriggers = [ tsAuthScript ];
       serviceConfig = {
         Type = "oneshot";
         RestartSec = 10;
@@ -66,7 +72,7 @@ in {
       };
     };
     systemd.paths.tailscale-socket = {
-      wantedBy = ["tailscaled.service"];
+      wantedBy = [ "tailscaled.service" ];
       pathConfig = {
         PathExists = "/var/run/tailscale/tailscaled.sock";
         Unit = "tailscale-auth.service";

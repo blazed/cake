@@ -3,7 +3,8 @@
   pkgs,
   adminUser,
   ...
-}: {
+}:
+{
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOCMB0HchvCGfd9YIHFjktzgKMbH/MgR7UGWyRKpItLT";
 
   imports = [

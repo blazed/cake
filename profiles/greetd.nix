@@ -2,12 +2,14 @@
   pkgs,
   lib,
   ...
-}: let
-  runViaSystemdCat = {
-    name,
-    cmd,
-    systemdSession,
-  }:
+}:
+let
+  runViaSystemdCat =
+    {
+      name,
+      cmd,
+      systemdSession,
+    }:
     pkgs.writeShellApplication {
       inherit name;
       text = ''
@@ -16,40 +18,45 @@
       '';
     };
 
-  runViaShell = {
-    env ? {},
-    sourceHmVars ? true,
-    viaSystemdCat ? true,
-    name,
-    cmd,
-  }:
+  runViaShell =
+    {
+      env ? { },
+      sourceHmVars ? true,
+      viaSystemdCat ? true,
+      name,
+      cmd,
+    }:
     pkgs.writeShellApplication {
       inherit name;
       text = ''
         ${lib.concatStringsSep "\n" (lib.mapAttrsToList (k: v: "export ${k}=\"${v}\"") env)}
         ${
-          if sourceHmVars
-          then ''
-            if [ -e /etc/profiles/per-user/"$USER"/etc/profile.d/hm-session-vars.sh ]; then
-              set +u
-              # shellcheck disable=SC1090
-              source /etc/profiles/per-user/"$USER"/etc/profile.d/hm-session-vars.sh
-              set -u
-            fi
-          ''
-          else ""
+          if sourceHmVars then
+            ''
+              if [ -e /etc/profiles/per-user/"$USER"/etc/profile.d/hm-session-vars.sh ]; then
+                set +u
+                # shellcheck disable=SC1090
+                source /etc/profiles/per-user/"$USER"/etc/profile.d/hm-session-vars.sh
+                set -u
+              fi
+            ''
+          else
+            ""
         }
         ${
-          if viaSystemdCat
-          then ''
-            exec ${runViaSystemdCat {
-              inherit name cmd;
-              systemdSession = "${lib.toLower name}-session.target";
-            }}/bin/${name}
-          ''
-          else ''
-            exec ${cmd}
-          ''
+          if viaSystemdCat then
+            ''
+              exec ${
+                runViaSystemdCat {
+                  inherit name cmd;
+                  systemdSession = "${lib.toLower name}-session.target";
+                }
+              }/bin/${name}
+            ''
+          else
+            ''
+              exec ${cmd}
+            ''
         }
       '';
     };
@@ -74,7 +81,8 @@
     cmd = "${pkgs.hyprland}/bin/Hyprland";
   };
 
-  desktopSession = name: command:
+  desktopSession =
+    name: command:
     pkgs.writeText "${name}.desktop" ''
       [Desktop Entry]
       Type=Application
@@ -101,27 +109,47 @@
     }
   ];
 
-  createGreeter = default: sessions: let
-    sessionDir = pkgs.linkFarm "sessions" (
-      builtins.filter (item: item.name != "${default}.desktop") sessions
-    );
-  in
+  createGreeter =
+    default: sessions:
+    let
+      sessionDir = pkgs.linkFarm "sessions" (
+        builtins.filter (item: item.name != "${default}.desktop") sessions
+      );
+    in
     pkgs.writeShellApplication {
       name = "greeter";
-      runtimeInputs = [runSway runHyprland pkgs.bashInteractive pkgs.nushell pkgs.systemd pkgs.greetd.tuigreet];
+      runtimeInputs = [
+        runSway
+        runHyprland
+        pkgs.bashInteractive
+        pkgs.nushell
+        pkgs.systemd
+        pkgs.greetd.tuigreet
+      ];
       text = ''
         tuigreet --sessions ${sessionDir} --time -r --remember-session --power-shutdown 'systemctl poweroff' --power-reboot 'systemctl reboot' --cmd ${default}
       '';
     };
-in {
+in
+{
   programs.regreet.enable = true;
 
-  environment.systemPackages = [pkgs.nordic pkgs.nordzy-cursor-theme pkgs.arc-icon-theme];
+  environment.systemPackages = [
+    pkgs.nordic
+    pkgs.nordzy-cursor-theme
+    pkgs.arc-icon-theme
+  ];
 
   programs.regreet.settings = {
     commands = {
-      reboot = ["systemctl" "reboot"];
-      poweroff = ["systemctl" "poweroff"];
+      reboot = [
+        "systemctl"
+        "reboot"
+      ];
+      poweroff = [
+        "systemctl"
+        "poweroff"
+      ];
     };
     appearance = {
       greeting_msg = "Welcome back!";

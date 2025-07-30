@@ -1,7 +1,17 @@
-{lib, ...}: let
+{ lib, ... }:
+let
   inherit (lib) mkOption;
-  inherit (lib.types) str nullOr listOf enum bool ints attrs;
-in {
+  inherit (lib.types)
+    str
+    nullOr
+    listOf
+    enum
+    bool
+    ints
+    attrs
+    ;
+in
+{
   options = {
     publicKey = mkOption {
       type = str;
@@ -16,7 +26,10 @@ in {
       default = "-v --type luks2 --hash sha256 --key-size 256 --use-urandom --cipher aes-xts-plain64";
     };
     machinePurpose = mkOption {
-      type = enum ["server" "workstation"];
+      type = enum [
+        "server"
+        "workstation"
+      ];
       default = "server";
     };
     disk.dosLabel = mkOption {
@@ -29,23 +42,30 @@ in {
     };
     btrfs.disks = mkOption {
       type = listOf str;
-      default = ["/dev/nvme0n1"];
+      default = [ "/dev/nvme0n1" ];
     };
     btrfs.subvolumes = mkOption {
       type = listOf str;
-      default = ["@nix" "@keep"];
+      default = [
+        "@nix"
+        "@keep"
+      ];
     };
     bcachefs.disks = mkOption {
       type = listOf str;
-      default = [];
+      default = [ ];
     };
     bcachefs.devices = mkOption {
       type = listOf str;
-      default = [];
+      default = [ ];
     };
     bcachefs.subvolumes = mkOption {
       type = listOf str;
-      default = ["nix" "home" "var"];
+      default = [
+        "nix"
+        "home"
+        "var"
+      ];
     };
     tmpfsRoot.sizegb = mkOption {
       type = ints.between 2 64;
@@ -53,7 +73,7 @@ in {
     };
     adminUser = mkOption {
       type = attrs;
-      default = {};
+      default = { };
     };
   };
 }

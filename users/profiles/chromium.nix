@@ -1,4 +1,5 @@
-{pkgs, ...}: let
+{ pkgs, ... }:
+let
   extensions = [
     {
       ## vimium
@@ -43,7 +44,8 @@
     "-enable-features=VaapiVideoDecoder"
     "--enable-gpu"
   ];
-in {
+in
+{
   programs.chromium = {
     enable = true;
     inherit extensions commandLineArgs;
@@ -53,8 +55,14 @@ in {
     genericName = "Web Browser";
     exec = "chromium %U";
     terminal = false;
-    categories = ["Network" "WebBrowser"];
-    mimeType = ["text/html" "text/xml"];
+    categories = [
+      "Network"
+      "WebBrowser"
+    ];
+    mimeType = [
+      "text/html"
+      "text/xml"
+    ];
     actions = {
       "New-Window" = {
         exec = "chromium --new-window %u";

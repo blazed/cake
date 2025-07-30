@@ -2,7 +2,8 @@
   pkgs,
   ansiEscape,
   ...
-}: let
+}:
+let
   createInstallerIso = pkgs.writeShellApplication {
     name = "create-installer-iso";
     text = ''
@@ -15,25 +16,27 @@
 
   project-build = pkgs.writeShellApplication {
     name = "project-build";
-    runtimeInputs = [pkgs.watchexec];
+    runtimeInputs = [ pkgs.watchexec ];
     text = ''
       watchexec -r -- 'cake lint; cake dead; cake dscheck'
     '';
   };
-in {
+in
+{
   name = "cake";
 
   packages = with pkgs; [
     age-plugin-yubikey
     agenix
-    alejandra
+    cake
+    createInstallerIso
     just
     nil
+    nixfmt
+    nixfmt-tree
     project-build
-    createInstallerIso
     rage
     statix
-    cake
     yj
   ];
 

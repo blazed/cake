@@ -3,14 +3,18 @@
   tailnet,
   hostName,
   ...
-}: {
+}:
+{
   imports = [
     ./k3s.nix
   ];
   services.k3s = {
     enable = true;
     role = "server";
-    after = ["tailscale-auth.service" "tailscaled.service"];
+    after = [
+      "tailscale-auth.service"
+      "tailscaled.service"
+    ];
 
     settings = {
       token-file = "/run/agenix/k3s-token";
@@ -23,7 +27,10 @@
       node-label."svccontroller.k3s.cattle.io/enablelb" = "true";
       node-label.hostname = hostName;
       secrets-encryption = true;
-      tls-san = [hostName "${hostName}.${tailnet}.ts.net"];
+      tls-san = [
+        hostName
+        "${hostName}.${tailnet}.ts.net"
+      ];
     };
 
     autoDeploy = {
