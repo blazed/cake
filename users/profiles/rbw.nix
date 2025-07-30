@@ -2,9 +2,11 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   inherit (config) userinfo;
-in {
+in
+{
   programs.rbw.enable = true;
   programs.rbw.settings = {
     inherit (userinfo) email;

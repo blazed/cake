@@ -3,9 +3,11 @@
   lib,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.services.disable-usb-wakeup;
-in {
+in
+{
   options.services.disable-usb-wakeup = {
     enable = mkEnableOption "prevent usb devices from waking up computer";
   };
@@ -24,7 +26,7 @@ in {
       postStop = ''
         echo XHC > /proc/acpi/wakeup
       '';
-      wantedBy = ["multi-user.target"];
+      wantedBy = [ "multi-user.target" ];
     };
   };
 }

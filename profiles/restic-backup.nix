@@ -1,4 +1,5 @@
-{adminUser, ...}: {
+{ adminUser, ... }:
+{
   age.secrets = {
     restic-env = {
       file = ../secrets/restic-env.age;

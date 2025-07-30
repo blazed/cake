@@ -3,7 +3,8 @@
   hostName,
   config,
   ...
-}: {
+}:
+{
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINS32enSwJ3QsudwfrRcerKR/2zLZwERJhimbgBcye67";
 
   imports = [
@@ -60,7 +61,10 @@
   networking.private-wireguard.peers = [
     {
       publicKey = "94qIvXgF0OXZ4IcquoS7AO57OV6JswUFgdONgGiq+jo=";
-      allowedIPs = ["0.0.0.0/0" "::0/0"];
+      allowedIPs = [
+        "0.0.0.0/0"
+        "::0/0"
+      ];
       endpoint = "185.65.135.69:51820";
       persistentKeepalive = 25;
     }
@@ -68,8 +72,9 @@
 
   home-manager = {
     users.${adminUser.name} = {
-      imports = [../../users/profiles/workstation.nix];
-      programs.git.extraConfig.user.signingKey = "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo=";
+      imports = [ ../../users/profiles/workstation.nix ];
+      programs.git.extraConfig.user.signingKey =
+        "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo=";
       programs.jujutsu.settings.signing = {
         behavior = "own";
         backend = "ssh";

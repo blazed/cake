@@ -3,8 +3,14 @@
   config,
   lib,
   ...
-}: let
-  inherit (lib) mkEnableOption mkOption mkIf types;
+}:
+let
+  inherit (lib)
+    mkEnableOption
+    mkOption
+    mkIf
+    types
+    ;
   cfg = config.networking.server-wireguard;
   peers = types.submodule {
     options = {
@@ -24,7 +30,8 @@
       };
     };
   };
-in {
+in
+{
   options.networking.server-wireguard = {
     enable = mkEnableOption "Enable server-wireguard";
     privateKeyFile = mkOption {
@@ -51,7 +58,12 @@ in {
 
   config = mkIf cfg.enable {
     networking.wireguard.interfaces.exsules = {
-      inherit (cfg) privateKeyFile peers ips listenPort;
+      inherit (cfg)
+        privateKeyFile
+        peers
+        ips
+        listenPort
+        ;
       postSetup = ''
         ${pkgs.iptables}/bin/iptables -t nat -A POSTROUTING -s ${cfg.cidr} -o ${cfg.externalInterface} -j MASQUERADE
       '';

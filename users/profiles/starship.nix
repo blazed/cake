@@ -10,7 +10,7 @@
         format = "on [$symbol(\\($project\\))]($style) ";
       };
       custom.jj = {
-        detect_folders = [".jj"];
+        detect_folders = [ ".jj" ];
         symbol = "🥋 ";
         command = ''
           jj log -r::@ -n2 --no-graph --ignore-working-copy --color always --template '

@@ -3,10 +3,14 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   screenshot = pkgs.writeShellApplication {
     name = "screenshot";
-    runtimeInputs = [pkgs.slurp pkgs.grim];
+    runtimeInputs = [
+      pkgs.slurp
+      pkgs.grim
+    ];
     text = ''
       mkdir -p ~/Pictures/screenshots
       slurp | grim -g - ~/Pictures/screenshots/"$(date +'%Y-%m-%dT%H%M%S.png')"
@@ -15,7 +19,8 @@
 
   xcursor_theme = config.gtk.cursorTheme.name;
   terminal-bin = "${pkgs.wezterm}/bin/wezterm start --always-new-process";
-in {
+in
+{
   home.file.".xkb/symbols/dvp-custom".source = ../files/xkb/dvp-custom;
 
   home.sessionVariables = {
@@ -290,7 +295,10 @@ in {
       mfact = 0.7;
     };
 
-    layerrule = ["blur,waybar" "ignorealpha,waybar"];
+    layerrule = [
+      "blur,waybar"
+      "ignorealpha,waybar"
+    ];
 
     input = {
       kb_layout = "us";

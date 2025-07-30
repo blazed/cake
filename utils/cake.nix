@@ -5,10 +5,14 @@
   gnugrep,
   gnused,
   findutils,
-}: let
+}:
+let
   pixieboot = writeShellApplication {
     name = "pixieboot";
-    runtimeInputs = [gnugrep pixiecore];
+    runtimeInputs = [
+      gnugrep
+      pixiecore
+    ];
     text = ''
       _CAKE_HELP=''${_CAKE_HELP:-}
       if [ -n "$_CAKE_HELP" ]; then
@@ -27,7 +31,7 @@
 
   lint = writeShellApplication {
     name = "lint";
-    runtimeInputs = [statix];
+    runtimeInputs = [ statix ];
     text = ''
       _CAKE_HELP=''${_CAKE_HELP:-}
       if [ -n "$_CAKE_HELP" ]; then
@@ -44,4 +48,7 @@
          fi
     '';
   };
-in {inherit pixieboot lint;}
+in
+{
+  inherit pixieboot lint;
+}

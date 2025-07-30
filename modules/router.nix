@@ -2,9 +2,9 @@
   config,
   lib,
   ...
-}: let
-  inherit
-    (lib)
+}:
+let
+  inherit (lib)
     mkIf
     mkMerge
     splitString
@@ -12,8 +12,7 @@
     mkEnableOption
     mapAttrsToList
     ;
-  inherit
-    (builtins)
+  inherit (builtins)
     head
     tail
     attrNames
@@ -23,36 +22,36 @@
 
   cfg = config.services.router;
 
-  ipBase = ip: let
-    s = splitString "." ip;
-    a = head s;
-    b = head (tail s);
-    c = head (tail (tail s));
-  in "${a}.${b}.${c}";
+  ipBase =
+    ip:
+    let
+      s = splitString "." ip;
+      a = head s;
+      b = head (tail s);
+      c = head (tail (tail s));
+    in
+    "${a}.${b}.${c}";
 
-  internalInterfaces =
-    {
-      ${cfg.internalInterface} = rec {
-        base = ipBase cfg.internalInterfaceIP;
-        address = "${base}.1";
-        network = "${base}.0";
-        prefixLength = 24;
-        netmask = "255.255.255.0";
-      };
-    }
-    // (
-      mapAttrs (name: conf: rec {
-        base = ipBase conf.address;
-        address = "${base}.1";
-        network = "${base}.0";
-        prefixLength = 24;
-        netmask = "255.255.255.0";
-      })
-      cfg.vlans
-    );
+  internalInterfaces = {
+    ${cfg.internalInterface} = rec {
+      base = ipBase cfg.internalInterfaceIP;
+      address = "${base}.1";
+      network = "${base}.0";
+      prefixLength = 24;
+      netmask = "255.255.255.0";
+    };
+  }
+  // (mapAttrs (name: conf: rec {
+    base = ipBase conf.address;
+    address = "${base}.1";
+    network = "${base}.0";
+    prefixLength = 24;
+    netmask = "255.255.255.0";
+  }) cfg.vlans);
 
   internalInterfaceNames = attrNames internalInterfaces;
-in {
+in
+{
   options.services.router = with lib.types; {
     enable = mkEnableOption "Enable the router";
     upstreamDnsServers = mkOption {
@@ -81,81 +80,77 @@ in {
       description = "Trusted interfaces";
     };
     vlans = mkOption {
-      default = {};
-      type = attrsOf (submodule ({name, ...}: {
-        options = {
-          id = mkOption {
-            type = int;
-            description = "vlan tag";
-          };
-          interface = mkOption {
-            type = str;
-            description = "interface to tag";
-          };
-          address = mkOption {
-            type = str;
-            description = "IP Address of vlan";
-          };
-          prefixLength = mkOption {
-            type = int;
-            description = "prefixLength for the address";
-            default = 24;
-          };
-        };
-      }));
+      default = { };
+      type = attrsOf (
+        submodule (
+          { name, ... }:
+          {
+            options = {
+              id = mkOption {
+                type = int;
+                description = "vlan tag";
+              };
+              interface = mkOption {
+                type = str;
+                description = "interface to tag";
+              };
+              address = mkOption {
+                type = str;
+                description = "IP Address of vlan";
+              };
+              prefixLength = mkOption {
+                type = int;
+                description = "prefixLength for the address";
+                default = 24;
+              };
+            };
+          }
+        )
+      );
     };
   };
 
   config = mkIf cfg.enable {
     networking.useDHCP = lib.mkForce false;
-    networking.interfaces =
-      {
-        ${cfg.externalInterface}.useDHCP = true;
-      }
-      // (
-        mapAttrs (_: net: {
-          useDHCP = false;
-          ipv4.addresses = [{inherit (net) address prefixLength;}];
-        })
-        internalInterfaces
-      );
+    networking.interfaces = {
+      ${cfg.externalInterface}.useDHCP = true;
+    }
+    // (mapAttrs (_: net: {
+      useDHCP = false;
+      ipv4.addresses = [ { inherit (net) address prefixLength; } ];
+    }) internalInterfaces);
 
-    networking.vlans =
-      mapAttrs (
-        name: conf: {
-          inherit (conf) id interface;
-        }
-      )
-      cfg.vlans;
+    networking.vlans = mapAttrs (name: conf: {
+      inherit (conf) id interface;
+    }) cfg.vlans;
 
     services.dhcpd4.enable = true;
     services.dhcpd4.interfaces = internalInterfaceNames;
-    services.dhcpd4.extraConfig =
-      ''
-        option subnet-mask 255.255.255.0;
-      ''
-      + (concatStringsSep "\n" (mapAttrsToList (iface: config: ''
-          subnet ${config.network} netmask ${config.netmask} {
-            option broadcast-address ${config.base}.255;
-            option domain-name-servers ${config.address};
-            option routers ${config.address};
-            interface ${iface};
-            default-lease-time 86400;
-            max-lease-time 86400;
-            range ${config.base}.10 ${config.base}.128;
-          }
-        '')
-        internalInterfaces));
+    services.dhcpd4.extraConfig = ''
+      option subnet-mask 255.255.255.0;
+    ''
+    + (concatStringsSep "\n" (
+      mapAttrsToList (iface: config: ''
+        subnet ${config.network} netmask ${config.netmask} {
+          option broadcast-address ${config.base}.255;
+          option domain-name-servers ${config.address};
+          option routers ${config.address};
+          interface ${iface};
+          default-lease-time 86400;
+          max-lease-time 86400;
+          range ${config.base}.10 ${config.base}.128;
+        }
+      '') internalInterfaces
+    ));
 
-    environment.persistence."/keep".directories = ["/var/lib/dnsmasq"];
+    environment.persistence."/keep".directories = [ "/var/lib/dnsmasq" ];
 
     services.dnsmasq.enable = true;
     services.dnsmasq.resolveLocalQueries = true;
-    services.dnsmasq.settings =
-      {
-        server = cfg.upstreamDnsServers;
-      }
-      // cfg.dnsMasqSettings;
+    services.dnsmasq.settings = {
+      server = cfg.upstreamDnsServers;
+    }
+    // cfg.dnsMasqSettings;
 
     networking.firewall.enable = lib.mkForce false;
 
@@ -189,8 +184,12 @@ in {
             # enable flow offloading for better throughput
             ip protocol { tcp, udp } flow offload @f
 
-            iifname { ${concatStringsSep "," (internalInterfaceNames ++ cfg.trustedInterfaces)} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
-            iifname { "${cfg.externalInterface}" } oifname { ${concatStringsSep "," (internalInterfaceNames ++ cfg.trustedInterfaces)} } ct state { established, related } counter accept comment "Allow established back to LANs"
+            iifname { ${
+              concatStringsSep "," (internalInterfaceNames ++ cfg.trustedInterfaces)
+            } } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
+            iifname { "${cfg.externalInterface}" } oifname { ${
+              concatStringsSep "," (internalInterfaceNames ++ cfg.trustedInterfaces)
+            } } ct state { established, related } counter accept comment "Allow established back to LANs"
             iifname { ${concatStringsSep "," cfg.trustedInterfaces} } oifname { "iot" } counter accept comment "Allow trusted LAN to IoT"
             iifname { "iot" } oifname { ${concatStringsSep "," cfg.trustedInterfaces} } ct state { established, related } counter accept comment "Allow established back to LANs"
           }
@@ -219,7 +218,9 @@ in {
       '';
     };
 
-    systemd.services.nftables.wants = mkMerge [(mapAttrsToList (name: _: "${name}-netdev.service") internalInterfaces)];
+    systemd.services.nftables.wants = mkMerge [
+      (mapAttrsToList (name: _: "${name}-netdev.service") internalInterfaces)
+    ];
 
     boot.kernel.sysctl."net.ipv4.conf.all.forwarding" = true;
     boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = true;

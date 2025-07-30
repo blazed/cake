@@ -3,10 +3,12 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   inherit (config) home;
   nu-scripts = "${pkgs.nu_scripts}/share/nu_scripts";
-in {
+in
+{
   programs.atuin.enable = true;
   programs.atuin.enableNushellIntegration = true;
   programs.direnv.enableNushellIntegration = false;
@@ -25,34 +27,29 @@ in {
         $env.config.hooks.pre_prompt | append (source ${nu-scripts}/nu-hooks/nu-hooks/direnv/config.nu)
       )
 
-      ${
-        lib.concatStringsSep "\n"
-        (
-          (
-            map (completion: "use ${nu-scripts}/custom-completions/${completion}/${completion}-completions.nu") [
-              "cargo"
-              "git"
-              "just"
-              "nix"
-              "npm"
-              "man"
-              "make"
-            ]
-          )
-          ++ (
-            map (module_path: "source ${nu-scripts}/modules/${module_path}") [
-              "data_extraction/ultimate_extractor.nu"
-              "nix/nix.nu"
-            ]
-          )
+      ${lib.concatStringsSep "\n" (
+        (map (completion: "use ${nu-scripts}/custom-completions/${completion}/${completion}-completions.nu")
+          [
+            "cargo"
+            "git"
+            "just"
+            "nix"
+            "npm"
+            "man"
+            "make"
+          ]
         )
-      }
+        ++ (map (module_path: "source ${nu-scripts}/modules/${module_path}") [
+          "data_extraction/ultimate_extractor.nu"
+          "nix/nix.nu"
+        ])
+      )}
     '';
   };
   xdg.configFile."nushell/starship.nu".source = ./starship.nu;
   xdg.configFile."nushell/home.nu".source = pkgs.writeText "home.nu" ''
-    ${
-      lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "$env.${name} = \"${value}\";") home.sessionVariables)
-    }
+    ${lib.concatStringsSep "\n" (
+      lib.mapAttrsToList (name: value: "$env.${name} = \"${value}\";") home.sessionVariables
+    )}
   '';
 }

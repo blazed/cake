@@ -2,22 +2,25 @@
   pkgs,
   config,
   ...
-}: let
+}:
+let
   inherit (config) gtk;
-in {
-  imports =
-    [./default.nix]
-    ++ [
-      ./chromium.nix
-      # ./easyeffects.nix
-      ./hyprland.nix
-      # ./kanshi.nix
-      ./obs.nix
-      ./pueue.nix
-      ./rofi.nix
-      ./sway.nix
-      ./waybar.nix
-    ];
+in
+{
+  imports = [
+    ./default.nix
+  ]
+  ++ [
+    ./chromium.nix
+    # ./easyeffects.nix
+    ./hyprland.nix
+    # ./kanshi.nix
+    ./obs.nix
+    ./pueue.nix
+    ./rofi.nix
+    ./sway.nix
+    ./waybar.nix
+  ];
 
   home.packages = with pkgs; [
     # kanshi
@@ -33,7 +36,7 @@ in {
     signal-desktop
     slack
     spotify
-    tdesktop ## Telegram
+    tdesktop # # Telegram
     vulkan-loader
     wl-clipboard
     wl-clipboard-x11
@@ -79,7 +82,8 @@ in {
     };
   };
 
-  home.file."Pictures/wallpapers/default-background.jpg".source = "${pkgs.adapta-backgrounds}/share/backgrounds/adapta/tri-fadeno.jpg";
+  home.file."Pictures/wallpapers/default-background.jpg".source =
+    "${pkgs.adapta-backgrounds}/share/backgrounds/adapta/tri-fadeno.jpg";
 
   base16-theme.enable = true;
 

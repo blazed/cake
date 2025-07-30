@@ -2,36 +2,46 @@
   hostName,
   pkgs,
   ...
-}: {
+}:
+{
   imports = [
     ../profiles/tailscale.nix
     ../profiles/zram.nix
   ];
 
-  systemd.services.metadata = let
-    cloudInitScript = pkgs.writeShellScript "cloud-init" ''
-      mkdir -p /run/nixos
-      touch /run/nixos/metadata
-      cat<<META>/run/nixos/metadata
-      NODENAME=${hostName}
-      REGION=se
-      ZONE=se-a
-      META
-    '';
-  in {
-    description = "Metadata Service";
-    after = ["network.target"];
-    before = ["tailscale-auth.service" "tailscaled.service" "k3s.service"];
-    wantedBy = ["multi-user.target"];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = cloudInitScript;
+  systemd.services.metadata =
+    let
+      cloudInitScript = pkgs.writeShellScript "cloud-init" ''
+        mkdir -p /run/nixos
+        touch /run/nixos/metadata
+        cat<<META>/run/nixos/metadata
+        NODENAME=${hostName}
+        REGION=se
+        ZONE=se-a
+        META
+      '';
+    in
+    {
+      description = "Metadata Service";
+      after = [ "network.target" ];
+      before = [
+        "tailscale-auth.service"
+        "tailscaled.service"
+        "k3s.service"
+      ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = cloudInitScript;
+      };
     };
-  };
 
   services.k3s = {
     enable = true;
-    after = ["tailscale-auth.service" "tailscaled.service"];
+    after = [
+      "tailscale-auth.service"
+      "tailscaled.service"
+    ];
     disable = [
       "servicelb"
       "traefik"
@@ -51,14 +61,20 @@
 
   services.tailscale.auth = {
     enable = true;
-    args.advertise-tags = ["tag:server"];
+    args.advertise-tags = [ "tag:server" ];
     args.ssh = true;
     args.accept-routes = false;
     args.accept-dns = true;
     args.auth-key = "file:/var/run/agenix/ts";
   };
 
-  networking.firewall.trustedInterfaces = ["cni+" "flannel.1" "calico+" "cilium+" "lxc+"];
+  networking.firewall.trustedInterfaces = [
+    "cni+"
+    "flannel.1"
+    "calico+"
+    "cilium+"
+    "lxc+"
+  ];
   environment.persistence."/keep" = {
     directories = [
       "/etc/cni"
@@ -79,6 +95,9 @@
   fileSystems."/sys/fs/bpf" = {
     device = "bpffs";
     fsType = "bpf";
-    options = ["rw" "relatime"];
+    options = [
+      "rw"
+      "relatime"
+    ];
   };
 }

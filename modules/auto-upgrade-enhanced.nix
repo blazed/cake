@@ -4,9 +4,11 @@
   pkgs,
   ...
 }:
-with lib; let
+with lib;
+let
   cfg = config.system.autoUpgrade;
-in {
+in
+{
   options = {
     system.autoUpgrade = {
       enableSentinel = mkOption {
@@ -26,11 +28,12 @@ in {
 
   config = lib.mkIf (cfg.enable && cfg.enableSentinel && cfg.allowReboot) {
     systemd.services.nixos-upgrade = {
-      script = let
-        nixos-rebuild = "${config.system.build.nixos-rebuild}/bin/nixos-rebuild";
-        readlink = "${pkgs.coreutils}/bin/readlink";
-        upgradeFlag = optional (cfg.channel == null) "--upgrade";
-      in
+      script =
+        let
+          nixos-rebuild = "${config.system.build.nixos-rebuild}/bin/nixos-rebuild";
+          readlink = "${pkgs.coreutils}/bin/readlink";
+          upgradeFlag = optional (cfg.channel == null) "--upgrade";
+        in
         lib.mkForce ''
           ${nixos-rebuild} boot ${toString (cfg.flags ++ upgradeFlag)}
           booted="$(${readlink} /run/booted-system/{initrd,kernel,kernel-modules})"

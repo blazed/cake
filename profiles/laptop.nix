@@ -2,7 +2,8 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   imports = [
     ./workstation.nix
     ./wifi.nix
