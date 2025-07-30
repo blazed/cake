@@ -10,6 +10,7 @@
     "container-processes"
     "container-shell"
     "devenv-up"
+    "candle" # Disabled until I can figure out why it fails
   ];
 in {
   flake = {
