@@ -18,10 +18,6 @@
         inherit system;
         config.allowUnfree = true;
         config.permittedInsecurePackages = [
-          # Until https://github.com/Sonarr/Sonarr/pull/7443 has been merged
-          "aspnetcore-runtime-wrapped-6.0.36"
-          "aspnetcore-runtime-6.0.36"
-          "dotnet-sdk-6.0.428"
           "beekeeper-studio-5.2.12"
         ];
         overlays = [

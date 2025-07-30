@@ -112,7 +112,6 @@ in
 
   services.flaresolverr = {
     enable = true;
-    package = pkgs.flaresolverr-patched;
     openFirewall = true;
   };
 
