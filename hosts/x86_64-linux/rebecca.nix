@@ -5,12 +5,13 @@
   ...
 }:
 {
-  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOCMB0HchvCGfd9YIHFjktzgKMbH/MgR7UGWyRKpItLT";
+  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKxLfaa1o/8Uq8Wk9T7RKnOgd/uT2dCIQh4Oxg+xapNT";
 
   imports = [
     ../../profiles/hardware/nuc.nix
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
+    ../../profiles/github-runner.nix
     ../../profiles/k3s-agent.nix
     ../../profiles/server.nix
     ../../profiles/state.nix
@@ -30,6 +31,10 @@
     ts = {
       file = ../../secrets/ts.age;
       owner = "1447";
+    };
+    github-runner = {
+      file = ../../secrets/github-runner-token-exsules.age;
+      owner = "${toString adminUser.uid}";
     };
   };
 

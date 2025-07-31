@@ -56,6 +56,7 @@ in
     scripts
 
     gemini-cli
+    lmstudio
   ];
 
   xdg.enable = true;
