@@ -42,6 +42,7 @@
         ".cache/zellij"
         ".cargo"
         ".claude"
+        ".config/LM Studio"
         ".config/Signal"
         ".config/Slack"
         ".config/WowUpCf"
@@ -63,6 +64,7 @@
         ".factorio"
         ".gemini"
         ".gnupg"
+        ".lmstudio"
         ".local/share/Steam"
         ".local/share/TelegramDesktop"
         ".local/share/atuin"
@@ -95,6 +97,7 @@
         ".cockroachsql_history"
         ".config/nushell/history.txt"
         ".kube/config"
+        ".lmstudio-home-pointer"
         ".ssh/known_hosts"
       ];
     };
