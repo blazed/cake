@@ -17,6 +17,11 @@
       enable = true;
       name = hostName;
       url = "https://github.com/exsules";
+      nodeRuntimes = [
+        "node24"
+        "node20"
+        "node16"
+      ];
       ephemeral = true;
       user = "github-runner";
       group = "github-runner";
@@ -42,6 +47,8 @@
         git
         gnupg
         jq
+        nodejs_20
+        nodejs_24
         openssh
         rsync
         shellcheck
