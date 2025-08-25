@@ -6,8 +6,17 @@
 {
   imports = [
     ../profiles/tailscale.nix
-    ../profiles/zram.nix
   ];
+
+  networking.firewall = {
+    trustedInterfaces = [
+      "lo"
+      "cilium_host"
+      "cilium_net"
+      "cilium_vxlan"
+      "lxc+"
+    ];
+  };
 
   systemd.services.metadata =
     let
@@ -25,8 +34,6 @@
       description = "Metadata Service";
       after = [ "network.target" ];
       before = [
-        "tailscale-auth.service"
-        "tailscaled.service"
         "k3s.service"
       ];
       wantedBy = [ "multi-user.target" ];
@@ -40,22 +47,17 @@
     enable = true;
     after = [
       "tailscale-auth.service"
-      "tailscaled.service"
-    ];
-    disable = [
-      "servicelb"
-      "traefik"
-      "metrics-server"
+      "metadata.service"
     ];
     settings = {
       token-file = "/run/agenix/k3s-token";
-      flannel-iface = "tailscale0";
       node-name = hostName;
       node-ip = "\"$(get-iface-ip tailscale0)\"";
-      node-external-ip = "\"$(get-iface-ip eth0)\"";
+      node-external-ip = "\"$(get-default-route-ip)\"";
       node-label."topology.kubernetes.io/region" = "\"$REGION\"";
       node-label."topology.kubernetes.io/zone" = "\"$ZONE\"";
       node-label."hostname" = hostName;
+      kubelet-arg = "register-with-taints=node.cilium.io/agent-not-ready:NoExecute";
     };
   };
 
@@ -68,13 +70,6 @@
     args.auth-key = "file:/var/run/agenix/ts";
   };
 
-  networking.firewall.trustedInterfaces = [
-    "cni+"
-    "flannel.1"
-    "calico+"
-    "cilium+"
-    "lxc+"
-  ];
   environment.persistence."/keep" = {
     directories = [
       "/etc/cni"
@@ -90,14 +85,5 @@
   fileSystems."/mnt/persistentvolume" = {
     device = "storage01:/volume1/persistentvolume";
     fsType = "nfs";
-  };
-
-  fileSystems."/sys/fs/bpf" = {
-    device = "bpffs";
-    fsType = "bpf";
-    options = [
-      "rw"
-      "relatime"
-    ];
   };
 }

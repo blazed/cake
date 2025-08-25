@@ -40,13 +40,12 @@
 
   services.k3s.settings = {
     server = "https://sophia.tailef5cf.ts.net:6443";
-    node-external-ip = lib.mkForce "\"$(get-iface-ip wlan0)\"";
   };
 
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 
   system.autoUpgrade = {
-    enable = true;
+    enable = false;
     flake = "github:blazed/cake";
     allowReboot = true;
     dates = "*:0/15";

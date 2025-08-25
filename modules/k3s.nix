@@ -42,6 +42,32 @@ let
       ip -o -4 -family inet -json addr show scope global dev "$IFACE" | jq -r '.[0].addr_info[0].local'
     '';
   };
+  getDefaultRouteIp = pkgs.writeShellApplication {
+    name = "get-default-route-ip";
+    runtimeInputs = with pkgs; [
+      jq
+      iproute2
+    ];
+    text = ''
+      IFACE="$(ip -json route get 8.8.8.8 | jq -r .[].dev)"
+      ${getIfaceIp}/bin/get-iface-ip "$IFACE"
+    '';
+  };
+  getIfaceWithMac = pkgs.writeShellApplication {
+    name = "get-iface-with-mac";
+    runtimeInputs = with pkgs; [
+      jq
+      iproute2
+    ];
+    text = ''
+      MAC=''${1:-}
+      if [ "$MAC" = "" ]; then
+        echo Please provide the mac address to get the interface name
+        exit 1
+      fi
+      ip -o -json link show | jq -r ".[] | select(.address == \"$MAC\") | .ifname"
+    '';
+  };
   settingsToCli =
     s:
     let
@@ -74,6 +100,16 @@ let
     flatten (mapAttrsToList fieldToCli s);
 in
 {
+  options.services.k3s.allowedReplacementVars = mkOption {
+    type = types.listOf types.str;
+    default = [
+      "$NODENAME"
+      "$TS_AUTH_KEY"
+      "$REGION"
+      "$ZONE"
+    ];
+    apply = concatStringsSep " ";
+  };
   options.services.k3s.autoDeploy = mkOption {
     type = types.attrsOf (types.either types.path (types.attrsOf types.anything));
     default = { };
@@ -103,6 +139,7 @@ in
         "traefik"
         "local-storage"
         "metrics-server"
+        "runtimes"
       ]
     );
     default = [ ];
@@ -122,8 +159,10 @@ in
           name = "k3s";
           runtimeInputs = with pkgs; [
             getIfaceIp
+            getDefaultRouteIp
+            getIfaceWithMac
             gawk
-            envsubst
+            gettext
           ];
           text = concatStringsSep " " (
             [
@@ -153,7 +192,8 @@ in
                 mkdir -p ${k3sManifestsDir}
                 ${concatStringsSep "\n" (
                   mapAttrsToList (
-                    name: path: "${pkgs.envsubst}/bin/envsubst < ${path} > ${k3sManifestsDir}/${name}.yaml"
+                    name: path:
+                    "${pkgs.gettext}/bin/envsubst '${cfg.allowedReplacementVars}' < ${path} > ${k3sManifestsDir}/${name}.yaml"
                   ) cfg.autoDeploy
                 )}
                 ${concatStringsSep "\n" (
