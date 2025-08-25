@@ -162,6 +162,19 @@
         "type": "github"
       }
     },
+    "cilium-chart": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1755265843,
+        "narHash": "sha256-baUV4ysp1UP3fAdwrPVqXj8PzSNR3UI4YRZworHG71U=",
+        "type": "tarball",
+        "url": "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.18.1.tgz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.18.1.tgz"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1755993354,
@@ -1638,6 +1651,7 @@
         "agenix": "agenix",
         "cachix": "cachix",
         "candle": "candle",
+        "cilium-chart": "cilium-chart",
         "crane": "crane",
         "devenv": "devenv_2",
         "disko": "disko",
