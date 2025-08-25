@@ -321,7 +321,7 @@ in
         "${modifier}+Shift+a" = ''scratchpad show'';
 
         "${modifier}+Return" = ''exec ${terminal-bin}'';
-        "${modifier}+d" = ''exec ${pkgs.rofi-wayland}/bin/rofi -show drun'';
+        "${modifier}+d" = ''exec ${pkgs.rofi}/bin/rofi -show drun'';
 
         XF86AudioRaiseVolume = ''exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%'';
         XF86AudioLowerVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";

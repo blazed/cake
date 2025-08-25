@@ -57,6 +57,7 @@
         ".config/lutris"
         ".config/monero-project"
         ".config/obs-studio"
+        ".config/opencode"
         ".config/pipewire"
         ".config/pulse"
         ".config/spotify"

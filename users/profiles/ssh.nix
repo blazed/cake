@@ -1,11 +1,13 @@
 {
   programs.ssh = {
     enable = true;
-    forwardAgent = false;
-    serverAliveInterval = 60;
-    controlMaster = "auto";
-    controlPersist = "30m";
     matchBlocks = {
+      "*" = {
+        controlPersist = "30m";
+        controlMaster = "auto";
+        serverAliveInterval = 60;
+        forwardAgent = false;
+      };
       "github github.com" = {
         hostname = "github.com";
         user = "git";
