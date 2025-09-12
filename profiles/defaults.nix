@@ -154,6 +154,8 @@ in
   services.sshguard.enable = true;
   services.fstrim.enable = true;
 
+  systemd.settings.Manager.DefaultTimeoutStopSec = "90s";
+
   users.mutableUsers = false;
 
   security.wrappers.netns-exec = {

@@ -18,7 +18,7 @@
         inherit system;
         config.allowUnfree = true;
         config.permittedInsecurePackages = [
-          "beekeeper-studio-5.2.12"
+          "beekeeper-studio-5.3.4"
         ];
         overlays = [
           inputs.agenix.overlays.default

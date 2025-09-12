@@ -40,6 +40,7 @@
               nushell
               statix
               deadnix
+              cachix
             ];
             text = ''
               just -f ${../Justfile} -d "$(pwd)" "$@"

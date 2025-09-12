@@ -124,7 +124,7 @@ let
         pkgs.bashInteractive
         pkgs.nushell
         pkgs.systemd
-        pkgs.greetd.tuigreet
+        pkgs.tuigreet
       ];
       text = ''
         tuigreet --sessions ${sessionDir} --time -r --remember-session --power-shutdown 'systemctl poweroff' --power-reboot 'systemctl reboot' --cmd ${default}
