@@ -42,6 +42,7 @@
         ".cache/zellij"
         ".cargo"
         ".claude"
+        ".codex"
         ".config/LM Studio"
         ".config/Signal"
         ".config/Slack"

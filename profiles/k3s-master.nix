@@ -47,6 +47,8 @@ in
           ${pkgs.kubernetes-helm}/bin/helm template cilium ${inputs.cilium-chart} \
             --namespace kube-system \
             --set kubeProxyReplacement=true \
+            --set socketLB.hostNamespaceOnly=true \
+            --set routingMode=native \
             --set k8sServiceHost="100.101.85.113" \
             --set k8sServicePort=6443 \
             --set enableExternalIPs=true \
