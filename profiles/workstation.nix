@@ -27,7 +27,6 @@
     pkgs.libvdpau-va-gl
     pkgs.rocmPackages.clr
     pkgs.rocmPackages.clr.icd
-    pkgs.amdvlk
   ];
 
   hardware.graphics.extraPackages32 = [
@@ -35,7 +34,6 @@
     pkgs.vaapiIntel
     pkgs.vaapiVdpau
     pkgs.libvdpau-va-gl
-    pkgs.amdvlk
   ];
 
   security.rtkit.enable = true;

@@ -88,5 +88,5 @@ in
     Install.WantedBy = [ "timers.target" ];
   };
 
-  home.stateVersion = "21.05";
+  home.stateVersion = "25.05";
 }
