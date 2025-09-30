@@ -17,6 +17,7 @@ in
     ./git.nix
     ./gitui.nix
     ./jujutsu.nix
+    ./mergiraf.nix
     ./neovim.nix
     ./nushell/default.nix
     ./rbw.nix
@@ -39,6 +40,7 @@ in
     awscli2
     carapace
     devenv
+    difftastic
     fzf
     go
     google-cloud-sdk
@@ -48,15 +50,13 @@ in
     kubelogin-oidc
     kustomize
     lm_sensors
+    lmstudio
     nix-index
     nodejs
     pueue
     pwgen
     ruby
     scripts
-
-    gemini-cli
-    lmstudio
   ];
 
   xdg.enable = true;
