@@ -165,7 +165,7 @@ in
     setuid = true;
   };
 
-  system.stateVersion = "24.05";
+  system.stateVersion = "25.05";
 
   system.activationScripts.agenixNewGeneration = mkIf (hasSecrets && hasState) {
     deps = [ "persist-files" ];
