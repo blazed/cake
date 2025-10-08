@@ -69,7 +69,7 @@ let
           email = "blazed@darkstar.se";
           fullName = "Boberg";
           githubUser = "blazed";
-          githubEmail = "blazed@users.noreply.github.com";
+          githubEmail = "1823919+blazed@users.noreply.github.com";
         };
       };
     in
