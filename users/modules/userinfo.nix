@@ -14,6 +14,10 @@
         type = types.str;
         example = "bjorn";
       };
+      githubEmail = mkOption {
+        type = types.str;
+        example = "bjorn@users.noreply.github.com";
+      };
     };
   };
 }

@@ -67,8 +67,9 @@ let
         gid = 1447;
         userinfo = {
           email = "blazed@darkstar.se";
-          fullName = "Pierre Boberg";
+          fullName = "Boberg";
           githubUser = "blazed";
+          githubEmail = "blazed@users.noreply.github.com";
         };
       };
     in
