@@ -39,7 +39,7 @@
   };
 
   services.k3s.settings = {
-    server = "https://sophia.tailef5cf.ts.net:6443";
+    server = "https://10.0.10.33:6443";
   };
 
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;

@@ -30,12 +30,13 @@ in
       disable-kube-proxy = true;
       disable-cloud-controller = true;
       node-name = hostName;
-      advertise-address = "\"$(get-iface-ip tailscale0)\"";
+      advertise-address = "\"$(get-iface-ip eth0)\"";
       inherit cluster-cidr service-cidr cluster-dns;
       kube-controller-manager-arg.node-cidr-mask-size = 24;
       node-label."svccontroller.k3s.cattle.io/enablelb" = "true";
       secrets-encryption = true;
       tls-san = [
+        "10.0.10.33"
         hostName
         "${hostName}.${tailnet}.ts.net"
       ];
@@ -48,7 +49,7 @@ in
             --namespace kube-system \
             --set kubeProxyReplacement=true \
             --set socketLB.hostNamespaceOnly=true \
-            --set k8sServiceHost="100.101.85.113" \
+            --set k8sServiceHost="10.0.10.33" \
             --set k8sServicePort=6443 \
             --set enableExternalIPs=true \
             --set enableHostPort=true \
