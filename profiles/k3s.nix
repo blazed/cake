@@ -15,6 +15,8 @@
       "cilium_net"
       "cilium_vxlan"
       "lxc+"
+      "eth+"
+      "wlan+"
     ];
   };
 
