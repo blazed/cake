@@ -52,8 +52,8 @@
     settings = {
       token-file = "/run/agenix/k3s-token";
       node-name = hostName;
-      node-ip = "\"$(get-iface-ip tailscale0)\"";
-      node-external-ip = "\"$(get-default-route-ip)\"";
+      node-ip = "\"$(get-default-route-ip)\"";
+      node-external-ip = "\"$(get-iface-ip tailscale0)\"";
       node-label."topology.kubernetes.io/region" = "\"$REGION\"";
       node-label."topology.kubernetes.io/zone" = "\"$ZONE\"";
       node-label."hostname" = hostName;
