@@ -1,4 +1,7 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
+let
+  inherit (config) userinfo;
+in
 {
   programs.git = {
     enable = true;
@@ -6,8 +9,8 @@
       enable = true;
       options.features = "decorations side-by-side line-numbers";
     };
-    userName = "Boberg";
-    userEmail = "1823919+blazed@users.noreply.github.com";
+    userName = userinfo.fullName;
+    userEmail = userinfo.githubEmail;
     aliases = {
       co = "checkout";
       cob = "checkout -b";
@@ -29,7 +32,7 @@
         diff = "auto";
         status = "auto";
         branch = "auto";
-        interacive = "auto";
+        interactive = "auto";
         ui = true;
         pager = true;
       };

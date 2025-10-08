@@ -1,18 +1,25 @@
-{ pkgs, ... }:
+{ config, ... }:
+let
+  inherit (config) userinfo;
+in
 {
-  # home.packages = [pkgs.lazyjj];
   programs.jujutsu = {
     enable = true;
     ediff = false;
     settings = {
       user = {
-        name = "Boberg";
-        email = "1823919+blazed@users.noreply.github.com";
+        email = userinfo.githubEmail;
+        name = userinfo.fullName;
       };
       ui = {
         editor = "nvim";
         pager = "delta";
-        diff.format = "git";
+        diff-formatter = [
+          "difft"
+          "--color=always"
+          "$left"
+          "$right"
+        ];
       };
     };
   };
