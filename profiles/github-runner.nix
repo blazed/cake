@@ -20,7 +20,6 @@
       nodeRuntimes = [
         "node24"
         "node20"
-        "node16"
       ];
       ephemeral = true;
       user = "github-runner";

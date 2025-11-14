@@ -37,7 +37,7 @@ in
     signal-desktop
     slack
     spotify
-    tdesktop # # Telegram
+    telegram-desktop
     vulkan-loader
     wl-clipboard
     wl-clipboard-x11
