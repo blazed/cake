@@ -5,17 +5,13 @@ in
 {
   programs.git = {
     enable = true;
-    delta = {
-      enable = true;
-      options.features = "decorations side-by-side line-numbers";
-    };
-    userName = userinfo.fullName;
-    userEmail = userinfo.githubEmail;
-    aliases = {
-      co = "checkout";
-      cob = "checkout -b";
-    };
-    extraConfig = {
+    settings = {
+      user.name = userinfo.fullName;
+      user.email = userinfo.githubEmail;
+      aliases = {
+        co = "checkout";
+        cob = "checkout -b";
+      };
       core = {
         quotepath = false;
         editor = "nvim";
@@ -50,6 +46,14 @@ in
       ".nvimlog" # TODO(blazed): find out why this is needed?
       ".aider*"
     ];
+  };
+
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      options.features = "decorations side-by-side line-numbers";
+    };
   };
 
   programs.gh = {
