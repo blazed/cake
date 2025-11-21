@@ -131,19 +131,19 @@ in
     default = [ ];
   };
 
-  options.services.k3s.disable = mkOption {
-    type = types.listOf (
-      types.enum [
-        "coredns"
-        "servicelb"
-        "traefik"
-        "local-storage"
-        "metrics-server"
-        "runtimes"
-      ]
-    );
-    default = [ ];
-  };
+  # options.services.k3s.disable = mkOption {
+  #   type = types.listOf (
+  #     types.enum [
+  #       "coredns"
+  #       "servicelb"
+  #       "traefik"
+  #       "local-storage"
+  #       "metrics-server"
+  #       "runtimes"
+  #     ]
+  #   );
+  #   default = [ ];
+  # };
 
   options.services.k3s.settings = mkOption {
     type = types.attrsOf types.anything;
@@ -195,9 +195,6 @@ in
                     name: path:
                     "${pkgs.gettext}/bin/envsubst '${cfg.allowedReplacementVars}' < ${path} > ${k3sManifestsDir}/${name}.yaml"
                   ) cfg.autoDeploy
-                )}
-                ${concatStringsSep "\n" (
-                  map (manifestName: "touch ${k3sManifestsDir}/${manifestName}.yaml.skip") cfg.disable
                 )}
               ''
             else

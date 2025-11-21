@@ -73,7 +73,7 @@
   home-manager = {
     users.${adminUser.name} = {
       imports = [ ../../users/profiles/workstation.nix ];
-      programs.git.extraConfig.user.signingKey =
+      programs.git.settings.user.signingKey =
         "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAICCghZ9Q+hC3hwCS8R6KdqQ8RefZgadLQUYC7upCejNCAAAABHNzaDo=";
       programs.jujutsu.settings.signing = {
         behavior = "own";
