@@ -7,6 +7,24 @@ in
     enable = true;
     ediff = false;
     settings = {
+      aliases = {
+        tug = [
+          "bookmark"
+          "move"
+          "--from"
+          "heads(::@- & bookmarks())"
+          "--to"
+          "@"
+        ];
+        tug- = [
+          "bookmark"
+          "move"
+          "--from"
+          "heads(::@- & bookmarks())"
+          "--to"
+          "@-"
+        ];
+      };
       user = {
         email = userinfo.githubEmail;
         name = userinfo.fullName;

@@ -8,6 +8,7 @@ let
 in
 {
   imports = [
+    # keep-sorted start
     ./aider.nix
     ./alacritty.nix
     ./bat.nix
@@ -25,6 +26,8 @@ in
     ./starship.nix
     ./wezterm/default.nix
     ./zellij.nix
+    ./zen-browser.nix
+    # keep-sorted end
   ];
 
   home.sessionVariables = {

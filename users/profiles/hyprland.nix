@@ -144,14 +144,14 @@ in
 
     workspace=7,monitor:DP-3,default:true
 
-    windowrule=workspace 2,class:(chromium-browser)
+    windowrule=workspace 2,match:class = chromium-browser
 
-    windowrulev2=workspace 4,class:(org.telegram.desktop)
-    windowrulev2=workspace 4,class:(Signal)
+    windowrule=workspace 4,match:class = org.telegram.desktop
+    windowrule=workspace 4,match:class = Signal
 
-    windowrulev2=workspace 6,class:(discord)
+    windowrule=workspace 6,match:class = discord
 
-    windowrulev2=workspace 7,class:(Spotify)
+    windowrule=workspace 7,match:class = Spotify
   '';
 
   wayland.windowManager.hyprland.settings = {
@@ -270,12 +270,6 @@ in
         color = "0x99000000";
         color_inactive = "0x55000000";
       };
-      # drop_shadow = false;
-      # shadow_range = 20;
-      # shadow_render_power = 2;
-      # shadow_offset = "3 3";
-      # "col.shadow" = "0x99000000";
-      # "col.shadow_inactive" = "0x55000000";
       active_opacity = 0.95;
       inactive_opacity = 0.85;
       fullscreen_opacity = 1.0;
@@ -296,8 +290,8 @@ in
     };
 
     layerrule = [
-      "blur,waybar"
-      "ignorealpha,waybar"
+      "match:namespace waybar, blur on"
+      "match:namespace waybar, ignore_alpha on"
     ];
 
     input = {
@@ -321,18 +315,14 @@ in
       kb_options = "compose:ralt,caps:escape";
     };
 
-    windowrulev2 = [
-      "dimaround,class:gitui"
-      "float,class:gitui"
-      "size 60% 60%,class:gitui"
-      "center,class:gitui"
-      "dimaround,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
-      "float,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
-      "size 60% 60%,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
-      "center,class:chrome-nngceckbapebfimnlniiiahkandclblb-Default"
-      "dimaround,title:Open File"
-      "float,title:Open File"
-      "center,title:Open File"
+    windowrule = [
+      "match:class chrome-nngceckbapebfimnlniiiahkandclblb-Default, dim_around on"
+      "match:class chrome-nngceckbapebfimnlniiiahkandclblb-Default, float on"
+      "match:class chrome-nngceckbapebfimnlniiiahkandclblb-Default, size 60% 60%"
+      "match:class chrome-nngceckbapebfimnlniiiahkandclblb-Default, center on"
+      "match:title Open File, dim_around on"
+      "match:title Open File, float on"
+      "match:title Open File, center on"
     ];
 
     exec = [

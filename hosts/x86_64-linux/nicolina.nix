@@ -20,7 +20,7 @@
     ../../profiles/tailscale.nix
     ../../profiles/zram.nix
 
-    ../../profiles/github-runner.nix
+    ../../profiles/k3s-agent.nix
   ];
 
   boot.loader.systemd-boot.memtest86.enable = true;
@@ -32,6 +32,9 @@
   services.ratbagd.enable = true;
 
   age.secrets = {
+    k3s-token = {
+      file = ../../secrets/k3s/token.age;
+    };
     id_ed25519 = {
       file = ../../secrets/id_ed25519.age;
       owner = "${toString adminUser.uid}";
@@ -50,10 +53,20 @@
       file = ../../secrets/copilot-api-key.age;
       owner = "${toString adminUser.uid}";
     };
-    github-runner = {
-      file = ../../secrets/github-runner-token-exsules.age;
-      owner = "${toString adminUser.uid}";
-    };
+  };
+
+  networking.firewall = {
+    trustedInterfaces = [
+      "lo"
+      "cilium_host"
+      "cilium_net"
+      "cilium_vxlan"
+      "lxc+"
+      "eth+"
+      "wlan+"
+      "enp+"
+      "enp4s0"
+    ];
   };
 
   programs.steam.enable = true;
@@ -83,6 +96,10 @@
         key = config.age.secrets.id_ed25519.path;
       };
     };
+  };
+
+  services.k3s.settings = {
+    server = "https://10.0.10.33:6443";
   };
 
   networking.wireguard.enable = true;
