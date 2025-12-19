@@ -1,6 +1,7 @@
 {
   adminUser,
   config,
+  lib,
   ...
 }:
 {
@@ -101,6 +102,7 @@
   services.k3s.settings = {
     server = "https://10.0.10.33:6443";
   };
+  services.tailscale.auth.enable = lib.mkForce false;
 
   networking.wireguard.enable = true;
 }
