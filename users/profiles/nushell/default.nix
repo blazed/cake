@@ -22,10 +22,7 @@ in
     extraConfig = ''
       source ~/.config/nushell/home.nu
       source ~/.config/nushell/starship.nu
-
-      $env.config.hooks.pre_prompt = (
-        $env.config.hooks.pre_prompt | append (source ${nu-scripts}/nu-hooks/nu-hooks/direnv/config.nu)
-      )
+      source ~/.config/nushell/direnv.nu
 
       ${lib.concatStringsSep "\n" (
         (map (completion: "use ${nu-scripts}/custom-completions/${completion}/${completion}-completions.nu")
@@ -47,6 +44,7 @@ in
     '';
   };
   xdg.configFile."nushell/starship.nu".source = ./starship.nu;
+  xdg.configFile."nushell/direnv.nu".source = ./direnv.nu;
   xdg.configFile."nushell/home.nu".source = pkgs.writeText "home.nu" ''
     ${lib.concatStringsSep "\n" (
       lib.mapAttrsToList (name: value: "$env.${name} = \"${value}\";") home.sessionVariables
