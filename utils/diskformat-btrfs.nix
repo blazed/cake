@@ -180,7 +180,7 @@ writeShellApplication {
       if machinePurpose == "server" then
         ''
           ## no support for hibernation
-          swap_space="$ramgb"G
+          swap_space="$swap_space"G
         ''
       else
         ''
