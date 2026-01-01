@@ -1,6 +1,11 @@
-{ adminUser, ... }:
 {
-  environment.persistence."/keep" = {
+  adminUser,
+  config,
+  lib,
+  ...
+}:
+{
+  environment.persistence."/keep" = lib.mkIf config.ephemeralRoot {
     hideMounts = true;
     directories = [
       "/root"
