@@ -9,6 +9,7 @@
     hideMounts = true;
     directories = [
       "/root"
+      "/var/cache/private/llama.cpp"
       "/var/lib/bluetooth"
       "/var/lib/containers"
       "/var/lib/docker"
@@ -19,7 +20,6 @@
       "/var/lib/tailscale"
       "/var/lib/wireguard"
       "/var/log"
-      "/var/lib/github-runner"
       {
         directory = "/var/lib/private";
         mode = "0700";
