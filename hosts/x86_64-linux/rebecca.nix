@@ -11,7 +11,6 @@
     ../../profiles/hardware/nuc.nix
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
-    ../../profiles/github-runner.nix
     ../../profiles/k3s-agent.nix
     ../../profiles/server.nix
     ../../profiles/state.nix
@@ -31,10 +30,6 @@
     ts = {
       file = ../../secrets/ts.age;
       owner = "1447";
-    };
-    github-runner = {
-      file = ../../secrets/github-runner-token-exsules.age;
-      owner = "${toString adminUser.uid}";
     };
   };
 
