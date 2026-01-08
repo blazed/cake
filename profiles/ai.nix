@@ -30,7 +30,16 @@
       {
         models = {
           "nemotron-3-nano:30b-q4" = {
-            cmd = "${llama-server} -hf unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL --port $\{PORT} --ctx-size 65536 --batch-size 2048 --ubatch-size 512 --threads 1 --jinja";
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL
+              --port $\{PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 1
+              --jinja
+            '';
           };
 
           "devstral-2:24b-q4" = {
