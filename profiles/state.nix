@@ -9,7 +9,10 @@
     hideMounts = true;
     directories = [
       "/root"
-      "/var/cache/private/llama.cpp"
+      {
+        directory = "/var/cache/private";
+        mode = "0700";
+      }
       "/var/lib/bluetooth"
       "/var/lib/containers"
       "/var/lib/docker"
