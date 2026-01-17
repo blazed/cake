@@ -20,8 +20,6 @@
     ../../profiles/tailscale.nix
     ../../profiles/uuid_disk_crypt.nix
     ../../profiles/zram.nix
-
-    ../../profiles/github-runner.nix
   ];
 
   boot.initrd = {
@@ -51,10 +49,6 @@
     ts = {
       file = ../../secrets/ts.age;
       owner = "1447";
-    };
-    github-runner = {
-      file = ../../secrets/github-runner-token-exsules.age;
-      owner = "${toString adminUser.uid}";
     };
   };
 

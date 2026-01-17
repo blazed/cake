@@ -20,6 +20,7 @@ in
     ./jujutsu.nix
     ./mergiraf.nix
     ./neovim.nix
+    ./nh.nix
     ./nushell/default.nix
     ./rbw.nix
     ./ssh.nix
