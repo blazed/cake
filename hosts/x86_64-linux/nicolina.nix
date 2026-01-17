@@ -1,6 +1,7 @@
 {
   adminUser,
   config,
+  lib,
   ...
 }:
 {
@@ -20,7 +21,7 @@
     ../../profiles/tailscale.nix
     ../../profiles/zram.nix
 
-    ../../profiles/github-runner.nix
+    ../../profiles/k3s-agent.nix
   ];
 
   boot.loader.systemd-boot.memtest86.enable = true;
@@ -32,6 +33,9 @@
   services.ratbagd.enable = true;
 
   age.secrets = {
+    k3s-token = {
+      file = ../../secrets/k3s/token.age;
+    };
     id_ed25519 = {
       file = ../../secrets/id_ed25519.age;
       owner = "${toString adminUser.uid}";
@@ -50,19 +54,26 @@
       file = ../../secrets/copilot-api-key.age;
       owner = "${toString adminUser.uid}";
     };
-    github-runner = {
-      file = ../../secrets/github-runner-token-exsules.age;
-      owner = "${toString adminUser.uid}";
-    };
+  };
+
+  networking.firewall = {
+    trustedInterfaces = [
+      "lo"
+      "cilium_host"
+      "cilium_net"
+      "cilium_vxlan"
+      "lxc+"
+      "eth+"
+      "wlan+"
+      "enp+"
+      "enp4s0"
+    ];
   };
 
   programs.steam.enable = true;
   services.flatpak.enable = true;
 
   services.input-remapper.enable = true;
-
-  services.ollama.acceleration = "rocm";
-  services.ollama.rocmOverrideGfx = "10.3.0";
 
   environment.persistence."/keep" = {
     users.${adminUser.name} = {
@@ -75,7 +86,7 @@
   home-manager = {
     users.${adminUser.name} = {
       imports = [ ../../users/profiles/workstation.nix ];
-      programs.git.extraConfig.user.signingKey =
+      programs.git.settings.user.signingKey =
         "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=";
       programs.jujutsu.settings.signing = {
         behavior = "own";
@@ -84,6 +95,11 @@
       };
     };
   };
+
+  services.k3s.settings = {
+    server = "https://10.0.10.33:6443";
+  };
+  services.tailscale.auth.enable = lib.mkForce false;
 
   networking.wireguard.enable = true;
 }

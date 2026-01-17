@@ -98,6 +98,8 @@ in
   ]
   ++ restic-pkgs;
 
+  documentation.man.generateCaches = lib.mkForce false;
+
   home-manager.useUserPackages = true;
   home-manager.useGlobalPkgs = true;
 

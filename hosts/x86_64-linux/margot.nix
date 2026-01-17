@@ -5,27 +5,24 @@
   ...
 }:
 {
-  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKxLfaa1o/8Uq8Wk9T7RKnOgd/uT2dCIQh4Oxg+xapNT";
+  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH1WMGkVqU0X7XM+JIPvA3vEAnmjJrHApzJYEFXY1pvw";
 
   imports = [
-    ../../profiles/hardware/nuc.nix
     ../../profiles/admin-user/user.nix
+    ../../profiles/hardware/framework-desktop.nix
     ../../profiles/disk/btrfs-on-luks.nix
+    ../../profiles/ai.nix
     ../../profiles/k3s-agent.nix
     ../../profiles/server.nix
     ../../profiles/state.nix
     ../../profiles/tailscale.nix
     ../../profiles/uuid_disk_crypt.nix
-    ../../profiles/wifi.nix
     ../../profiles/zram.nix
   ];
 
   age.secrets = {
     k3s-token = {
       file = ../../secrets/k3s/token.age;
-    };
-    wifi-networks = {
-      file = ../../secrets/wifi-networks.age;
     };
     ts = {
       file = ../../secrets/ts.age;
@@ -39,11 +36,20 @@
 
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 
+  services.fwupd.enable = true;
+
+  boot.initrd.availableKernelModules = [
+    "igc"
+    "nvme"
+    "ahci"
+    "usbhid"
+  ];
+
   system.autoUpgrade = {
     enable = true;
     flake = "github:blazed/cake";
     allowReboot = true;
-    dates = "*:0/15";
+    dates = "05:00";
     randomizedDelaySec = "5min";
     enableSentinel = true;
   };

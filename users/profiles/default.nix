@@ -8,6 +8,7 @@ let
 in
 {
   imports = [
+    # keep-sorted start
     ./aider.nix
     ./alacritty.nix
     ./bat.nix
@@ -19,12 +20,15 @@ in
     ./jujutsu.nix
     ./mergiraf.nix
     ./neovim.nix
+    ./nh.nix
     ./nushell/default.nix
     ./rbw.nix
     ./ssh.nix
     ./starship.nix
     ./wezterm/default.nix
     ./zellij.nix
+    ./zen-browser.nix
+    # keep-sorted end
   ];
 
   home.sessionVariables = {

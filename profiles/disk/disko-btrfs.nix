@@ -1,0 +1,93 @@
+{
+  config,
+  lib,
+  ...
+}:
+{
+  disko.devices = {
+    disk.disk1 = {
+      device = lib.mkDefault "/dev/nvme0n1";
+      type = "disk";
+
+      content = {
+        type = "gpt";
+        partitions = {
+          boot = {
+            name = "boot";
+            size = "1M";
+            type = "EF02";
+          };
+          esp = {
+            name = "ESP";
+            size = "500M";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+            };
+          };
+          swap = {
+            size = "64G";
+            content = {
+              type = "luks";
+              name = "encrypted-swap";
+              settings.allowDiscards = true;
+              passwordFile = "/tmp/disk.key";
+              content = {
+                type = "swap";
+                resumeDevice = true;
+              };
+            };
+          };
+          luks = {
+            size = "100%";
+            content = {
+              type = "luks";
+              name = "encrypted";
+              settings.allowDiscards = true;
+              passwordFile = "/tmp/disk.key";
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "/root" = lib.mkIf (!config.ephemeralRoot) {
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                    ];
+                    mountPoint = "/";
+                  };
+                  "/nix" = {
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                    ];
+                    mountPoint = "/nix";
+                  };
+                  "/keep" = {
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                    ];
+                    mountPoint = "/keep";
+                  };
+                };
+
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+  nodev."/" = lib.mkIf config.ephemeralRoot {
+    fsType = "tmpfs";
+    mountOptions = [
+      "size=8G"
+      "defaults"
+      "mode=755"
+    ];
+  };
+  fileSystems."/keep".neededForBoot = true;
+}

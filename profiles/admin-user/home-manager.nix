@@ -6,7 +6,7 @@
       inherit (adminUser) userinfo;
       programs = {
         git = {
-          extraConfig = {
+          settings = {
             gpg.format = "ssh";
             commit.gpgSign = true;
             tag.forceSignAnnotated = true;
