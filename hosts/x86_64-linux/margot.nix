@@ -17,7 +17,6 @@
     ../../profiles/state.nix
     ../../profiles/tailscale.nix
     ../../profiles/uuid_disk_crypt.nix
-    ../../profiles/zram.nix
   ];
 
   age.secrets = {
