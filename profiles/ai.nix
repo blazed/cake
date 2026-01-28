@@ -6,8 +6,9 @@
 {
   services.llama-swap = {
     enable = true;
-    openFirewall = true;
     port = 9292;
+    listenAddress = "0.0.0.0";
+    openFirewall = true;
     settings =
       let
         llama-cpp =
@@ -33,7 +34,7 @@
             cmd = ''
               ${llama-server}
               -hf unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL
-              --port $\{PORT}
+              --port ''${PORT}
               --ctx-size 65536
               --batch-size 2048
               --ubatch-size 512
