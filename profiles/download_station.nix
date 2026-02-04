@@ -93,7 +93,8 @@ in
     after = [ "mnt-media.mount" ];
     serviceConfig = {
       DynamicUser = lib.mkForce false;
-      StateDirectory = lib.mkForce null;
+      User = "deluge";
+      Group = "deluge";
     };
   };
 
