@@ -91,6 +91,10 @@ in
 
   systemd.services.jellyseerr = {
     after = [ "mnt-media.mount" ];
+    serviceConfig = {
+      DynamicUser = lib.mkForce false;
+      StateDirectory = lib.mkForce null;
+    };
   };
 
   services.sonarr = {
