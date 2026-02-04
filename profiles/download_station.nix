@@ -84,6 +84,15 @@ in
     after = [ "mnt-media.mount" ];
   };
 
+  services.jellyseerr = {
+    enable = true;
+    openFirewall = true;
+  };
+
+  systemd.services.jellyseerr = {
+    after = [ "mnt-media.mount" ];
+  };
+
   services.sonarr = {
     enable = true;
     openFirewall = true;
@@ -118,6 +127,7 @@ in
   environment.persistence."/keep".directories = [
     "/var/lib/deluge"
     "/var/lib/jellyfin"
+    "/var/lib/jellyseerr"
     "/var/lib/prowlarr"
     "/var/lib/radarr"
     "/var/lib/sonarr"
