@@ -77,12 +77,12 @@
       in
       {
         models = {
-          "qwen3.5:9b-q4" = {
+          "nemotron-3-super:122b-a12b-q4" = {
             cmd = ''
               ${llama-server}
-              -hf unsloth/Qwen3.5-9B-GGUF:UD-Q4_K_XL
+              -hf unsloth/NVIDIA-Nemotron-3-Super-120B-A12B-GGUF:UD-Q4_K_XL
               --port ''${PORT}
-              --ctx-size 200000
+              --ctx-size 65536
               --batch-size 2048
               --ubatch-size 512
               --threads 16
@@ -90,15 +90,52 @@
               -fa on
               --cache-type-k q8_0 --cache-type-v q8_0
               --mlock
-              --chat-template-kwargs '{"enable_thinking": true}'
+              --temp 1.0
+              --top-p 1.0
+              --min-p 0.01
+              --special
               --jinja
             '';
           };
 
-          "qwen3.5:9b-bf16" = {
+          "qwen3.5:27b-claude-4.6-opus-reasoning-distilled-q4" = {
             cmd = ''
               ${llama-server}
-              -hf unsloth/Qwen3.5-9B-GGUF:BF16
+              -hf Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-GGUF:Q4_K_M
+              --port ''${PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
+              --jinja
+            '';
+          };
+
+          "qwen3.5:27b-uncensored-aggressive-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf HauhauCS/Qwen3.5-27B-Uncensored-HauhauCS-Aggressive:Q4_K_M
+              --port ''${PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
+              --jinja
+            '';
+          };
+
+          "qwen3.5:9b-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.5-9B-GGUF:UD-Q4_K_XL
               --port ''${PORT}
               --ctx-size 200000
               --batch-size 2048
@@ -218,6 +255,7 @@
               --temp 1.0
               --top-p 1.0
               --min-p 0.01
+              --special
               --jinja
             '';
           };
