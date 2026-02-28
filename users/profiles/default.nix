@@ -15,6 +15,7 @@ in
     ./chromium.nix
     ./claude.nix
     ./dunst.nix
+    ./firefox.nix
     ./git.nix
     ./gitui.nix
     ./jujutsu.nix
@@ -52,6 +53,7 @@ in
     kubectx
     kubelogin-oidc
     kustomize
+    libnotify
     lm_sensors
     lmstudio
     nix-index
