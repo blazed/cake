@@ -30,6 +30,91 @@
       in
       {
         models = {
+          "qwen3.5:9b-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.5-9B-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 1
+              --chat-template-kwargs '{"enable_thinking": true}'
+              --jinja
+            '';
+          };
+
+          "qwen3.5:9b-bf16" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.5-9B-GGUF:BF16
+              --port ''${PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 1
+              --chat-template-kwargs '{"enable_thinking": true}'
+              --jinja
+            '';
+          };
+
+          "qwen3.5:27b-q8" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.5-27B-GGUF:UD-Q8_K_XL
+              --port ''${PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 1
+              --jinja
+            '';
+          };
+
+          "qwen3.5:122b-a10b-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.5-122B-A10B-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 1
+              --jinja
+            '';
+          };
+
+          "qwen3.5:35b-a3b-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 1
+              --jinja
+            '';
+          };
+
+          # General use: --temp 1.0 --top-p 0.95, Tool-calling: --temp 0.7 --top-p 1.0
+          "glm-4.7-flash:q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/GLM-4.7-Flash-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --temp 1.0
+              --top-p 0.95
+              --min-p 0.01
+              --repeat-penalty 1.0
+              --threads 1
+              --jinja
+            '';
+          };
+
           "nemotron-3-nano:30b-q4" = {
             cmd = ''
               ${llama-server}
