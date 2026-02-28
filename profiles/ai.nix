@@ -6,6 +6,38 @@
 {
   services.llama-swap = {
     enable = true;
+    package = pkgs.llama-swap.overrideAttrs (oa: rec {
+      version = "197";
+      src = pkgs.fetchFromGitHub {
+        owner = "mostlygeek";
+        repo = "llama-swap";
+        tag = "v${version}";
+        hash = "sha256-EXgyYmpbN/zzr6KeSpvFEB+FS7gDIZFinNMv70v5boY=";
+        leaveDotGit = true;
+        postFetch = ''
+          cd "$out"
+          git rev-parse HEAD > $out/COMMIT
+          date -u -d "@$(git log -1 --pretty=%ct)" "+'%Y-%m-%dT%H:%M:%SZ'" > $out/SOURCE_DATE_EPOCH
+          find "$out" -name .git -print0 | xargs -0 rm -rf
+        '';
+      };
+      vendorHash = "sha256-XiDYlw/byu8CWvg4KSPC7m8PGCZXtp08Y1velx4BR8U=";
+      passthru = oa.passthru // {
+        ui = pkgs.buildNpmPackage {
+          pname = "llama-swap-ui";
+          inherit version src;
+          sourceRoot = "${src.name}/ui-svelte";
+          npmDepsHash = "sha256-Fs7+JKE8YBp2Xj8bVBlwmT+UwuD642VeUHiPx+fv94c=";
+          postPatch = ''
+            substituteInPlace vite.config.ts \
+              --replace-fail "../proxy/ui_dist" "${placeholder "out"}/ui_dist"
+          '';
+          postInstall = ''
+            rm -rf $out/lib
+          '';
+        };
+      };
+    });
     port = 9292;
     listenAddress = "0.0.0.0";
     openFirewall = true;
@@ -17,10 +49,25 @@
             blasSupport = true;
             cudaSupport = false;
           }).overrideAttrs
-            (oa: {
+            (oa: rec {
+              version = "8229";
+              src = pkgs.fetchFromGitHub {
+                owner = "ggml-org";
+                repo = "llama.cpp";
+                tag = "b${version}";
+                hash = "sha256-SmCNsQfLQMmwa8PzFPaQb9yBdUZTxM8xxSqhumVGvHM=";
+                leaveDotGit = true;
+                postFetch = ''
+                  git -C "$out" rev-parse --short HEAD > $out/COMMIT
+                  find "$out" -name .git -print0 | xargs -0 rm -rf
+                '';
+              };
+              npmDepsHash = "sha256-5ZswgZFLeI32/xQZqCTTFbCzleDqr5AotjFg/5rNn1M=";
+
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
               ];
+
               preConfigure = ''
                 export NIX_ENFORCE_NO_NATIVE=0
                 ${oa.preConfigure or ""}
@@ -35,10 +82,14 @@
               ${llama-server}
               -hf unsloth/Qwen3.5-9B-GGUF:UD-Q4_K_XL
               --port ''${PORT}
-              --ctx-size 65536
+              --ctx-size 200000
               --batch-size 2048
               --ubatch-size 512
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --chat-template-kwargs '{"enable_thinking": true}'
               --jinja
             '';
@@ -49,11 +100,32 @@
               ${llama-server}
               -hf unsloth/Qwen3.5-9B-GGUF:BF16
               --port ''${PORT}
-              --ctx-size 65536
+              --ctx-size 200000
               --batch-size 2048
               --ubatch-size 512
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --chat-template-kwargs '{"enable_thinking": true}'
+              --jinja
+            '';
+          };
+
+          "qwen3.5:27b-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.5-27B-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --jinja
             '';
           };
@@ -63,10 +135,14 @@
               ${llama-server}
               -hf unsloth/Qwen3.5-27B-GGUF:UD-Q8_K_XL
               --port ''${PORT}
-              --ctx-size 65536
+              --ctx-size 200000
               --batch-size 2048
               --ubatch-size 512
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --jinja
             '';
           };
@@ -79,7 +155,10 @@
               --ctx-size 65536
               --batch-size 2048
               --ubatch-size 512
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
               --jinja
             '';
           };
@@ -89,10 +168,14 @@
               ${llama-server}
               -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q4_K_XL
               --port ''${PORT}
-              --ctx-size 65536
+              --ctx-size 200000
               --batch-size 2048
               --ubatch-size 512
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --jinja
             '';
           };
@@ -106,11 +189,15 @@
               --ctx-size 200000
               --batch-size 2048
               --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --temp 1.0
               --top-p 0.95
               --min-p 0.01
               --repeat-penalty 1.0
-              --threads 1
               --jinja
             '';
           };
@@ -120,10 +207,17 @@
               ${llama-server}
               -hf unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL
               --port ''${PORT}
-              --ctx-size 65536
+              --ctx-size 200000
               --batch-size 2048
               --ubatch-size 512
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
+              --temp 1.0
+              --top-p 1.0
+              --min-p 0.01
               --jinja
             '';
           };
@@ -134,6 +228,13 @@
               -hf unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF:UD-Q4_K_XL
               --port ''${PORT}
               --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --jinja
             '';
           };
@@ -144,6 +245,13 @@
               -hf unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF:UD-Q8_K_XL
               --port ''${PORT}
               --ctx-size 65536
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --jinja
             '';
           };
@@ -154,11 +262,12 @@
               -hf unsloth/Devstral-2-123B-Instruct-2512-GGUF:UD-Q3_K_XL
               --port ''${PORT}
               --ctx-size 65536
-              --batch-size 512
+              --batch-size 2048
               --ubatch-size 512
-              --split-mode layer
-              --tensor-split 1.3,3
-              --threads 8
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
               --jinja
             '';
           };
@@ -170,12 +279,12 @@
               --hf-file gpt-oss-120B-Derestricted-Q4_K_M.gguf
               --port ''${PORT}
               --ctx-size 65536
-              --batch-size 512
+              --batch-size 2048
               --ubatch-size 512
-              --split-mode layer
-              --tensor-split 1.3,3
-              --n-cpu-moe 24
-              --threads 8
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
               --chat-template-kwargs '{"reasoning_effort": "high"}'
               --jinja
             '';
@@ -191,7 +300,11 @@
               --ctx-size 16384
               --batch-size 2048
               --ubatch-size 512
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --jinja
             '';
           };
@@ -205,12 +318,13 @@
               --ctx-size 131072
               --batch-size 2048
               --ubatch-size 512
-              --tensor-split 28,20
-              --n-cpu-moe 20
-              --no-mmap
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --no-context-shift
               --swa-full
-              --threads 8
               --jinja
             '';
           };
@@ -223,7 +337,11 @@
               --ctx-size 0
               --batch-size 4096
               --ubatch-size 2048
-              --threads 1
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0 --cache-type-v q8_0
+              --mlock
               --jinja
             '';
           };
@@ -245,6 +363,7 @@
   };
 
   systemd.services.llama-swap.serviceConfig = {
+    LimitMEMLOCK = "infinity";
     CacheDirectory = "llama.cpp";
     Environment = [
       "PATH=/run/current-system/sw/bin"
