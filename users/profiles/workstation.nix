@@ -74,12 +74,12 @@ in
       "x-scheme-handler/about" = "firefox.desktop";
       "x-scheme-handler/unknown" = "firefox.desktop";
       "x-scheme-handler/chrome" = "firefox.desktop";
-      "application/x-exension-htm" = "firefox.desktop";
-      "application/x-exension-html" = "firefox.desktop";
-      "application/x-exension-shtml" = "firefox.desktop";
+      "application/x-extension-htm" = "firefox.desktop";
+      "application/x-extension-html" = "firefox.desktop";
+      "application/x-extension-shtml" = "firefox.desktop";
       "application/xhtml+xml" = "firefox.desktop";
-      "application/x-exension-xhtml" = "firefox.desktop";
-      "application/x-exension-xht" = "firefox.desktop";
+      "application/x-extension-xhtml" = "firefox.desktop";
+      "application/x-extension-xht" = "firefox.desktop";
     };
   };
 
