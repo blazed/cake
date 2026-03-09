@@ -11,7 +11,7 @@
 
   services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
   services.disable-usb-wakeup.enable = true;
-  programs.light.enable = true;
+  hardware.acpilight.enable = true;
   services.upower.enable = true;
 
   powerManagement.enable = true;
