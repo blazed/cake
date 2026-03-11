@@ -50,12 +50,12 @@
             cudaSupport = false;
           }).overrideAttrs
             (oa: rec {
-              version = "8252";
+              version = "8263";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-2KY0fwDX5Q95Ixd9dRR9bYiKLT9RrG6be0VFdLlPAmw=";
+                hash = "sha256-zbqxgeP02Fj60hWQsGCKY1S9uK30sd80+Q+N0b9IbjA=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
