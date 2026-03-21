@@ -86,8 +86,10 @@
   home-manager = {
     users.${adminUser.name} = {
       imports = [ ../../users/profiles/workstation.nix ];
-      programs.git.settings.user.signingKey =
-        "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=";
+      programs.git.settings = {
+        # user.signingKey = "key::sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo=";
+        user.signingKey = config.age.secrets.id_ed25519.path;
+      };
       programs.jujutsu.settings.signing = {
         behavior = "own";
         backend = "ssh";
@@ -102,4 +104,11 @@
   services.tailscale.auth.enable = lib.mkForce false;
 
   networking.wireguard.enable = true;
+
+  programs.virt-manager.enable = true;
+  users.groups.libvirtd.members = [ adminUser.name ];
+  users.users.${adminUser.name}.extraGroups = [ "libvirtd" ];
+  virtualisation.libvirtd.enable = true;
+  virtualisation.spiceUSBRedirection.enable = true;
+
 }
