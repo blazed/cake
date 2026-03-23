@@ -50,12 +50,12 @@
             cudaSupport = false;
           }).overrideAttrs
             (oa: rec {
-              version = "8400";
+              version = "8475";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-6OWdNzHhD4z4xHHrH6lcPfWeccQY2LICM7OX5Hausjc=";
+                hash = "sha256-frGsHukVw3WxVQ4KjVHthGGXWWbLHtq6iFrP4hvFd3c=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -77,6 +77,28 @@
       in
       {
         models = {
+          "qwen3-coder-next:q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k bf16 --cache-type-v bf16
+              --mlock
+              --temp 1.0
+              --top-p 0.95
+              --top-k 40
+              --min-p 0.01
+              --repeat-penalty 1.0
+              --jinja
+            '';
+          };
+
           "nemotron-3-super:122b-a12b-q4" = {
             cmd = ''
               ${llama-server}
@@ -109,7 +131,7 @@
               --threads 16
               -ngl 999
               -fa on
-              --cache-type-k q8_0 --cache-type-v q8_0
+              --cache-type-k bf16 --cache-type-v bf16
               --mlock
               --jinja
             '';
@@ -159,9 +181,14 @@
               --batch-size 2048
               --ubatch-size 512
               --threads 16
+              --temp 0.6
+              --top-p 0.95
+              --top-k 20
+              --min-p 0.00
+              --presence_penalty 0.0
               -ngl 999
               -fa on
-              --cache-type-k q8_0 --cache-type-v q8_0
+              --cache-type-k bf16 --cache-type-v bf16
               --mlock
               --jinja
             '';
@@ -176,9 +203,13 @@
               --batch-size 2048
               --ubatch-size 512
               --threads 16
+              --temp 0.6
+              --top-p 0.95
+              --top-k 20
+              --min-p 0.00
               -ngl 999
               -fa on
-              --cache-type-k q8_0 --cache-type-v q8_0
+              --cache-type-k bf16 --cache-type-v bf16
               --mlock
               --jinja
             '';

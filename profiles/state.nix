@@ -38,6 +38,7 @@
 
     users.${adminUser.name} = {
       directories = [
+        ".agents"
         ".aws"
         ".backup/undo"
         ".cache/chromium"
