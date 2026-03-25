@@ -132,6 +132,8 @@
               -ngl 999
               -fa on
               --cache-type-k bf16 --cache-type-v bf16
+              --repeat-penalty 1.0
+              --presence-penalty 0.0
               --mlock
               --jinja
             '';
@@ -149,6 +151,8 @@
               -ngl 999
               -fa on
               --cache-type-k q8_0 --cache-type-v q8_0
+              --presence-penalty 0.0
+              --repeat-penalty 1.0
               --mlock
               --jinja
             '';
@@ -168,6 +172,8 @@
               --cache-type-k q8_0 --cache-type-v q8_0
               --mlock
               --chat-template-kwargs '{"enable_thinking": true}'
+              --presence-penalty 0.0
+              --repeat-penalty 1.0
               --jinja
             '';
           };
@@ -185,7 +191,8 @@
               --top-p 0.95
               --top-k 20
               --min-p 0.00
-              --presence_penalty 0.0
+              --presence-penalty 0.0
+              --repeat-penalty 1.0
               -ngl 999
               -fa on
               --cache-type-k bf16 --cache-type-v bf16
@@ -207,6 +214,8 @@
               --top-p 0.95
               --top-k 20
               --min-p 0.00
+              --presence-penalty 0.0
+              --repeat-penalty 1.0
               -ngl 999
               -fa on
               --cache-type-k bf16 --cache-type-v bf16
@@ -240,6 +249,8 @@
               --batch-size 2048
               --ubatch-size 512
               --threads 16
+              --presence-penalty 0.0
+              --repeat-penalty 1.0
               -ngl 999
               -fa on
               --cache-type-k q8_0 --cache-type-v q8_0
@@ -433,7 +444,10 @@
 
   systemd.services.llama-swap.serviceConfig = {
     LimitMEMLOCK = "infinity";
-    CacheDirectory = "llama.cpp";
+    CacheDirectory = [
+      "llama.cpp"
+      "huggingface"
+    ];
     Environment = [
       "PATH=/run/current-system/sw/bin"
       "LD_LIBRARY_PATH=/run/opengl-driver/lib:/run/opengl-driver-32/lib"
