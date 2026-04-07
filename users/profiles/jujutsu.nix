@@ -28,6 +28,18 @@ in
           "@-"
         ];
       };
+      fix = {
+        tools = {
+          rustfmt = {
+            command = [
+              "rustfmt"
+              "--edition"
+              "2024"
+            ];
+            patterns = [ "glob:**/*.rs" ];
+          };
+        };
+      };
       revsets = {
         log = "current_work";
       };
@@ -40,6 +52,10 @@ in
       git = {
         write-change-id-header = true;
         subprocess = true;
+        private-cammits = "description('wip:*') | description('draft:*') | description('[task:*'])";
+      };
+      snapshot = {
+        auto-update-stale = true;
       };
       template-aliases = {
         "format_short_id(id)" = "id.shortest()";
@@ -119,6 +135,7 @@ in
             diff.git(),
           )
         '';
+        commit_trailers = "format_signed_off_by_trailer(self)";
         git_push_bookmark = ''"blzd/" ++ change_id.short()'';
       };
       ui = {
@@ -132,7 +149,8 @@ in
           "$right"
         ];
         graph-style = "curved";
-        should-sign-off = true;
+        should-sign-off = false;
+        show-cryptographic-signatures = true;
       };
       colors = {
         commit_id = "magenta";
@@ -158,6 +176,11 @@ in
         };
         "node" = {
           bold = false;
+        };
+      };
+      remotes = {
+        origin = {
+          auto-track-bookmarks = "blzd/*";
         };
       };
     };

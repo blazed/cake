@@ -77,6 +77,50 @@
       in
       {
         models = {
+          "gemma-4:31b-q6" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/gemma-4-31B-it-GGUF:UD-Q6_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k bf16 --cache-type-v bf16
+              --mlock
+              --temp 1.0
+              --top-p 0.95
+              --top-k 64
+              --min-p 0.01
+              --repeat-penalty 1.0
+              --jinja
+            '';
+          };
+
+          "gemma-4:26b-a4b-q6" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q6_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k bf16 --cache-type-v bf16
+              --mlock
+              --temp 1.0
+              --top-p 0.95
+              --top-k 64
+              --min-p 0.01
+              --repeat-penalty 1.0
+              --jinja
+            '';
+          };
+
           "qwen3-coder-next:q4" = {
             cmd = ''
               ${llama-server}
