@@ -50,19 +50,19 @@
             cudaSupport = false;
           }).overrideAttrs
             (oa: rec {
-              version = "8739";
+              version = "8753";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-m8tbi+O/E3KgOsXbqjfCIacWFbQWZLP/ssEJDPiC4g8=";
+                hash = "sha256-XFvb0fQekeAacnMGjINwXbIwtD9lZ7BU0GV8iSbEYfM=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
                   find "$out" -name .git -print0 | xargs -0 rm -rf
                 '';
               };
-              npmDepsHash = "sha256-eeftjKt0FuS0Dybez+Iz9VTVMA4/oQVh+3VoIqvhVMw=";
+              npmDepsHash = "sha256-RAFtsbBGBjteCt5yXhrmHL39rIDJMCFBETgzId2eRRk=";
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
