@@ -7,12 +7,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "199";
+      version = "201";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-tAWXhfOWPLBuEgd+32CbuIkn1hN+4VI4xkyx7E2a81I=";
+        hash = "sha256-xDToD6DBds9zbf7gJ6mCgZYiz/sdHDIwBZ/WvSIrK70=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -27,7 +27,7 @@
           pname = "llama-swap-ui";
           inherit version src;
           sourceRoot = "${src.name}/ui-svelte";
-          npmDepsHash = "sha256-gTDsuWPLCWsPltioziygFmSQFdLqjkZpmmVWIWoZwoc=";
+          npmDepsHash = "sha256-UX2QAfMgNyzQTDsn3c+QnjVshLWvho7jmQ6s2406qHY=";
           postPatch = ''
             substituteInPlace vite.config.ts \
               --replace-fail "../proxy/ui_dist" "${placeholder "out"}/ui_dist"
@@ -50,19 +50,19 @@
             cudaSupport = false;
           }).overrideAttrs
             (oa: rec {
-              version = "8580";
+              version = "8795";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-MtstV7rYpvfpmG78mARo9AWQN/xMqdbV+6bQIbKdFCw=";
+                hash = "sha256-bp3a0YrC31pVrzJPQXoH5E2RQNXpHGLDmTFnVGkY+vw=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
                   find "$out" -name .git -print0 | xargs -0 rm -rf
                 '';
               };
-              npmDepsHash = "sha256-DxgUDVr+kwtW55C4b89Pl+j3u2ILmACcQOvOBjKWAKQ=";
+              npmDepsHash = "sha256-RAFtsbBGBjteCt5yXhrmHL39rIDJMCFBETgzId2eRRk=";
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
@@ -77,6 +77,50 @@
       in
       {
         models = {
+          "gemma-4:31b-q6" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/gemma-4-31B-it-GGUF:UD-Q6_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k bf16 --cache-type-v bf16
+              --mlock
+              --temp 1.0
+              --top-p 0.95
+              --top-k 64
+              --min-p 0.01
+              --repeat-penalty 1.0
+              --jinja
+            '';
+          };
+
+          "gemma-4:26b-a4b-q6" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q6_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k bf16 --cache-type-v bf16
+              --mlock
+              --temp 1.0
+              --top-p 0.95
+              --top-k 64
+              --min-p 0.01
+              --repeat-penalty 1.0
+              --jinja
+            '';
+          };
+
           "qwen3-coder-next:q4" = {
             cmd = ''
               ${llama-server}
