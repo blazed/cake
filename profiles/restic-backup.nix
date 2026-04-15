@@ -25,7 +25,7 @@
         ];
         environmentFile = "/run/agenix/restic-env";
         passwordFile = "/run/agenix/restic-pw";
-        repository = "s3:http://storage01:9000/computer-backups";
+        repository = "s3:http://storage01:3900/computer-backups";
         initialize = true;
         timerConfig.OnCalendar = "00/2:00";
         timerConfig.RandomizedDelaySec = "30m";
