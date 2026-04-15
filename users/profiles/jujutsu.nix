@@ -52,7 +52,7 @@ in
       git = {
         write-change-id-header = true;
         subprocess = true;
-        private-cammits = "description('wip:*') | description('draft:*') | description('[task:*'])";
+        private-commits = "description('wip:*') | description('draft:*') | description('\\[task:*')";
       };
       snapshot = {
         auto-update-stale = true;
