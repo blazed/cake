@@ -1,8 +1,4 @@
 {
-  pkgs,
-  ...
-}:
-{
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
@@ -28,6 +24,19 @@
           controlMaster = "no";
           controlPath = "none";
         };
+      };
+      "git.exsules.com git.exsules.dev" = {
+        user = "git";
+        forwardAgent = false;
+        extraOptions = {
+          preferredAuthentications = "publickey";
+          controlMaster = "no";
+          controlPath = "none";
+        };
+      };
+      "192.168.122.141" = {
+        user = "kaziri";
+        forwardAgent = false;
       };
       "nicolina" = {
         user = "blazed";
