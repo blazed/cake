@@ -1,115 +1,194 @@
 {
   pkgs,
   lib,
-  config,
   ...
 }:
 let
-  inherit (lib) mkForce;
+  mediaUser = "media";
+  mediaGroup = "media";
+  webuiPort = 8080;
+  netnsPath = "/var/run/netns/private";
 in
 {
-  services.deluge = {
+  users.groups.${mediaGroup} = { };
+  users.users.${mediaUser} = {
+    isSystemUser = true;
+    group = mediaGroup;
+  };
+
+  services.qbittorrent = {
     enable = true;
-    declarative = true;
-    authFile = "/var/lib/deluge/auth";
-    openFirewall = true;
-    web.enable = true;
-    web.openFirewall = true;
-    config = {
-      download_location = "/mnt/media/torrents/incomplete";
-      dht = false;
-      upnp = false;
-      utpex = false;
-      lsd = false;
-      natpmp = false;
-      copy_torrent_file = true;
-      torrentfiles_location = "/mnt/media/torrents/saved_torrents";
-      move_completed = true;
-      move_completed_path = "/mnt/media/torrents/finished";
-      random_port = false;
-      listen_ports = [
-        57788
-        57788
-      ];
-      enabled_plugins = [
-        "Label"
-        "Stats"
-        "SimpleExtractor"
-      ];
-      max_active_seeding = -1;
-      max_active_downloading = 5;
-      max_active_limit = -1;
-      stop_seed_at_ratio = false;
-      remove_seed_at_ratio = false;
-      stop_seed_ratio = 2.0;
-      share_ratio_limit = 2.0;
-      seed_time_limit = 10080;
-      seed_time_ratio_limit = -1;
-      max_upload_slots_global = -1;
-      dont_count_slow_torrents = true;
-      max_connections_global = 1000;
-      auto_managed = false;
+    openFirewall = false;
+    user = mediaUser;
+    group = mediaGroup;
+    inherit webuiPort;
+    torrentingPort = null;
+    serverConfig = {
+      LegalNotice.Accepted = true;
+      Preferences = {
+        WebUI.LocalHostAuth = false;
+        WebUI.CSRFProtection = false;
+        Advanced.AnnounceToAllTrackers = true;
+      };
+      BitTorrent.Session = {
+        DefaultSavePath = "/mnt/media/torrents/finished";
+        TempPath = "/mnt/media/torrents/incomplete";
+        TempPathEnabled = true;
+        # Placeholder; natpmp-forward overwrites listen_port via the Web API once Proton
+        # grants a lease. Explicit value avoids a random-port window before first refresh.
+        Port = 6881;
+        UseRandomPort = false;
+        UseNATForwarding = false;
+        DHTEnabled = false;
+        PeXEnabled = false;
+        LSDEnabled = false;
+        Encryption = 1;
+        AnonymousModeEnabled = false;
+        GlobalMaxRatio = 1.3;
+        GlobalMaxSeedingMinutes = 12960;
+        MaxConnections = 1000;
+        MaxUploads = 20;
+        MaxActiveUploads = 20;
+        MaxActiveTorrents = 500;
+        MaxConnectionsPerTorrent = 200;
+        MaxUploadsPerTorrent = 10;
+        QueueingSystemEnabled = true;
+        ShareLimitAction = "Remove";
+      };
+      RSS.AutoDownloader = {
+        DownloadRepacks = false;
+        SmartEpisodeFilter = "";
+      };
     };
   };
 
-  systemd.services.deluged = {
+  # Per-netns resolv.conf for services pinned via NetworkNamespacePath.
+  # systemd does not bind-mount /etc/netns/<ns>/resolv.conf the way
+  # `ip netns exec` does, so sandboxed services inherit the host resolver —
+  # which is usually unreachable from inside the VPN netns. Point at the
+  # VPN's in-tunnel resolver instead (10.2.0.1 for Proton).
+  environment.etc."netns/private/resolv.conf".text = ''
+    nameserver 10.2.0.1
+  '';
+
+  systemd.services.qbittorrent = {
     bindsTo = [ "wireguard-private.service" ];
     after = [
       "wireguard-private.service"
       "mnt-media.mount"
     ];
     serviceConfig = {
-      ExecStart = mkForce "/run/wrappers/bin/netns-exec private ${pkgs.deluge}/bin/deluged --do-not-daemonize --config ${config.services.deluge.dataDir}/.config/deluge";
+      NetworkNamespacePath = netnsPath;
+      BindReadOnlyPaths = [
+        netnsPath
+        "/etc/netns/private/resolv.conf:/etc/resolv.conf"
+      ];
     };
   };
 
-  systemd.services.deluged-forwarder = {
-    enable = true;
-    after = [ "deluged.service" ];
-    bindsTo = [ "deluged.service" ];
+  # Bridge the host's WebUI port to qBittorrent inside the private netns.
+  # Outer socat runs in the root netns (listens on all interfaces so LAN clients
+  # can reach it); inner socat is re-executed per connection via nsenter into
+  # the private netns.
+  systemd.services.qbittorrent-forwarder = {
+    description = "Forward qBittorrent WebUI from host to private netns";
+    after = [ "qbittorrent.service" ];
+    bindsTo = [ "qbittorrent.service" ];
     wantedBy = [ "multi-user.target" ];
     script = ''
-      ${pkgs.socat}/bin/socat tcp-listen:58846,fork,reuseaddr,bind=127.0.0.1  exec:'/run/wrappers/bin/netns-exec private ${pkgs.socat}/bin/socat STDIO "tcp-connect:127.0.0.1:58846"',nofork
+      ${pkgs.socat}/bin/socat tcp-listen:${toString webuiPort},fork,reuseaddr exec:'${pkgs.util-linux}/bin/nsenter --net=${netnsPath} ${pkgs.socat}/bin/socat STDIO "tcp-connect:127.0.0.1:${toString webuiPort}"',nofork
+    '';
+  };
+
+  networking.firewall.allowedTCPPorts = [ webuiPort ];
+
+  systemd.services.natpmp-forward = {
+    description = "Refresh Proton VPN NAT-PMP port lease and push it to qBittorrent";
+    bindsTo = [
+      "wireguard-private.service"
+      "qbittorrent.service"
+    ];
+    after = [
+      "wireguard-private.service"
+      "qbittorrent.service"
+    ];
+    wantedBy = [ "multi-user.target" ];
+    path = [
+      pkgs.libnatpmp
+      pkgs.curl
+      pkgs.gawk
+      pkgs.coreutils
+    ];
+    serviceConfig = {
+      Restart = "on-failure";
+      RestartSec = "10s";
+      NetworkNamespacePath = netnsPath;
+      BindReadOnlyPaths = [
+        netnsPath
+        "/etc/netns/private/resolv.conf:/etc/resolv.conf"
+      ];
+    };
+    script = ''
+      set -u
+      last_port=""
+      while :; do
+        if ! out=$(natpmpc -a 1 0 udp 60 -g 10.2.0.1 && natpmpc -a 1 0 tcp 60 -g 10.2.0.1); then
+          echo "natpmpc failed; retrying in 5s"
+          sleep 5
+          continue
+        fi
+        port=$(echo "$out" | awk '/Mapped public port/ {print $4; exit}')
+        if [ -n "$port" ] && [ "$port" != "$last_port" ]; then
+          echo "Updating qBittorrent listen_port: ''${last_port:-unset} -> $port"
+          if curl -fsS -X POST "http://127.0.0.1:${toString webuiPort}/api/v2/app/setPreferences" \
+               --data-urlencode "json={\"listen_port\":$port,\"random_port\":false,\"upnp\":false}"; then
+            last_port=$port
+          else
+            echo "qBittorrent API update failed; will retry"
+          fi
+        fi
+        sleep 45
+      done
     '';
   };
 
   services.jellyfin = {
     enable = true;
     openFirewall = true;
-    user = "deluge";
-    group = "deluge";
+    user = mediaUser;
+    group = mediaGroup;
   };
 
   systemd.services.jellyfin = {
     after = [ "mnt-media.mount" ];
   };
 
-  services.jellyseerr = {
+  services.seerr = {
     enable = true;
     openFirewall = true;
   };
 
-  systemd.services.jellyseerr = {
+  systemd.services.seerr = {
     after = [ "mnt-media.mount" ];
     serviceConfig = {
       DynamicUser = lib.mkForce false;
-      User = "deluge";
-      Group = "deluge";
+      User = mediaUser;
+      Group = mediaGroup;
     };
   };
 
   services.sonarr = {
     enable = true;
     openFirewall = true;
-    user = "deluge";
-    group = "deluge";
+    user = mediaUser;
+    group = mediaGroup;
   };
 
   services.radarr = {
     enable = true;
     openFirewall = true;
-    user = "deluge";
-    group = "deluge";
+    user = mediaUser;
+    group = mediaGroup;
   };
 
   services.prowlarr = {
@@ -120,8 +199,8 @@ in
   systemd.services.prowlarr.serviceConfig = {
     DynamicUser = lib.mkForce false;
     StateDirectory = lib.mkForce null;
-    User = "deluge";
-    Group = "deluge";
+    User = mediaUser;
+    Group = mediaGroup;
   };
 
   services.flaresolverr = {
@@ -130,7 +209,7 @@ in
   };
 
   environment.persistence."/keep".directories = [
-    "/var/lib/deluge"
+    "/var/lib/qBittorrent"
     "/var/lib/jellyfin"
     "/var/lib/jellyseerr"
     "/var/lib/prowlarr"
