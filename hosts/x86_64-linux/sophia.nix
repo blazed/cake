@@ -53,18 +53,18 @@
 
   networking.private-wireguard.enable = true;
   networking.private-wireguard.ips = [
-    "10.67.124.179/32"
-    "fc00:bbbb:bbbb:bb01::4:7cb2/128"
+    "10.2.0.2/32"
+    "2a07:b944::2:2/128"
   ];
   networking.private-wireguard.privateKeyFile = "/run/agenix/wg-private";
   networking.private-wireguard.peers = [
     {
-      publicKey = "FKodo9V6BehkNphL+neI0g4/G/cjbZyYhoptSWf3Si4=";
+      publicKey = "bzrXYRS18mW8lPyP3Ogh/Of248wjSyE6oop0iKTpC3c=";
       allowedIPs = [
         "0.0.0.0/0"
-        "::0/0"
+        "::/0"
       ];
-      endpoint = "185.204.1.219:51820";
+      endpoint = "169.150.208.247:51820";
       persistentKeepalive = 25;
     }
   ];
