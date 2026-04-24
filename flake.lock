@@ -1674,22 +1674,6 @@
         "type": "github"
       }
     },
-    "netns-exec": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1601501912,
-        "narHash": "sha256-fDznTnWkS9dOeMB7G4YqEP0podWZlR7l4paMk+/bjmQ=",
-        "owner": "johnae",
-        "repo": "netns-exec",
-        "rev": "748f29abbcdecbad6de0a347b68eb01e793e6317",
-        "type": "github"
-      },
-      "original": {
-        "owner": "johnae",
-        "repo": "netns-exec",
-        "type": "github"
-      }
-    },
     "nix": {
       "inputs": {
         "flake-compat": [
@@ -2314,7 +2298,6 @@
         "impermanence": "impermanence",
         "kured": "kured",
         "mk-shell-bin": "mk-shell-bin",
-        "netns-exec": "netns-exec",
         "nix2container": "nix2container_2",
         "nixos-generators": "nixos-generators",
         "nixos-hardware": "nixos-hardware",

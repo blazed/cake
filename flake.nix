@@ -52,8 +52,6 @@
     kured.flake = false;
     kured.url = "github:kubereboot/kured";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
-    netns-exec.flake = false;
-    netns-exec.url = "github:johnae/netns-exec";
     nix2container.inputs.flake-utils.follows = "flake-utils";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";

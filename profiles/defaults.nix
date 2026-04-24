@@ -160,13 +160,6 @@ in
 
   users.mutableUsers = false;
 
-  security.wrappers.netns-exec = {
-    source = "${pkgs.netns-exec}/bin/netns-exec";
-    owner = "root";
-    group = "root";
-    setuid = true;
-  };
-
   system.stateVersion = "25.05";
 
   system.activationScripts.agenixNewGeneration = mkIf (hasSecrets && hasState) {
