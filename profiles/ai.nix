@@ -7,12 +7,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "205";
+      version = "206";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-b6AaWAoDeauH7XBUYWjVwLT29aDv6fTkryR1l4eqaPc=";
+        hash = "sha256-qIeu/k6lBxPn5VMKMzZkhsUBnGUXd7DqIMPSqyxrsqA=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -50,12 +50,12 @@
             cudaSupport = false;
           }).overrideAttrs
             (oa: rec {
-              version = "8892";
+              version = "8911";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-bbRwvTyy75D3rHxTGKMc7ggNzJQPyR2Gwq7IXXXofDs=";
+                hash = "sha256-urbsrJKsYy1U4Kcrg24K7SHC6XVCDv2elsyttaJOjdI=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
