@@ -35,6 +35,8 @@ let
   hasSecrets = config.age.secrets != { };
 in
 {
+  age.secrets.github-token.file = ../secrets/github-token.age;
+
   nix = {
     settings.trusted-users = [ "root" ];
     extraOptions = ''
@@ -42,6 +44,7 @@ in
       keep-outputs = true
       keep-derivations = true
       tarball-ttl = 900
+      !include ${config.age.secrets.github-token.path}
     '';
 
     nixPath = [ "nixpkgs=${inputs.nixpkgs}" ];
