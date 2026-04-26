@@ -223,14 +223,14 @@
     "cilium-chart": {
       "flake": false,
       "locked": {
-        "lastModified": 1755265843,
-        "narHash": "sha256-baUV4ysp1UP3fAdwrPVqXj8PzSNR3UI4YRZworHG71U=",
+        "lastModified": 1776279983,
+        "narHash": "sha256-rt3TlLpIMTLyN+DZFRpHItt7tadQ3k+BghkfwhI8Yaw=",
         "type": "tarball",
-        "url": "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.18.1.tgz"
+        "url": "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.19.3.tgz"
       },
       "original": {
         "type": "tarball",
-        "url": "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.18.1.tgz"
+        "url": "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.19.3.tgz"
       }
     },
     "crane": {
