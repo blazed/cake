@@ -16,11 +16,11 @@
         word_wrap = "yes";
         ignore_newline = "no";
         stack_duplicates = "yes";
-        hide_deplicates_count = "yes";
+        hide_duplicates_count = "yes";
         geometry = "300x50-15+49";
         shrink = "no";
         transparency = 5;
-        ide_threshold = 0;
+        idle_threshold = 0;
         monitor = 0;
         follow = "none";
         stick_history = "yes";

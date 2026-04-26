@@ -26,7 +26,7 @@ let
       id = "immpkjjlgappgfkkfieppnmlhakdmaab";
     }
     {
-      ## Privacy bagder
+      ## Privacy Badger
       id = "pkehgijcmpdhfbdbbnkijodmdjhbjlgp";
     }
     {

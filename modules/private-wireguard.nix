@@ -31,7 +31,7 @@ let
 in
 {
   options.networking.private-wireguard = {
-    enable = mkEnableOption "Enable private wireguard";
+    enable = mkEnableOption "private wireguard";
     privateKeyFile = mkOption {
       type = types.str;
     };

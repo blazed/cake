@@ -58,7 +58,7 @@ in
 
   config = mkIf tsAuth.enable {
     systemd.services.tailscale-auth = {
-      description = "Tailscale automatic authentoication";
+      description = "Tailscale automatic authentication";
       wantedBy = [ "tailscaled.service" ];
       after = [ "tailscaled.service" ] ++ tsAuth.after;
       restartTriggers = [ tsAuthScript ];

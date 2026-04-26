@@ -32,9 +32,7 @@
     };
   };
 
-  services.k3s.settings = {
-    server = "https://10.0.10.33:6443";
-  };
+  services.k3s.serverAddr = "https://10.0.10.33:6443";
 
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 

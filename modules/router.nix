@@ -53,7 +53,7 @@ let
 in
 {
   options.services.router = with lib.types; {
-    enable = mkEnableOption "Enable the router";
+    enable = mkEnableOption "the router";
     upstreamDnsServers = mkOption {
       type = listOf str;
       description = "List of upstream dns servers";
