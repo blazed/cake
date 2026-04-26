@@ -155,7 +155,7 @@ in
       greeting_msg = "Welcome back!";
     };
     GTK = {
-      curser_theme_name = lib.mkForce "Nordzy-cursors";
+      cursor_theme_name = lib.mkForce "Nordzy-cursors";
       font_name = lib.mkForce "Roboto Medium 14";
       icon_theme_name = lib.mkForce "Nordzy-dark";
       theme_name = lib.mkForce "Nordic-darker";

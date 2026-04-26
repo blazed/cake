@@ -356,7 +356,7 @@ in
 
       startup = [
         {
-          command = "${pkgs.xorg.xrdb}/bin/xrdb -merge ~/.Xresources";
+          command = "${pkgs.xrdb}/bin/xrdb -merge ~/.Xresources";
         }
         {
           command = "${pkgs.gnome-settings-daemon}/libexec/gsd-xsettings";

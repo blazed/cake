@@ -47,12 +47,12 @@
 
   services.k3s = {
     enable = true;
+    tokenFile = "/run/agenix/k3s-token";
     after = [
       "tailscale-auth.service"
       "metadata.service"
     ];
     settings = {
-      token-file = "/run/agenix/k3s-token";
       node-name = hostName;
       node-ip = "\"$(get-default-route-ip)\"";
       node-external-ip = "\"$(get-iface-ip tailscale0)\"";

@@ -23,7 +23,7 @@ let
 in
 {
   options.base16-theme = {
-    enable = mkEnableOption "Enable base16 theme systemwide";
+    enable = mkEnableOption "base16 theme systemwide";
     base00 = color "#1d2021";
     base01 = color "#3c3836";
     base02 = color "#504945";
