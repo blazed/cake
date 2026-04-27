@@ -44,7 +44,6 @@ in
         LSDEnabled = false;
         Encryption = 1;
         AnonymousModeEnabled = false;
-        GlobalMaxRatio = 1.3;
         GlobalMaxSeedingMinutes = 12960;
         MaxConnections = 1000;
         MaxUploads = 20;
