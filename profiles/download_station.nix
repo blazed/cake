@@ -26,9 +26,10 @@ in
     serverConfig = {
       LegalNotice.Accepted = true;
       Preferences = {
-        WebUI.LocalHostAuth = false;
-        WebUI.CSRFProtection = false;
         Advanced.AnnounceToAllTrackers = true;
+        General.StatusbarExternalIPDisplayed = true;
+        WebUI.CSRFProtection = false;
+        WebUI.LocalHostAuth = false;
       };
       BitTorrent.Session = {
         DefaultSavePath = "/mnt/media/torrents/finished";
@@ -46,9 +47,9 @@ in
         AnonymousModeEnabled = false;
         GlobalMaxSeedingMinutes = 12960;
         MaxConnections = 1000;
-        MaxUploads = 20;
-        MaxActiveUploads = 20;
-        MaxActiveTorrents = 500;
+        MaxUploads = 200;
+        MaxActiveUploads = 50;
+        MaxActiveTorrents = 1000;
         MaxConnectionsPerTorrent = 200;
         MaxUploadsPerTorrent = 10;
         QueueingSystemEnabled = true;
