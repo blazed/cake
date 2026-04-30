@@ -145,7 +145,7 @@ in
 
   programs.fish.enable = true;
 
-  programs.command-not-found.dbPath = "${./..}/programs.sqlite";
+  programs.command-not-found.dbPath = lib.mkForce "${./..}/programs.sqlite";
 
   security.sudo.extraConfig = ''
     Defaults  lecture="never"
