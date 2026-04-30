@@ -18,27 +18,27 @@ jobs:
       uses: DeterminateSystems/magic-nix-cache-action@v13
     - run: |
         nix shell nixpkgs#git -c git config user.name 'Boberg'
-        nix shell nixpkgs#git -c git config user.email 'blazed@users.noreply.github.com'
+        nix shell nixpkgs#git -c git config user.email '1823919+blazed@users.noreply.github.com'
         nix flake update
-        nix shell nixpkgs#git -c git commit -am "Update flake inputs"
+        nix shell nixpkgs#git -c git commit -am "chore(flake): update inputs"
     - name: Update llama-swap and llama.cpp
       run: |
         nix shell nixpkgs#curl nixpkgs#jq nixpkgs#gnused -c bash scripts/update-ai.sh
         nix shell nixpkgs#git -c git add profiles/ai.nix
-        nix shell nixpkgs#git -c git diff --cached --quiet || nix shell nixpkgs#git -c git commit -m "Update llama-swap and llama.cpp"
+        nix shell nixpkgs#git -c git diff --cached --quiet || nix shell nixpkgs#git -c git commit -m "chore(ai): update llama-swap and llama.cpp"
 
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v8
       id: cpr
       with:
         token: ${{ secrets.GH_ACCESS_TOKEN }}
-        commit-message: 'Update packages'
-        committer: Boberg <blazed@users.noreply.github.com>
+        commit-message: 'chore: update packages'
+        committer: Boberg <1823919+blazed@users.noreply.github.com>
         author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
         signoff: false
         branch: package-auto-updates
         delete-branch: true
-        title: 'Update packages'
+        title: 'chore: update packages'
         body: ''
         labels: |
           packages
@@ -50,4 +50,4 @@ jobs:
       with:
         token: ${{ secrets.GH_ACCESS_TOKEN }}
         pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-        merge-method: squash
+        merge-method: rebase
