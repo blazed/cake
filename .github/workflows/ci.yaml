@@ -19,8 +19,9 @@ jobs:
       with:
         extra-conf: |
           accept-flake-config = true
-    - name: Run the Magic Nix Cache
-      uses: DeterminateSystems/magic-nix-cache-action@v13
+    - uses: cachix/cachix-action@v17
+      with:
+        name: blazed
     - run: |
         nix run .#cake -- lint
 
@@ -32,8 +33,9 @@ jobs:
         with:
           extra-conf: |
             accept-flake-config = true
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+      - uses: cachix/cachix-action@v17
+        with:
+          name: blazed
       - run: |
           nix run .#cake -- check
 
@@ -47,8 +49,9 @@ jobs:
       with:
         extra-conf: |
           accept-flake-config = true
-    - name: Run the Magic Nix Cache
-      uses: DeterminateSystems/magic-nix-cache-action@v13
+    - uses: cachix/cachix-action@v17
+      with:
+        name: blazed
     - id: job-matrix
       run: |
         echo "matrix=$(nix eval .#github-actions-package-matrix-x86-64-linux --json)" >> "$GITHUB_OUTPUT"
@@ -63,8 +66,9 @@ jobs:
       with:
         extra-conf: |
           accept-flake-config = true
-    - name: Run the Magic Nix Cache
-      uses: DeterminateSystems/magic-nix-cache-action@v13
+    - uses: cachix/cachix-action@v17
+      with:
+        name: blazed
     - id: job-matrix
       run: |
         echo "matrix=$(nix eval .#github-actions-host-matrix-x86-64-linux --json)" >> "$GITHUB_OUTPUT"
@@ -85,8 +89,6 @@ jobs:
       with:
         name: blazed
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-    - name: Run the Magic Nix Cache
-      uses: DeterminateSystems/magic-nix-cache-action@v13
     - env:
         PKG: ${{ matrix.pkg }}
       run: |
