@@ -23,7 +23,6 @@ in
       disable = [
         "servicelb"
         "traefik"
-        "metrics-server"
       ];
       flannel-backend = "none";
       disable-network-policy = true;
