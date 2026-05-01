@@ -84,6 +84,7 @@
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
+        ./flake/checks.nix
         ./flake/devenv.nix
         ./flake/github-actions.nix
         ./flake/helper-packages.nix
