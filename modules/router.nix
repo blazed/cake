@@ -328,6 +328,23 @@ in
               iifname "lo" ip saddr != 127.0.0.0/8 drop
               iifname "lo" accept
 
+              # Standard hygiene: kill malformed/out-of-window packets and
+              # source-routed packets before any later accept rule sees them.
+              ct state invalid counter drop comment "Drop invalid conntrack state"
+              ip option lsrr exists counter drop comment "Drop loose source-routed packets"
+              ip option ssrr exists counter drop comment "Drop strict source-routed packets"
+
+              # WAN ingress bogons: nothing arriving from the internet should
+              # claim a private/loopback/link-local source. rp_filter=1
+              # covers most of this; the explicit rule documents intent.
+              iifname "${cfg.externalInterface}" ip saddr {
+                10.0.0.0/8,
+                172.16.0.0/12,
+                192.168.0.0/16,
+                127.0.0.0/8,
+                169.254.0.0/16,
+              } counter drop comment "Drop WAN ingress with bogon source"
+
               # DNS + DHCP must work on every internal segment, including
               # untrusted VLANs (router is their only resolver / DHCP server).
               iifname { ${concatStringsSep "," allInternalNames} } udp dport { 53, 67 } counter accept comment "Allow DNS+DHCP from internal"
@@ -350,6 +367,11 @@ in
 
             chain forward {
               type filter hook forward priority filter; policy drop;
+
+              # Standard hygiene, mirrored from `input`.
+              ct state invalid counter drop comment "Drop invalid conntrack state"
+              ip option lsrr exists counter drop comment "Drop loose source-routed packets"
+              ip option ssrr exists counter drop comment "Drop strict source-routed packets"
 
               # enable flow offloading for better throughput
               ip protocol { tcp, udp } flow offload @f

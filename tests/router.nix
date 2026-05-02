@@ -22,7 +22,7 @@ pkgs.testers.runNixOSTest {
         networking.interfaces.eth1.useDHCP = lib.mkForce false;
         networking.interfaces.eth1.ipv4.addresses = [
           {
-            address = "192.168.99.1";
+            address = "198.51.100.1";
             prefixLength = 24;
           }
         ];
@@ -32,7 +32,7 @@ pkgs.testers.runNixOSTest {
           externalInterface = "eth1";
           internalInterface = "eth2";
           internalInterfaceIP = "10.0.0.1";
-          upstreamDnsServers = [ "192.168.99.2" ];
+          upstreamDnsServers = [ "198.51.100.2" ];
           vlans = {
             trustedvl = {
               id = 10;
@@ -127,7 +127,7 @@ pkgs.testers.runNixOSTest {
         networking.useDHCP = lib.mkForce false;
         networking.interfaces.eth1.ipv4.addresses = [
           {
-            address = "192.168.99.2";
+            address = "198.51.100.2";
             prefixLength = 24;
           }
         ];
@@ -173,8 +173,8 @@ pkgs.testers.runNixOSTest {
         native.succeed("ping -c1 -W2 10.0.0.1")
 
     with subtest("NAT: native client can reach WAN host"):
-        native.succeed("ping -c2 -W5 192.168.99.2")
-        native.succeed("curl -sf --max-time 5 http://192.168.99.2/ | grep -q 'hi from wan'")
+        native.succeed("ping -c2 -W5 198.51.100.2")
+        native.succeed("curl -sf --max-time 5 http://198.51.100.2/ | grep -q 'hi from wan'")
 
     with subtest("DNS: router answers locally configured names"):
         native.succeed("getent hosts test.lan.darkstar.se | grep -q 192.0.2.123")
@@ -197,7 +197,7 @@ pkgs.testers.runNixOSTest {
     with subtest("WAN cannot initiate connections to LAN"):
         # target the actual reservation IP so the failure is unambiguously
         # the router's forward chain dropping the packet (not ARP/no-host).
-        wan.succeed("ip route add 10.0.0.0/24 via 192.168.99.1")
+        wan.succeed("ip route add 10.0.0.0/24 via 198.51.100.1")
         wan.fail("ping -c1 -W2 10.0.0.42")
 
     with subtest("trusted VLAN client gets a lease in the trusted subnet"):
@@ -211,10 +211,10 @@ pkgs.testers.runNixOSTest {
         )
 
     with subtest("trusted VLAN client can NAT out to WAN"):
-        trusted.succeed("curl -sf --max-time 5 http://192.168.99.2/ | grep -q 'hi from wan'")
+        trusted.succeed("curl -sf --max-time 5 http://198.51.100.2/ | grep -q 'hi from wan'")
 
     with subtest("untrusted VLAN client can NAT out to WAN"):
-        iot.succeed("curl -sf --max-time 5 http://192.168.99.2/ | grep -q 'hi from wan'")
+        iot.succeed("curl -sf --max-time 5 http://198.51.100.2/ | grep -q 'hi from wan'")
 
     with subtest("trusted-to-trusted: native client can reach trusted VLAN client"):
         # native is on the parent internalInterface (trusted by convention);
@@ -245,6 +245,12 @@ pkgs.testers.runNixOSTest {
         trusted.succeed("curl -sf --max-time 5 http://10.0.10.1:8080/ | grep -q 'router internal'")
         iot.fail("curl -sf --max-time 3 http://10.0.20.1:8080/")
 
+    with subtest("WAN bogon source drop"):
+        # spoof a private source IP arriving on WAN; the router must drop
+        # before any other rule can match.
+        wan.succeed("ip addr add 10.99.99.1/32 dev eth1")
+        wan.fail("ping -c1 -W2 -I 10.99.99.1 198.51.100.1")
+
     with subtest("nftables ruleset structure"):
         router.succeed("nft list table ip nat | grep -q 'masquerade'")
         router.succeed("nft list table ip nat | grep -q 'hook prerouting priority dstnat'")
@@ -253,5 +259,9 @@ pkgs.testers.runNixOSTest {
         # NICs don't support hardware offload); just check the flowtable
         # is declared.
         router.succeed("nft list table inet filter | grep -q 'flowtable f'")
+        # standard hygiene rules from the follow-up commit
+        router.succeed("nft list table inet filter | grep -q 'ct state invalid'")
+        router.succeed("nft list table inet filter | grep -q 'ip option'")
+        router.succeed("nft list table inet filter | grep -q 'bogon source'")
   '';
 }
