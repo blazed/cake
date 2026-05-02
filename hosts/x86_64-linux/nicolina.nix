@@ -98,7 +98,7 @@
     };
   };
 
-  services.k3s.serverAddr = "https://10.0.10.33:6443";
+  services.k3s.serverAddr = "https://10.0.10.10:6443";
   services.tailscale.auth.enable = lib.mkForce false;
 
   networking.wireguard.enable = true;

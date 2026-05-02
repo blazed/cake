@@ -35,7 +35,7 @@ in
       node-label."svccontroller.k3s.cattle.io/enablelb" = "true";
       secrets-encryption = true;
       tls-san = [
-        "10.0.10.33"
+        "10.0.10.10"
         hostName
         "${hostName}.${tailnet}.ts.net"
       ];
@@ -48,7 +48,7 @@ in
             --namespace kube-system \
             --set kubeProxyReplacement=true \
             --set socketLB.hostNamespaceOnly=true \
-            --set k8sServiceHost="10.0.10.33" \
+            --set k8sServiceHost="10.0.10.10" \
             --set k8sServicePort=6443 \
             --set enableExternalIPs=true \
             --set enableHostPort=true \
