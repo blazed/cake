@@ -94,6 +94,27 @@ jobs:
       run: |
         nix build .#packages.x86_64-linux.$PKG -L
 
+  router_test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: DeterminateSystems/nix-installer-action@v22
+      with:
+        extra-conf: |
+          accept-flake-config = true
+    - uses: cachix/cachix-action@v17
+      with:
+        name: blazed
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - run: |
+        # First pass: substitute the cached result (or build fresh if absent).
+        # --rebuild requires the output to already be in the store, so we
+        # must seed it before asking nix to re-execute and bit-compare.
+        nix build .#checks.x86_64-linux.router -L
+        # Second pass: actually run the VMs on this runner and bit-compare
+        # against the seeded output, instead of just trusting the cache.
+        nix build .#checks.x86_64-linux.router -L --rebuild
+
   # Disable until own runners
   # host_x86_64_linux:
   #   needs: hosts_x86_64_linux
@@ -120,13 +141,16 @@ jobs:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     name: Build (matrix)
-    needs: [pkg_x86_64_linux, nix_lint, nix_check]
+    needs: [pkg_x86_64_linux, nix_lint, nix_check, router_test]
     steps:
       - name: Check linting status
         if: ${{ needs.nix_lint.result != 'success' }}
         run: exit 1
       - name: Check flake check status
         if: ${{ needs.nix_check.result != 'success' }}
+        run: exit 1
+      - name: Check router test status
+        if: ${{ needs.router_test.result != 'success' }}
         run: exit 1
       # - name: Check x86_64-linux host build matrix status
       #   if: ${{ needs.host_x86_64_linux.result != 'success' }}

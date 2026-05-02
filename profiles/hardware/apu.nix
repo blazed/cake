@@ -17,7 +17,6 @@
   boot.loader.efi.canTouchEfiVariables = lib.mkForce false;
 
   boot.loader.grub.enable = true;
-  boot.loader.grub.version = 2;
   boot.loader.grub.device = "/dev/sda";
 
   boot.kernelParams = [ "console=ttyS0,115200n8" ];
