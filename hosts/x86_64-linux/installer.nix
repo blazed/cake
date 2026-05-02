@@ -12,7 +12,7 @@
   i18n.defaultLocale = "en_US.UTF-8";
   console.keyMap = "dvorak-programmer";
   time.timeZone = "Europe/Stockholm";
-  boot.kernelParams = [ "console=ttyS0" ];
+  boot.kernelParams = [ "console=ttyS0,115200n8" ];
   boot.loader.timeout = lib.mkForce 1;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.kernelPackages = pkgs.linuxPackages_latest;

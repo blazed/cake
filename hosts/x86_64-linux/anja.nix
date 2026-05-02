@@ -5,11 +5,12 @@
   ...
 }:
 {
-  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHFFeGviKto0uzeSJBZglLrAQmpwGqIQie61A6MqmiOT"; # Amelia, change me
+  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMzZVi8exDl4Rq32keNWtMdfSQj2pAM+VlnYIpkupTtD";
 
   imports = [
-    ../../profiles/hardware/apu.nix
     ../../profiles/admin-user/user.nix
+    ../../profiles/disk/btrfs-on-luks.nix
+    ../../profiles/hardware/apu.nix
     ../../profiles/server.nix
     ../../profiles/state.nix
     ../../profiles/tailscale.nix
@@ -17,79 +18,9 @@
     ../../profiles/zram.nix
   ];
 
-  # APU2 has a single small SATA SSD; skip the 64G swap partition the
-  # generic disko-btrfs profile uses (zram covers swap on this box).
-  disko.devices.disk.disk1 = {
-    device = "/dev/sda";
-    type = "disk";
-    content = {
-      type = "gpt";
-      partitions = {
-        boot = {
-          name = "boot";
-          size = "1M";
-          type = "EF02";
-        };
-        luks = {
-          size = "100%";
-          content = {
-            type = "luks";
-            name = "encrypted";
-            settings.allowDiscards = true;
-            passwordFile = "/tmp/disk.key";
-            content = {
-              type = "btrfs";
-              extraArgs = [ "-f" ];
-              subvolumes = {
-                "/root" = lib.mkIf (!config.ephemeralRoot) {
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                  ];
-                  mountpoint = "/";
-                };
-                "/nix" = {
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                  ];
-                  mountpoint = "/nix";
-                };
-                "/keep" = {
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                  ];
-                  mountpoint = "/keep";
-                };
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-  disko.devices.nodev."/" = lib.mkIf config.ephemeralRoot {
-    fsType = "tmpfs";
-    mountOptions = [
-      "size=1G"
-      "defaults"
-      "mode=755"
-    ];
-  };
-  fileSystems."/keep".neededForBoot = true;
+  disk.dosLabel = true;
 
-  ephemeralRoot = true;
-
-  boot.initrd = {
-    systemd.enable = true;
-    availableKernelModules = [
-      "ahci"
-      "ehci_pci"
-      "sd_mod"
-      "sdhci_pci"
-    ];
-  };
+  virtualisation.docker.enable = lib.mkForce false;
 
   age.secrets = {
     nextdns-profile = {
@@ -101,12 +32,9 @@
     };
   };
 
-  # Router — direct port of the pfSense config, with two intentional
-  # behavior changes: IoT (VLAN 20) and guest (VLAN 30) are now isolated
-  # from the trusted LAN (pfSense had pass-any on every interface).
   services.router = {
     enable = true;
-    externalInterface = "enp2s0";
+    externalInterface = "enp4s0";
     internalInterface = "enp3s0";
     trustedInterfaces = [
       "lan"
@@ -134,14 +62,44 @@
     };
     staticHosts = [
       {
-        mac = "24:5a:4c:5a:fe:17";
-        ip = "10.0.10.5";
-        name = "us-8-150w";
+        name = "storage01";
+        ip = "10.0.10.2";
+        mac = "00:11:32:c8:ea:df";
       }
       {
-        mac = "80:2a:a8:c6:bd:73";
-        ip = "10.0.10.6";
+        name = "us-8-150w";
+        ip = "10.0.10.5";
+        mac = "24:5a:4c:5a:fe:17";
+      }
+      {
         name = "uap-ac-pro";
+        ip = "10.0.10.6";
+        mac = "80:2a:a8:c6:bd:73";
+      }
+      {
+        name = "sophia-kvm";
+        ip = "10.0.10.8";
+        mac = "ac:1f:6b:6b:6d:32";
+      }
+      {
+        name = "sophia";
+        ip = "10.0.10.10";
+        mac = "ac:1f:6b:6b:71:c4";
+      }
+      {
+        name = "margot";
+        ip = "10.0.10.11";
+        mac = "9c:bf:0d:01:0a:d3";
+      }
+      {
+        name = "elsa";
+        ip = "10.0.10.12";
+        mac = "d0:c6:37:41:d9:ee";
+      }
+      {
+        name = "nicolina";
+        ip = "10.0.10.13";
+        mac = "24:4b:fe:98:14:aa";
       }
     ];
     dotUpstreams = [
@@ -150,27 +108,24 @@
     ];
     dotTlsAuthNameFile = config.age.secrets.nextdns-profile.path;
     dnsMasqSettings = {
-      # Match pfSense Unbound's behaviour: never fall back to the system
-      # resolver, never accept upstream replies from anywhere except the
-      # configured server, and never forward private-IP reverse lookups.
       no-resolv = true;
       bogus-priv = true;
       strict-order = true;
     };
   };
 
-  # Advertise the router as a Tailscale exit node + subnet router for
-  # the trusted LAN. The auth key is in the existing ts.age secret.
-  services.tailscale = {
-    useRoutingFeatures = "both";
-    extraUpFlags = [
-      "--advertise-exit-node"
-      "--advertise-routes=10.0.10.0/24"
-    ];
+  services.tailscale.auth = {
+    enable = true;
+    args.advertise-tags = [ "tag:server" ];
+    args.ssh = true;
+    args.accept-routes = false;
+    args.accept-dns = false;
+    args.advertise-exit-node = true;
+    args.auth-key = "file:/var/run/agenix/ts";
   };
 
   system.autoUpgrade = {
-    enable = true;
+    enable = false;
     flake = "github:blazed/cake";
     allowReboot = true;
     dates = "04:00";

@@ -80,8 +80,8 @@ let
     network = "${base}.0";
     broadcast = "${base}.255";
     netmask = cidrToNetmask prefix;
-    rangeStart = "${base}.10";
-    rangeEnd = "${base}.128";
+    rangeStart = "${base}.21";
+    rangeEnd = "${base}.254";
   };
 
   internalInterfaces = {
@@ -94,9 +94,6 @@ let
   trustedVlanNames = attrNames (filterAttrs (_: v: v.trusted) cfg.vlans);
   untrustedVlanNames = attrNames (filterAttrs (_: v: !v.trusted) cfg.vlans);
 
-  # DNS-over-TLS via local stubby. The TLS auth name is read from a runtime
-  # file (typically an agenix secret) so the NextDNS-style profile id never
-  # lands in the world-readable Nix store.
   useStubby = cfg.dotUpstreams != [ ];
   stubbyPort = 5453;
   stubbyAddress = "127.0.0.1#${toString stubbyPort}";
@@ -112,7 +109,7 @@ let
     listen_addresses:
       - 127.0.0.1@${toString stubbyPort}
     upstream_recursive_servers:
-    ${concatMapStringsSep "\n    " (addr: ''
+    ${concatMapStringsSep "\n" (addr: ''
       - address_data: ${addr}
         tls_auth_name: "@TLS_AUTH_NAME@"'') cfg.dotUpstreams}
   '';
