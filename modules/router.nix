@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -13,6 +14,7 @@ let
     mapAttrsToList
     filterAttrs
     optionalString
+    concatMapStringsSep
     flatten
     unique
     ;
@@ -92,6 +94,36 @@ let
   trustedVlanNames = attrNames (filterAttrs (_: v: v.trusted) cfg.vlans);
   untrustedVlanNames = attrNames (filterAttrs (_: v: !v.trusted) cfg.vlans);
 
+  # DNS-over-TLS via local stubby. The TLS auth name is read from a runtime
+  # file (typically an agenix secret) so the NextDNS-style profile id never
+  # lands in the world-readable Nix store.
+  useStubby = cfg.dotUpstreams != [ ];
+  stubbyPort = 5453;
+  stubbyAddress = "127.0.0.1#${toString stubbyPort}";
+  stubbyTemplate = pkgs.writeText "stubby.yml.in" ''
+    resolution_type: GETDNS_RESOLUTION_STUB
+    dns_transport_list:
+      - GETDNS_TRANSPORT_TLS
+    tls_authentication: GETDNS_AUTHENTICATION_REQUIRED
+    tls_query_padding_blocksize: 128
+    edns_client_subnet_private: 1
+    round_robin_upstreams: 1
+    idle_timeout: 10000
+    listen_addresses:
+      - 127.0.0.1@${toString stubbyPort}
+    upstream_recursive_servers:
+    ${concatMapStringsSep "\n    " (addr: ''
+      - address_data: ${addr}
+        tls_auth_name: "@TLS_AUTH_NAME@"'') cfg.dotUpstreams}
+  '';
+  stubbyRender = pkgs.writeShellScript "router-stubby-render" ''
+    set -eu
+    AUTH_NAME=$(cat ${lib.escapeShellArg (toString cfg.dotTlsAuthNameFile)})
+    umask 027
+    sed "s|@TLS_AUTH_NAME@|$AUTH_NAME|g" ${stubbyTemplate} > /run/router-dot/stubby.yml
+    chgrp router-dot /run/router-dot/stubby.yml
+  '';
+
   # The parent internalInterface is treated as trusted (it is the router's
   # own management LAN; tagged untrusted VLANs ride on top of it).
   trustedAll = unique ([ cfg.internalInterface ] ++ trustedVlanNames ++ cfg.trustedInterfaces);
@@ -106,7 +138,34 @@ in
         "9.9.9.9"
         "1.1.1.1"
       ];
-      description = "List of upstream dns servers";
+      description = ''
+        Plain-DNS upstreams. Ignored when `dotUpstreams` is non-empty
+        (in which case dnsmasq forwards to a local stubby instance).
+      '';
+    };
+    dotUpstreams = mkOption {
+      type = listOf str;
+      default = [ ];
+      description = ''
+        DNS-over-TLS upstream addresses (IPs only). When non-empty:
+          * stubby runs locally on `127.0.0.1:${toString stubbyPort}` as a
+            DoT-to-plain stub resolver;
+          * dnsmasq forwards all queries to stubby instead of
+            `upstreamDnsServers`;
+          * `dotTlsAuthNameFile` must be set.
+        Only IPv4 addresses are useful in this module's default IPv6-off
+        configuration.
+      '';
+    };
+    dotTlsAuthNameFile = mkOption {
+      type = nullOr path;
+      default = null;
+      description = ''
+        Path to a runtime-readable file (typically an agenix secret)
+        containing the TLS server-certificate hostname for `dotUpstreams`.
+        For NextDNS this is `<profile-id>.dns.nextdns.io`. The profile id
+        is account-identifying and should not live in the Nix store.
+      '';
     };
     dnsMasqSettings = mkOption {
       type = attrsOf anything;
@@ -247,6 +306,10 @@ in
           assertion = shadowed == [ ];
           message = "services.router.dnsMasqSettings cannot override keys derived from other options: ${concatStringsSep ", " shadowed}. Use the dedicated options instead.";
         }
+        {
+          assertion = !useStubby || cfg.dotTlsAuthNameFile != null;
+          message = "services.router.dotUpstreams requires dotTlsAuthNameFile to be set (the file holds the TLS auth name as it is account-identifying).";
+        }
       ]
       ++ mapAttrsToList (name: v: {
         assertion = v.prefixLength == 24;
@@ -273,10 +336,43 @@ in
         inherit (conf) id interface;
       }) cfg.vlans;
 
+      users.users.router-dot = mkIf useStubby {
+        isSystemUser = true;
+        group = "router-dot";
+        description = "stubby DoT resolver fronting services.router";
+      };
+      users.groups.router-dot = mkIf useStubby { };
+
+      systemd.services.router-dot-resolver = mkIf useStubby {
+        description = "Stubby DoT stub resolver for services.router";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
+        before = [ "dnsmasq.service" ];
+        serviceConfig = {
+          Type = "simple";
+          User = "router-dot";
+          Group = "router-dot";
+          # ExecStartPre+ runs as root so it can read the agenix-secret
+          # auth name; the rendered config is mode 0640 owned by
+          # root:router-dot so stubby (running as router-dot) can read it
+          # but it stays out of world-readable space.
+          ExecStartPre = "+${stubbyRender}";
+          ExecStart = "${pkgs.stubby}/bin/stubby -C /run/router-dot/stubby.yml";
+          Restart = "on-failure";
+          RuntimeDirectory = "router-dot";
+          RuntimeDirectoryMode = "0750";
+          NoNewPrivileges = true;
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          PrivateTmp = true;
+          AmbientCapabilities = "";
+        };
+      };
+
       services.dnsmasq.enable = true;
       services.dnsmasq.resolveLocalQueries = true;
       services.dnsmasq.settings = {
-        server = cfg.upstreamDnsServers;
+        server = if useStubby then [ stubbyAddress ] else cfg.upstreamDnsServers;
         domain = cfg.localDomain;
         local = "/${cfg.localDomain}/";
         # Listen on lo (so the router itself can resolve via 127.0.0.1 from
