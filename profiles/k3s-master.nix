@@ -55,12 +55,43 @@ in
             --set enableNodePort=true \
             --set ipam.operator.clusterPoolIPv4PodCIDRList=${settings.cluster-cidr} \
             --set gatewayAPI.enabled=true \
-            --set encryption.enabled=false > "$out"/cilium.yaml
+            --set encryption.enabled=false \
+            --set l2announcements.enabled=true \
+            --set k8sClientRateLimit.qps=10 \
+            --set k8sClientRateLimit.burst=20 > "$out"/cilium.yaml
+        '';
+        ciliumL2 = pkgs.writeText "cilium-l2.yaml" ''
+          ---
+          apiVersion: cilium.io/v2
+          kind: CiliumLoadBalancerIPPool
+          metadata:
+            name: lan-pool
+          spec:
+            blocks:
+              - start: "10.0.10.14"
+                stop: "10.0.10.20"
+          ---
+          apiVersion: cilium.io/v2
+          kind: CiliumL2AnnouncementPolicy
+          metadata:
+            name: lan-announce
+          spec:
+            serviceSelector:
+              matchLabels:
+                cilium.io/l2-announce: "true"
+            nodeSelector:
+              matchLabels:
+                kubernetes.io/os: linux
+            interfaces:
+              - "^eno[1-9]$"
+            externalIPs: false
+            loadBalancerIPs: true
         '';
       in
       {
         kured = "${pkgs.kured-yaml}/kured.yaml";
         cilium = "${cilium}/cilium.yaml";
+        cilium-l2 = "${ciliumL2}";
       };
   };
 }

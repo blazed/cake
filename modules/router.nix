@@ -226,6 +226,35 @@ in
         };
       });
     };
+    portForwards = mkOption {
+      default = [ ];
+      description = ''
+        WAN-side port forwards. Each entry DNATs traffic arriving on the
+        external interface to an internal address:port. The forward chain
+        accepts DNAT'd traffic via `ct status dnat`, so no separate filter
+        rule is required per forward.
+      '';
+      type = listOf (submodule {
+        options = {
+          protocol = mkOption {
+            type = enum [ "tcp" "udp" ];
+            default = "tcp";
+            description = "Transport protocol.";
+          };
+          port = mkOption {
+            type = port;
+            description = "External (WAN-side) port to listen on.";
+          };
+          target = mkOption {
+            type = str;
+            description = ''
+              Internal target as `IP:PORT` (e.g. `10.0.10.14:443`). nftables
+              syntax allows the destination port to differ from the WAN port.
+            '';
+          };
+        };
+      });
+    };
     vlans = mkOption {
       default = { };
       type = attrsOf (
@@ -472,6 +501,12 @@ in
               iifname { ${concatStringsSep "," allInternalNames} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
               iifname { "${cfg.externalInterface}" } oifname { ${concatStringsSep "," allInternalNames} } ct state { established, related } counter accept comment "Allow established back to LANs"
 
+              # DNAT'd WAN ingress: prerouting rewrites destination, here we
+              # accept the resulting forward. `ct status dnat` is set by nftables
+              # whenever the connection's first packet was DNAT'd, so this
+              # implicitly trusts only the explicit `services.router.portForwards`.
+              iifname "${cfg.externalInterface}" ct status dnat counter accept comment "Allow DNAT'd WAN ingress"
+
               # Free routing within the trusted zone (parent <-> trusted VLAN,
               # trusted VLAN <-> trusted VLAN, etc.).
               iifname { ${concatStringsSep "," trustedAll} } oifname { ${concatStringsSep "," trustedAll} } counter accept comment "Allow trusted-to-trusted forwarding"
@@ -486,6 +521,9 @@ in
           table ip nat {
             chain prerouting {
               type nat hook prerouting priority dstnat; policy accept;
+              ${concatMapStringsSep "\n              " (
+                f: ''iifname "${cfg.externalInterface}" ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
+              ) cfg.portForwards}
             }
 
             chain postrouting {
