@@ -99,10 +99,32 @@
             '';
           };
 
+          "qwen3.6:27b-q8" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.6-27B-GGUF:UD-Q8_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              -ngl 999
+              -fa on
+              --cache-type-k bf16 --cache-type-v bf16
+              --mlock
+              --temp 0.6
+              --top-p 0.95
+              --top-k 20
+              --min-p 0.00
+              --repeat-penalty 1.0
+              --jinja
+            '';
+          };
+
           "qwen3.6:27b-q4" = {
             cmd = ''
               ${llama-server}
-              -hf unsloth/Qwen3.7-27B-GGUF:UD-Q4_K_XL
+              -hf unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL
               --port ''${PORT}
               --ctx-size 200000
               --batch-size 2048
