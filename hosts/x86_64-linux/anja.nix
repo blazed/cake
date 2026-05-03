@@ -112,13 +112,16 @@
         target = "10.0.10.14:443";
         hairpin = true;
       }
-      # SSH → shares VIP .14 with istio-gateway via Cilium's
-      # lbipam.cilium.io/sharing-key. exsules-ssh listens on :22, istio
-      # gateway on :443 — non-overlapping ports, one VIP, one DNS entry
-      # per hostname.
+      # SSH → exsules-ssh on its own VIP .15. Cilium's lbipam can't
+      # share a VIP across services that select different pods when
+      # both run with externalTrafficPolicy=Local (the announcing node
+      # might not have local pods for both), so HTTPS and SSH stay on
+      # separate VIPs. Hostnames that only do HTTPS get a dnsmasq
+      # override to .14 below; hostnames doing both protocols (e.g.
+      # git.exsules.dev) keep no override and hairpin from LAN.
       {
         port = 22;
-        target = "10.0.10.14:22";
+        target = "10.0.10.15:22";
         hairpin = true;
       }
     ];
@@ -132,19 +135,22 @@
       bogus-priv = true;
       strict-order = true;
       # Split DNS for hostnames whose public A record points at our WAN
-      # IP. LAN clients using anja's dnsmasq resolve directly to the
-      # internal VIP, skipping the router entirely — so the application
-      # backend sees the real LAN client IP instead of the router's IP
-      # (which is what hairpin SNAT would force). External traffic is
-      # unaffected — public DNS still hands out the WAN IP, and the
-      # WAN-side prerouting DNAT routes it as before.
+      # IP and only serve HTTPS (port 443). LAN clients resolve directly
+      # to the istio-gateway VIP, skipping anja entirely — backend sees
+      # the real LAN client IP instead of anja's IP (which is what
+      # hairpin SNAT would otherwise force).
       #
-      # Hairpin remains enabled in `services.router.portForwards` as a
-      # safety net for LAN clients that bypass anja's dnsmasq.
+      # Hostnames that *also* serve SSH (e.g. git.exsules.dev) are
+      # intentionally NOT overridden: SSH lives on a separate VIP (.15)
+      # because Cilium lbipam can't share a VIP across services with
+      # different pod sets under externalTrafficPolicy=Local, and DNS
+      # can only return one IP per hostname. LAN traffic to those
+      # hostnames goes via hairpin (loses LAN client IP at the backend
+      # — appears as anja's 10.0.10.1); external traffic still resolves
+      # to the WAN IP and the WAN-side DNAT preserves real client IP.
       address = [
         "/registry.exsules.com/10.0.10.14"
         "/git.exsules.com/10.0.10.14"
-        "/git.exsules.dev/10.0.10.14"
       ];
     };
   };
