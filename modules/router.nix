@@ -90,9 +90,13 @@ let
   // mapAttrs (_: conf: mkInternal conf.prefixLength conf.address) cfg.vlans;
 
   internalInterfaceNames = attrNames internalInterfaces;
+  internalInterfaceAddresses = map (n: n.address) (builtins.attrValues internalInterfaces);
 
   trustedVlanNames = attrNames (filterAttrs (_: v: v.trusted) cfg.vlans);
   untrustedVlanNames = attrNames (filterAttrs (_: v: !v.trusted) cfg.vlans);
+
+  hairpinForwards = builtins.filter (f: f.hairpin) cfg.portForwards;
+  hasHairpin = hairpinForwards != [ ];
 
   useStubby = cfg.dotUpstreams != [ ];
   stubbyPort = 5453;
@@ -250,6 +254,30 @@ in
             description = ''
               Internal target as `IP:PORT` (e.g. `10.0.10.14:443`). nftables
               syntax allows the destination port to differ from the WAN port.
+            '';
+          };
+          hairpin = mkOption {
+            type = bool;
+            default = false;
+            description = ''
+              Enable NAT reflection (hairpin). When true, LAN-side traffic
+              destined for any of anja's IPs other than the configured
+              internal-interface addresses (typically the WAN IP) on this
+              port is also DNAT'd to `target`, with a postrouting masquerade
+              so the reply comes back through the router.
+
+              Note that hairpin necessarily SNATs the LAN client to the
+              router's IP — the application backend will see the router as
+              the source, not the real LAN client. To preserve real LAN
+              client IP, prefer adding a `services.dnsmasq.settings.address`
+              entry that resolves the public hostname to the internal VIP
+              directly, skipping the router on the LAN-side path entirely.
+
+              The `ip daddr != <internalInterfaceAddresses>` guard prevents
+              hijacking traffic to the router's own LAN IPs (e.g. `ssh
+              <router>` from the LAN keeps reaching local SSHD), but you
+              should still avoid enabling hairpin on ports the router
+              binds locally on the WAN interface.
             '';
           };
         };
@@ -524,11 +552,29 @@ in
               ${concatMapStringsSep "\n              " (
                 f: ''iifname "${cfg.externalInterface}" ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
               ) cfg.portForwards}
+              ${optionalString hasHairpin (concatMapStringsSep "\n              " (
+                # Hairpin DNAT: LAN-arriving traffic for any local IP that
+                # isn't an internal-interface address (i.e. the WAN IP) on
+                # this port also gets DNAT'd to `target`. The `ip daddr !=`
+                # set keeps `LAN-client → router-LAN-IP:<port>` reaching the
+                # router's own services rather than being hijacked.
+                f: ''iifname { ${concatStringsSep "," allInternalNames} } ip daddr != { ${concatStringsSep "," internalInterfaceAddresses} } fib daddr type local ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
+              ) hairpinForwards)}
             }
 
             chain postrouting {
               type nat hook postrouting priority srcnat; policy accept;
               oifname "${cfg.externalInterface}" masquerade
+              ${optionalString hasHairpin ''
+                # Hairpin SNAT: a LAN-arriving connection that was DNAT'd in
+                # prerouting is now exiting back to a LAN interface. Without
+                # masquerade the backend would reply directly to the LAN
+                # client (whose source was unchanged), and the client's TCP
+                # stack would reject the reply as coming from the wrong
+                # address. Masquerading sources the connection from the
+                # router so replies traverse it on the way back.
+                ct status dnat iifname { ${concatStringsSep "," allInternalNames} } oifname { ${concatStringsSep "," allInternalNames} } counter masquerade comment "Hairpin NAT reflection"
+              ''}
             }
           }
 

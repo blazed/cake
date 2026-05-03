@@ -103,15 +103,23 @@
       }
     ];
     portForwards = [
-      # HTTPS → istio-gateway (Cilium L2 VIP)
+      # HTTPS → istio-gateway (Cilium L2 VIP). Hairpin enabled as a
+      # safety net for LAN clients that bypass anja's dnsmasq (e.g.
+      # browsers using DoH); known WAN-pointing hostnames have explicit
+      # `dnsMasqSettings.address` overrides below to keep real LAN IPs.
       {
         port = 443;
         target = "10.0.10.14:443";
+        hairpin = true;
       }
-      # SSH → exsules-ssh (Cilium L2 VIP)
+      # SSH → shares VIP .14 with istio-gateway via Cilium's
+      # lbipam.cilium.io/sharing-key. exsules-ssh listens on :22, istio
+      # gateway on :443 — non-overlapping ports, one VIP, one DNS entry
+      # per hostname.
       {
         port = 22;
-        target = "10.0.10.15:22";
+        target = "10.0.10.14:22";
+        hairpin = true;
       }
     ];
     dotUpstreams = [
@@ -123,6 +131,21 @@
       no-resolv = true;
       bogus-priv = true;
       strict-order = true;
+      # Split DNS for hostnames whose public A record points at our WAN
+      # IP. LAN clients using anja's dnsmasq resolve directly to the
+      # internal VIP, skipping the router entirely — so the application
+      # backend sees the real LAN client IP instead of the router's IP
+      # (which is what hairpin SNAT would force). External traffic is
+      # unaffected — public DNS still hands out the WAN IP, and the
+      # WAN-side prerouting DNAT routes it as before.
+      #
+      # Hairpin remains enabled in `services.router.portForwards` as a
+      # safety net for LAN clients that bypass anja's dnsmasq.
+      address = [
+        "/registry.exsules.com/10.0.10.14"
+        "/git.exsules.com/10.0.10.14"
+        "/git.exsules.dev/10.0.10.14"
+      ];
     };
   };
 
