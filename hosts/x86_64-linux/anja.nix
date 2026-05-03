@@ -166,10 +166,14 @@
   };
 
   system.autoUpgrade = {
-    enable = false;
+    enable = true;
     flake = "github:blazed/cake";
     allowReboot = true;
-    dates = "04:00";
+    # Cluster nodes upgrade between 04:00 and 06:00 (sophia / margot /
+    # elsa, in that order). anja goes last, after the cluster has
+    # finished, so a router reboot can never interrupt a node mid-rebuild
+    # by killing its substituter network access.
+    dates = "07:00";
     randomizedDelaySec = "5min";
     enableSentinel = true;
   };
