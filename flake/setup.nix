@@ -29,6 +29,11 @@
               name: _: ((match "nu-.*" name == null) && (match "nu_.*" name == null))
             ) config.packages)
           )
+          (_final: prev: {
+            openldap = prev.openldap.overrideAttrs {
+              doCheck = !prev.stdenv.hostPlatform.isi686;
+            };
+          })
         ];
       };
     };
