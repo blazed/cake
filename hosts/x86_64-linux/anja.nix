@@ -11,12 +11,23 @@
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
     ../../profiles/hardware/apu.nix
+    ../../profiles/observability.nix
     ../../profiles/server.nix
     ../../profiles/state.nix
     ../../profiles/tailscale.nix
     ../../profiles/uuid_disk_crypt.nix
     ../../profiles/zram.nix
   ];
+
+  modules.observability = {
+    enable = true;
+    # Loki is exposed on the tailnet by the cluster's tailscale operator
+    # (see exsules-infra-argocd-apps services/loki). The hostname resolves
+    # via the dnsForwarders rule below — anja's dnsmasq sends `*.ts.net`
+    # to tailscale's MagicDNS so we don't need accept-dns=true on the
+    # tailscale auth (which would clash with running dnsmasq locally).
+    lokiURL = "http://loki.tailef5cf.ts.net:3100/loki/api/v1/push";
+  };
 
   disk.dosLabel = true;
 
@@ -130,6 +141,14 @@
       "45.90.30.0"
     ];
     dotTlsAuthNameFile = config.age.secrets.nextdns-profile.path;
+    # Forward the tailscale magic-DNS suffix to the tailscale resolver
+    # itself so internal services exposed via the tailscale operator
+    # (`*.tailef5cf.ts.net`) resolve from anja without having to
+    # `accept-dns=true` on the tailscale auth (which would clash with
+    # running our own dnsmasq on this host).
+    dnsForwarders = {
+      "tailef5cf.ts.net" = "100.100.100.100";
+    };
     dnsMasqSettings = {
       no-resolv = true;
       bogus-priv = true;

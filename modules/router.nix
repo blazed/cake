@@ -144,6 +144,21 @@ in
         (in which case dnsmasq forwards to a local stubby instance).
       '';
     };
+    dnsForwarders = mkOption {
+      type = attrsOf str;
+      default = { };
+      example = {
+        "tailef5cf.ts.net" = "100.100.100.100";
+      };
+      description = ''
+        Per-domain DNS forwarders, rendered as dnsmasq
+        `server=/<domain>/<upstream>` directives. Useful for splitting
+        a specific domain (e.g. tailscale's MagicDNS suffix) off to a
+        dedicated upstream while leaving the rest of the resolver
+        chain untouched. Coexists with `upstreamDnsServers` /
+        `dotUpstreams` — those handle everything else.
+      '';
+    };
     dotUpstreams = mkOption {
       type = listOf str;
       default = [ ];
@@ -426,7 +441,9 @@ in
       services.dnsmasq.enable = true;
       services.dnsmasq.resolveLocalQueries = true;
       services.dnsmasq.settings = {
-        server = if useStubby then [ stubbyAddress ] else cfg.upstreamDnsServers;
+        server =
+          (if useStubby then [ stubbyAddress ] else cfg.upstreamDnsServers)
+          ++ (mapAttrsToList (domain: srv: "/${domain}/${srv}") cfg.dnsForwarders);
         domain = cfg.localDomain;
         local = "/${cfg.localDomain}/";
         # Listen on lo (so the router itself can resolve via 127.0.0.1 from
