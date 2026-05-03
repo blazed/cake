@@ -71,7 +71,7 @@ in
               - start: "10.0.10.14"
                 stop: "10.0.10.20"
           ---
-          apiVersion: cilium.io/v2
+          apiVersion: cilium.io/v2alpha1
           kind: CiliumL2AnnouncementPolicy
           metadata:
             name: lan-announce
