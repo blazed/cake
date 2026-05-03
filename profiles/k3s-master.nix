@@ -83,7 +83,7 @@ in
               matchLabels:
                 kubernetes.io/os: linux
             interfaces:
-              - "^eno[1-9]$"
+              - "^(eth0|enp4s0)$"
             externalIPs: false
             loadBalancerIPs: true
         '';
