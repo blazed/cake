@@ -102,6 +102,18 @@
         mac = "24:4b:fe:98:14:aa";
       }
     ];
+    portForwards = [
+      # HTTPS → istio-gateway (Cilium L2 VIP)
+      {
+        port = 443;
+        target = "10.0.10.14:443";
+      }
+      # SSH → exsules-ssh (Cilium L2 VIP)
+      {
+        port = 22;
+        target = "10.0.10.15:22";
+      }
+    ];
     dotUpstreams = [
       "45.90.28.0"
       "45.90.30.0"
