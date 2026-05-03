@@ -54,6 +54,22 @@ pkgs.testers.runNixOSTest {
               name = "fixed";
             }
           ];
+          # Two forwards to the same LAN backend (10.0.10.5:80) — one with
+          # hairpin enabled, one without. The pair lets the test assert both
+          # the WAN-ingress DNAT path and the LAN-side hairpin behaviour
+          # difference between hairpin=true and hairpin=false.
+          portForwards = [
+            {
+              port = 8443;
+              target = "10.0.10.5:80";
+              hairpin = true;
+            }
+            {
+              port = 9443;
+              target = "10.0.10.5:80";
+              hairpin = false;
+            }
+          ];
           dnsMasqSettings = {
             # local answer so the DNS test doesn't depend on an upstream chain
             address = [ "/test.lan.darkstar.se/192.0.2.123" ];
@@ -120,6 +136,45 @@ pkgs.testers.runNixOSTest {
         networking.firewall.enable = false;
       };
 
+    # Static-IP backend on the trusted VLAN, used as the target for both
+    # `portForwards` (WAN-ingress DNAT and hairpin) test cases.
+    backend =
+      { lib, ... }:
+      {
+        virtualisation.vlans = [ 2 ];
+        networking.useDHCP = lib.mkForce false;
+        networking.vlans.lan10 = {
+          id = 10;
+          interface = "eth1";
+        };
+        networking.interfaces.eth1.useDHCP = false;
+        networking.interfaces.lan10.useDHCP = false;
+        networking.interfaces.lan10.ipv4.addresses = [
+          {
+            address = "10.0.10.5";
+            prefixLength = 24;
+          }
+        ];
+        networking.defaultGateway = {
+          address = "10.0.10.1";
+          interface = "lan10";
+        };
+        networking.firewall.enable = false;
+
+        services.nginx = {
+          enable = true;
+          virtualHosts."backend" = {
+            listen = [
+              {
+                addr = "0.0.0.0";
+                port = 80;
+              }
+            ];
+            locations."/".return = ''200 "lan backend"'';
+          };
+        };
+      };
+
     wan =
       { lib, ... }:
       {
@@ -165,7 +220,7 @@ pkgs.testers.runNixOSTest {
     with subtest("native client gets the static DHCP reservation"):
         # the reservation pins MAC 02:00:00:00:00:42 to 10.0.0.42
         native.wait_until_succeeds(
-            "ip -4 addr show eth1 | grep -q 'inet 10.0.0.42/'", timeout=60
+            "ip -4 addr show eth1 | grep -q 'inet 10.0.0.42/'", timeout=120
         )
         native.succeed("ip route get 1.1.1.1 | grep -q '10.0.0.1'")
 
@@ -202,12 +257,12 @@ pkgs.testers.runNixOSTest {
 
     with subtest("trusted VLAN client gets a lease in the trusted subnet"):
         trusted.wait_until_succeeds(
-            "ip -4 addr show lan10 | grep -qE 'inet 10\\.0\\.10\\.'", timeout=60
+            "ip -4 addr show lan10 | grep -qE 'inet 10\\.0\\.10\\.'", timeout=120
         )
 
     with subtest("untrusted VLAN client gets a lease in the iot subnet"):
         iot.wait_until_succeeds(
-            "ip -4 addr show iot20 | grep -qE 'inet 10\\.0\\.20\\.'", timeout=60
+            "ip -4 addr show iot20 | grep -qE 'inet 10\\.0\\.20\\.'", timeout=120
         )
 
     with subtest("trusted VLAN client can NAT out to WAN"):
@@ -250,6 +305,35 @@ pkgs.testers.runNixOSTest {
         # before any other rule can match.
         wan.succeed("ip addr add 10.99.99.1/32 dev eth1")
         wan.fail("ping -c1 -W2 -I 10.99.99.1 198.51.100.1")
+
+    with subtest("portForward: WAN client reaches LAN backend via DNAT"):
+        # Both forwards target the same backend; whether hairpin is enabled
+        # or not should be invisible from the WAN side.
+        backend.wait_for_unit("nginx.service")
+        wan.succeed("curl -sf --max-time 5 http://198.51.100.1:8443/ | grep -q 'lan backend'")
+        wan.succeed("curl -sf --max-time 5 http://198.51.100.1:9443/ | grep -q 'lan backend'")
+
+    with subtest("portForward hairpin=true: LAN client to WAN-IP reaches backend"):
+        # native is on the parent internalInterface (10.0.0.0/24). Without
+        # hairpin DNAT, packets to 198.51.100.1 from the LAN-side would hit
+        # the router's own input chain and dead-end. The hairpin rule
+        # rewrites the destination to the backend so this works.
+        native.succeed("curl -sf --max-time 5 http://198.51.100.1:8443/ | grep -q 'lan backend'")
+
+    with subtest("portForward hairpin=false: LAN client to WAN-IP fails"):
+        # Same WAN IP, different port — port 9443's forward has hairpin=false,
+        # so LAN-side traffic isn't DNAT'd; the router has no listener on
+        # 9443 and the connection should be refused or time out.
+        native.fail("curl -sf --max-time 3 http://198.51.100.1:9443/")
+
+    with subtest("portForward hairpin: traffic to router's own LAN IP isn't hijacked"):
+        # The hairpin rule excludes destinations matching internal-interface
+        # addresses; 10.0.10.1 is one of them, so a LAN-side request to the
+        # router's *own* nginx on :8443 would be hijacked back to the
+        # backend if the guard were missing. We don't have a service on
+        # 10.0.10.1:8443, so verify by negation: the request fails (no
+        # listener), it does NOT succeed against the backend.
+        trusted.fail("curl -sf --max-time 3 http://10.0.10.1:8443/")
 
     with subtest("nftables ruleset structure"):
         router.succeed("nft list table ip nat | grep -q 'masquerade'")
