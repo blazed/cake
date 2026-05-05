@@ -1,6 +1,8 @@
 {
   config,
   lib,
+  adminUser,
+  pkgs,
   hostName,
   ...
 }:
@@ -21,11 +23,6 @@
 
   modules.observability = {
     enable = true;
-    # Loki is exposed on the tailnet by the cluster's tailscale operator
-    # (see exsules-infra-argocd-apps services/loki). The hostname resolves
-    # via the dnsForwarders rule below — anja's dnsmasq sends `*.ts.net`
-    # to tailscale's MagicDNS so we don't need accept-dns=true on the
-    # tailscale auth (which would clash with running dnsmasq locally).
     lokiURL = "http://loki.tailef5cf.ts.net:3100/loki/api/v1/push";
   };
 
@@ -114,22 +111,11 @@
       }
     ];
     portForwards = [
-      # HTTPS → istio-gateway (Cilium L2 VIP). Hairpin enabled as a
-      # safety net for LAN clients that bypass anja's dnsmasq (e.g.
-      # browsers using DoH); known WAN-pointing hostnames have explicit
-      # `dnsMasqSettings.address` overrides below to keep real LAN IPs.
       {
         port = 443;
         target = "10.0.10.14:443";
         hairpin = true;
       }
-      # SSH → exsules-ssh on its own VIP .15. Cilium's lbipam can't
-      # share a VIP across services that select different pods when
-      # both run with externalTrafficPolicy=Local (the announcing node
-      # might not have local pods for both), so HTTPS and SSH stay on
-      # separate VIPs. Hostnames that only do HTTPS get a dnsmasq
-      # override to .14 below; hostnames doing both protocols (e.g.
-      # git.exsules.dev) keep no override and hairpin from LAN.
       {
         port = 22;
         target = "10.0.10.15:22";
@@ -141,11 +127,6 @@
       "45.90.30.0"
     ];
     dotTlsAuthNameFile = config.age.secrets.nextdns-profile.path;
-    # Forward the tailscale magic-DNS suffix to the tailscale resolver
-    # itself so internal services exposed via the tailscale operator
-    # (`*.tailef5cf.ts.net`) resolve from anja without having to
-    # `accept-dns=true` on the tailscale auth (which would clash with
-    # running our own dnsmasq on this host).
     dnsForwarders = {
       "tailef5cf.ts.net" = "100.100.100.100";
     };
@@ -153,20 +134,6 @@
       no-resolv = true;
       bogus-priv = true;
       strict-order = true;
-      # Split DNS for hostnames whose public A record points at our WAN
-      # IP and only serve HTTPS (port 443). LAN clients resolve directly
-      # to the istio-gateway VIP, skipping anja entirely — backend sees
-      # the real LAN client IP instead of anja's IP (which is what
-      # hairpin SNAT would otherwise force).
-      #
-      # Hostnames that *also* serve SSH (e.g. git.exsules.dev) are
-      # intentionally NOT overridden: SSH lives on a separate VIP (.15)
-      # because Cilium lbipam can't share a VIP across services with
-      # different pod sets under externalTrafficPolicy=Local, and DNS
-      # can only return one IP per hostname. LAN traffic to those
-      # hostnames goes via hairpin (loses LAN client IP at the backend
-      # — appears as anja's 10.0.10.1); external traffic still resolves
-      # to the WAN IP and the WAN-side DNAT preserves real client IP.
       address = [
         "/registry.exsules.com/10.0.10.14"
         "/git.exsules.com/10.0.10.14"
@@ -184,14 +151,12 @@
     args.auth-key = "file:/var/run/agenix/ts";
   };
 
+  users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
+
   system.autoUpgrade = {
     enable = true;
     flake = "github:blazed/cake";
     allowReboot = true;
-    # Cluster nodes upgrade between 04:00 and 06:00 (sophia / margot /
-    # elsa, in that order). anja goes last, after the cluster has
-    # finished, so a router reboot can never interrupt a node mid-rebuild
-    # by killing its substituter network access.
     dates = "07:00";
     randomizedDelaySec = "5min";
     enableSentinel = true;
