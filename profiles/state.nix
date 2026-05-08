@@ -5,6 +5,8 @@
   ...
 }:
 {
+  imports = [ ./keep-prune.nix ];
+
   environment.persistence."/keep" = lib.mkIf config.ephemeralRoot {
     hideMounts = true;
     directories = [
@@ -92,6 +94,8 @@
         ".local/state/wireplumber"
         ".mail"
         ".mozilla"
+        ".omp"
+        ".pi"
         ".steam"
         ".terraform.d"
         ".var"

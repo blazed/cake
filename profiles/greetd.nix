@@ -167,7 +167,7 @@ in
     enable = true;
     restart = true;
     settings = {
-      default_session.command = "${createGreeter "${runHyprland}/bin/Hyprland" sessions}/bin/greeter";
+      default_session.command = "${createGreeter "${runSway}/bin/sway" sessions}/bin/greeter";
     };
   };
   systemd.services.greetd.serviceConfig = {
