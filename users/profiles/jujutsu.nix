@@ -1,8 +1,13 @@
 { config, pkgs, ... }:
 let
   inherit (config) userinfo;
+  allowedSignersPath = "${config.xdg.configHome}/jj/allowed_signers";
 in
 {
+  xdg.configFile."jj/allowed_signers".source = ../../secrets/allowed_signers;
+
+  programs.git.settings.gpg.ssh.allowedSignersFile = allowedSignersPath;
+
   programs.jujutsu = {
     enable = true;
     ediff = false;
@@ -54,6 +59,7 @@ in
         subprocess = true;
         private-commits = "description('wip:*') | description('draft:*') | description('\\[task:*')";
       };
+      signing.backends.ssh.allowed-signers = allowedSignersPath;
       snapshot = {
         auto-update-stale = true;
       };
