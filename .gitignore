@@ -10,3 +10,4 @@ yubikey-identity.txt
 !/secrets/**/*.nix
 !/secrets/**/*.age
 !/secrets/**/*.pub
+!/secrets/allowed_signers
