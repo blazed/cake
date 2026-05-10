@@ -38,6 +38,8 @@
   networking.interfaces.eno3.useDHCP = false;
   networking.interfaces.eno4.useDHCP = false;
 
+  services.k3s.settings.node-label."exsules.com/lan-l2" = "true";
+
   age.secrets = {
     k3s-token = {
       file = ../../secrets/k3s/token.age;

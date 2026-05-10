@@ -81,7 +81,7 @@ in
                 cilium.io/l2-announce: "true"
             nodeSelector:
               matchLabels:
-                kubernetes.io/os: linux
+                exsules.com/lan-l2: "true"
             interfaces:
               - "^(eth0|enp4s0)$"
             externalIPs: false
