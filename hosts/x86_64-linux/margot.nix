@@ -5,7 +5,7 @@
   ...
 }:
 {
-  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH1WMGkVqU0X7XM+JIPvA3vEAnmjJrHApzJYEFXY1pvw";
+  publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK+8agqRVuV1n98C5FMuzJEBl+EHQo63q+swioLs2pbE";
 
   imports = [
     ../../profiles/admin-user/user.nix
