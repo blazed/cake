@@ -159,6 +159,6 @@
     allowReboot = true;
     dates = "07:00";
     randomizedDelaySec = "5min";
-    enableSentinel = true;
+    enableSentinel = false; # not a k3s node
   };
 }
