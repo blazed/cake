@@ -47,7 +47,7 @@
     enable = true;
     flake = "github:blazed/cake";
     allowReboot = true;
-    dates = "05:00";
+    dates = "02:00";
     randomizedDelaySec = "5min";
     enableSentinel = true;
   };
