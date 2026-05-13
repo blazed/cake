@@ -157,7 +157,7 @@
     enable = true;
     flake = "github:blazed/cake";
     allowReboot = true;
-    dates = "07:00";
+    dates = "05:00";
     randomizedDelaySec = "5min";
     enableSentinel = false; # not a k3s node
   };
