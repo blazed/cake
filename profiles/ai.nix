@@ -7,12 +7,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "211";
+      version = "212";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-pX2Wrat0ETgRJgxNvZeZIVMLzPRMUJ3jxBd4rTc1dd0=";
+        hash = "sha256-qa4dhEj1p5I1gQmuyGotaUXiqNjv+41qmIMktDxPFf4=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -21,13 +21,13 @@
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-JHBqAQ4OtfQSEfOYCWUh1ovcINAYPJSBFu1A64h0t04=";
+      vendorHash = "sha256-QysQ7YdwJcLTziwL25j73n3tQVvzVQIFxN4GkTU8JZg=";
       passthru = oa.passthru // {
         ui = pkgs.buildNpmPackage {
           pname = "llama-swap-ui";
           inherit version src;
           sourceRoot = "${src.name}/ui-svelte";
-          npmDepsHash = "sha256-JoVpW5+Er6K81wcVZwDJ2cEEB7awUg+TGrzzmWvbaU4=";
+          npmDepsHash = "sha256-jEFbwv0z3SPCH7cOo3XDpfGXSqsfpEs3a6M3WCjmfcA=";
           postPatch = ''
             substituteInPlace vite.config.ts \
               --replace-fail "../proxy/ui_dist" "${placeholder "out"}/ui_dist"
@@ -50,12 +50,12 @@
             cudaSupport = false;
           }).overrideAttrs
             (oa: rec {
-              version = "9134";
+              version = "9151";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-sAua2PBM6oKxmn1JJFiN1SLcIJvRsBjKgxlYW5Sh2iw=";
+                hash = "sha256-oJZC2S92JKtj7LMmeQEVNmMlAWj1NuplHIx3umDr0HQ=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
