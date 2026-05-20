@@ -12,6 +12,8 @@ let
     mkOption
     mkEnableOption
     mapAttrsToList
+    mapAttrs'
+    nameValuePair
     filterAttrs
     optionalString
     concatMapStringsSep
@@ -412,31 +414,51 @@ in
       };
       users.groups.router-dot = mkIf useStubby { };
 
-      systemd.services.router-dot-resolver = mkIf useStubby {
-        description = "Stubby DoT stub resolver for services.router";
-        after = [ "network.target" ];
-        wantedBy = [ "multi-user.target" ];
-        before = [ "dnsmasq.service" ];
-        serviceConfig = {
-          Type = "simple";
-          User = "router-dot";
-          Group = "router-dot";
-          # ExecStartPre+ runs as root so it can read the agenix-secret
-          # auth name; the rendered config is mode 0640 owned by
-          # root:router-dot so stubby (running as router-dot) can read it
-          # but it stays out of world-readable space.
-          ExecStartPre = "+${stubbyRender}";
-          ExecStart = "${pkgs.stubby}/bin/stubby -C /run/router-dot/stubby.yml";
-          Restart = "on-failure";
-          RuntimeDirectory = "router-dot";
-          RuntimeDirectoryMode = "0750";
-          NoNewPrivileges = true;
-          ProtectSystem = "strict";
-          ProtectHome = true;
-          PrivateTmp = true;
-          AmbientCapabilities = "";
+      systemd.services = {
+        # Only VLAN sub-interfaces have a `<name>-netdev.service`; the
+        # parent physical NIC is brought up by udev before any service
+        # runs, so don't add a Wants= for it (would just be a
+        # "Unit not found" log spam).
+        nftables.wants = mapAttrsToList (name: _: "${name}-netdev.service") cfg.vlans;
+
+        router-dot-resolver = mkIf useStubby {
+          description = "Stubby DoT stub resolver for services.router";
+          after = [ "network.target" ];
+          wantedBy = [ "multi-user.target" ];
+          before = [ "dnsmasq.service" ];
+          serviceConfig = {
+            Type = "simple";
+            User = "router-dot";
+            Group = "router-dot";
+            # ExecStartPre+ runs as root so it can read the agenix-secret
+            # auth name; the rendered config is mode 0640 owned by
+            # root:router-dot so stubby (running as router-dot) can read it
+            # but it stays out of world-readable space.
+            ExecStartPre = "+${stubbyRender}";
+            ExecStart = "${pkgs.stubby}/bin/stubby -C /run/router-dot/stubby.yml";
+            Restart = "on-failure";
+            RuntimeDirectory = "router-dot";
+            RuntimeDirectoryMode = "0750";
+            NoNewPrivileges = true;
+            ProtectSystem = "strict";
+            ProtectHome = true;
+            PrivateTmp = true;
+            AmbientCapabilities = "";
+          };
         };
-      };
+      }
+      # Order each VLAN's netdev service after its parent's address
+      # configuration. Without this, `<vlan>-netdev.service` can race the
+      # parent and run `ip link set <vlan> up` while the parent is still
+      # admin-down, failing with "Network is down" — leaving the VLAN
+      # without an IP and dnsmasq with nothing to offer DHCP clients.
+      // mapAttrs' (
+        name: conf:
+        nameValuePair "${name}-netdev" {
+          after = [ "network-addresses-${conf.interface}.service" ];
+          requires = [ "network-addresses-${conf.interface}.service" ];
+        }
+      ) cfg.vlans;
 
       services.dnsmasq.enable = true;
       services.dnsmasq.resolveLocalQueries = true;
@@ -609,10 +631,7 @@ in
         '';
       };
 
-      # Only VLAN sub-interfaces have a `<name>-netdev.service`; the parent
-      # physical NIC is brought up by udev before any service runs, so don't
-      # add a Wants= for it (would just be a "Unit not found" log spam).
-      systemd.services.nftables.wants = mapAttrsToList (name: _: "${name}-netdev.service") cfg.vlans;
+
 
       boot.kernel.sysctl = {
         "net.ipv4.conf.all.forwarding" = true;
