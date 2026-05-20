@@ -78,6 +78,125 @@
       in
       {
         models = {
+          "qwen3.6:27b-mtp-q8" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q8_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --cache-reuse 256
+              --threads 16
+              --kv-unified
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0
+              --cache-type-v q8_0
+              --mlock
+              --temp 0.6
+              --top-p 0.95
+              --top-k 20
+              --min-p 0.00
+              --repeat-penalty 1.0
+              --jinja
+              --metrics
+              --slots
+              --spec-type draft-mtp
+              --spec-draft-n-max 2
+              --chat-template-kwargs '{"preserve_thinking":true}'
+            '';
+          };
+
+          "qwen3.6:27b-mtp-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --threads 16
+              --kv-unified
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0
+              --cache-type-v q8_0
+              --mlock
+              --temp 0.6
+              --top-p 0.95
+              --top-k 20
+              --min-p 0.00
+              --repeat-penalty 1.0
+              --jinja
+              --metrics
+              --slots
+              --spec-type draft-mtp
+              --spec-draft-n-max 2
+              --chat-template-kwargs '{"preserve_thinking":true}'
+            '';
+          };
+
+          "qwen3.6:35b-a3b-mtp-q4" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --cache-reuse 256
+              --threads 16
+              --kv-unified
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0
+              --cache-type-v q8_0
+              --mlock
+              --temp 0.6
+              --top-p 0.95
+              --top-k 20
+              --min-p 0.00
+              --repeat-penalty 1.0
+              --jinja
+              --metrics
+              --slots
+              --spec-type draft-mtp
+              --spec-draft-n-max 2
+              --chat-template-kwargs '{"preserve_thinking":true}'
+            '';
+          };
+
+          "qwen3.6:35b-a3b-mtp-q8" = {
+            cmd = ''
+              ${llama-server}
+              -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q8_K_XL
+              --port ''${PORT}
+              --ctx-size 200000
+              --batch-size 2048
+              --ubatch-size 512
+              --cache-reuse 256
+              --threads 16
+              --kv-unified
+              -ngl 999
+              -fa on
+              --cache-type-k q8_0
+              --cache-type-v q8_0
+              --mlock
+              --temp 0.6
+              --top-p 0.95
+              --top-k 20
+              --min-p 0.00
+              --repeat-penalty 1.0
+              --jinja
+              --metrics
+              --slots
+              --spec-type draft-mtp
+              --spec-draft-n-max 2
+              --chat-template-kwargs '{"preserve_thinking":true}'
+            '';
+          };
+
           "qwen3.6:35b-a3b-uncensored-hauhaucs-aggressive-q4" = {
             cmd = ''
               ${llama-server}
@@ -129,6 +248,7 @@
               --jinja
               --metrics
               --slots
+              --chat-template-kwargs '{"preserve_thinking":true}'
             '';
           };
 
@@ -155,6 +275,7 @@
               --jinja
               --metrics
               --slots
+              --chat-template-kwargs '{"preserve_thinking":true}'
             '';
           };
 
@@ -182,6 +303,7 @@
               --jinja
               --metrics
               --slots
+              --chat-template-kwargs '{"preserve_thinking":true}'
             '';
           };
 
@@ -209,6 +331,7 @@
               --jinja
               --metrics
               --slots
+              --chat-template-kwargs '{"preserve_thinking":true}'
             '';
           };
 
