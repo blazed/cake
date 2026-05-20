@@ -7,12 +7,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "213";
+      version = "216";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-B3LI2VfsNDNwj2dkCa3KSEOaWQ/4BgcsDQj7xotCtEk=";
+        hash = "sha256-PHSY4z2h406xL+EcIYyrzr4s28txO7SCsWm8hrXf+2U=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -50,19 +50,20 @@
             cudaSupport = false;
           }).overrideAttrs
             (oa: rec {
-              version = "9172";
+              version = "9247";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-n7I3XJab5CoYq1q6F4oZlbtzItdJ+f7S8GbJeNDan+s=";
+                hash = "sha256-gc5Ky5Jr9T8x1jOKmM7dWc65VnwTrZS4lZ5qv/UjCa8=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
                   find "$out" -name .git -print0 | xargs -0 rm -rf
                 '';
               };
-              npmDepsHash = "sha256-WaEePrEZ7O/7deP2KJhe0AwiSKYA8HOqETmMHUkmBe0=";
+              npmRoot = "tools/ui";
+              npmDepsHash = "sha256-Iyg8FpcTKf2UYHuK7mA3cTAqVaLcQPcS0YCa5Qf01Gc=";
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"

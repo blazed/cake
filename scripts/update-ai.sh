@@ -67,7 +67,7 @@ let pkgs = import <nixpkgs> {};
     src = ${llama_cpp_src_expr//@HASH@/$src_hash};
 in pkgs.fetchNpmDeps {
   inherit src;
-  preBuild = "pushd tools/server/webui";
+  preBuild = "pushd tools/ui";
   hash = "$FAKE_HASH";
 }
 NIX
