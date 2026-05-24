@@ -1,11 +1,25 @@
 {
   lib,
   config,
+  pkgs,
   ...
 }:
 let
   btrfsDisks = config.btrfs.disks;
   tmpfsRootSizeGb = config.tmpfsRoot.sizegb;
+  # systemd 260's 99-systemd.rules marks any CRYPT-* dm device with no
+  # detected partition table and no detected filesystem as SYSTEMD_READY=0
+  # (to avoid acting on a half-formatted encrypted volume mid-mke2fs).
+  # Our cryptkey is intentionally raw LUKS-wrapped key material, so it
+  # always matches that rule and wedges the cryptkey -> encrypted_root
+  # chain: dev-mapper-cryptkey.device never activates, encrypted_root
+  # waits forever, and /dev/disk/by-label/root times out in initrd.
+  # Shipped as 999-* so it sorts *after* 99-systemd.rules; the alternative
+  # `boot.initrd.services.udev.rules` only writes 99-local.rules, which
+  # sorts before 99-systemd.rules and is overwritten by it.
+  cryptkeySystemdReadyOverride = pkgs.writeTextDir "lib/udev/rules.d/999-cryptkey-systemd-ready.rules" ''
+    SUBSYSTEM=="block", ENV{DM_NAME}=="cryptkey", ENV{SYSTEMD_READY}="1"
+  '';
 in
 {
   fileSystems."/" = {
@@ -52,6 +66,8 @@ in
     "btrfs"
     "vfat"
   ];
+
+  boot.initrd.services.udev.packages = [ cryptkeySystemdReadyOverride ];
 
   boot.initrd.luks.devices =
     lib.recursiveUpdate
