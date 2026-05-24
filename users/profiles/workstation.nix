@@ -12,9 +12,6 @@ in
   ]
   ++ [
     ./chromium.nix
-    # ./easyeffects.nix
-    ./hyprland.nix
-    # ./kanshi.nix
     ./lutris.nix
     ./obs.nix
     ./pueue.nix

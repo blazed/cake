@@ -217,6 +217,11 @@ in
           natural_scroll = "true";
           tap = "true";
         };
+        "2362:628:PIXA3854:00_093A:0274_Touchpad" = {
+          dwt = "true";
+          natural_scroll = "true";
+          tap = "true";
+        };
       };
 
       output = {
@@ -305,31 +310,31 @@ in
         "${modifier}+z" = "exec persway change-layout stack-main --size 70";
         "${modifier}+c" = "exec persway change-layout stack-main --size 70 --stack-layout tiled";
 
-        "${modifier}+Shift+s" = ''exec ${screenshot}/bin/screenshot'';
+        "${modifier}+Shift+s" = "exec ${screenshot}/bin/screenshot";
 
         "${modifier}+Escape" = ''mode "(p)oweroff, (s)uspend, (h)ibernate, (r)eboot, (l)ogout"'';
         "${modifier}+x" = ''mode "disabled keybindings"'';
         "${modifier}+r" = ''mode "resize"'';
 
-        "${modifier}+Shift+x" = ''exec ${swaylockEffects}/bin/swaylock-effects'';
+        "${modifier}+Shift+x" = "exec ${swaylockEffects}/bin/swaylock-effects";
 
-        "${modifier}+i" = ''exec ${pkgs.sway}/bin/swaymsg inhibit_idle open'';
-        "${modifier}+Shift+i" = ''exec ${pkgs.sway}/bin/swaymsg inhibit_idle none'';
+        "${modifier}+i" = "exec ${pkgs.sway}/bin/swaymsg inhibit_idle open";
+        "${modifier}+Shift+i" = "exec ${pkgs.sway}/bin/swaymsg inhibit_idle none";
 
-        "${modifier}+Shift+v" = ''splith'';
+        "${modifier}+Shift+v" = "splith";
 
-        "${modifier}+Shift+a" = ''scratchpad show'';
+        "${modifier}+Shift+a" = "scratchpad show";
 
-        "${modifier}+Return" = ''exec ${terminal-bin}'';
-        "${modifier}+d" = ''exec ${pkgs.rofi}/bin/rofi -show drun'';
+        "${modifier}+Return" = "exec ${terminal-bin}";
+        "${modifier}+d" = "exec ${pkgs.rofi}/bin/rofi -show drun";
 
-        XF86AudioRaiseVolume = ''exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%'';
+        XF86AudioRaiseVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
         XF86AudioLowerVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
         XF86AudioMute = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
         XF86MonBrightnessUp = "exec light -A 5";
         XF86MonBrightnessDown = "exec light -U 5";
 
-        "${modifier}+Shift+q" = ''kill'';
+        "${modifier}+Shift+q" = "kill";
       };
 
       keycodebindings = {
