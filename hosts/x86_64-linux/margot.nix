@@ -44,7 +44,7 @@
   ];
 
   system.autoUpgrade = {
-    enable = true;
+    enable = false;
     flake = "github:blazed/cake";
     allowReboot = true;
     dates = "02:00";
