@@ -154,7 +154,7 @@
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 
   system.autoUpgrade = {
-    enable = true;
+    enable = false;
     flake = "github:blazed/cake";
     allowReboot = true;
     dates = "05:00";
