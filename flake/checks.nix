@@ -5,6 +5,7 @@
     {
       checks = pkgs.lib.optionalAttrs (system == "x86_64-linux") {
         router = pkgs.callPackage ../tests/router.nix { inherit inputs; };
+        btrfs-on-luks = pkgs.callPackage ../tests/btrfs-on-luks.nix { };
       };
     };
 }
