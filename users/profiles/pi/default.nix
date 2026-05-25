@@ -34,6 +34,12 @@ let
     "npm:@juicesharp/rpiv-todo@1.13.0"
     "npm:pi-hashline-edit@0.6.1"
     # "npm:pi-hashline-readmap@0.8.14"
+    # Pure-HTTP web search + fetch (no browser) — jail-friendly. Non-secret config
+    # is ~/.pi/web-search.json (below); web_search uses Exa, whose key comes from
+    # the exa-api-key agenix secret, injected into the jail by the pi spec in
+    # jailed-agents-builders.nix (env overrides the file, so the key stays out of
+    # the Nix store).
+    "npm:pi-web-access@0.10.7"
   ];
 
   # Extra SKILL dirs beyond the auto-discovered ~/.pi/agent/skills + ~/.agents/skills:
@@ -71,6 +77,21 @@ let
   models = {
     providers = { };
   };
+
+  # pi-web-access config (~/.pi/web-search.json — directly under ~/.pi, NOT
+  # ~/.pi/agent). Non-secret settings only; the Exa API key is supplied via env
+  # (agenix → jail), which the package treats as overriding this file, so the
+  # secret never lands in the Nix store.
+  webSearch = {
+    provider = "exa";
+    allowBrowserCookies = false; # keep it pure-HTTP; never spawn Chromium
+    # Autonomous agent: skip the interactive "curator" review UI and its extra
+    # summarization step. "none" returns raw results straight to the agent (which
+    # summarizes them itself). This also avoids needing a Gemini/Anthropic key for
+    # searchModel/summaryModel — so those are deliberately left unset, keeping Exa
+    # the only required key.
+    workflow = "none";
+  };
 in
 {
   home.packages = [
@@ -92,6 +113,7 @@ in
   home.file.".pi/agent/AGENTS.md".source = ./AGENTS.md;
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
+  home.file.".pi/web-search.json".text = builtins.toJSON webSearch;
 
   # settings.json must be WRITABLE (Pi appends lastChangelogVersion). Install a
   # real copy from the generated store file; re-copied each switch so Nix wins.
