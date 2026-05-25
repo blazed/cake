@@ -18,6 +18,7 @@ in
     ./firefox.nix
     ./git.nix
     ./gitui.nix
+    ./jailed-agents.nix
     ./jujutsu.nix
     ./mergiraf.nix
     ./neovim.nix
