@@ -32,6 +32,8 @@
     };
     cilium-chart.url = "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.18.9.tgz";
     cilium-chart.flake = false;
+    claude-code.url = "github:sadjow/claude-code-nix";
+    claude-code.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
     devenv.inputs.flake-compat.follows = "flake-compat";
     devenv.inputs.nixpkgs.follows = "nixpkgs";
@@ -49,8 +51,11 @@
     home-manager.url = "github:nix-community/home-manager";
     hyprland.url = "github:hyprwm/Hyprland";
     impermanence.url = "github:nix-community/impermanence";
+    jail-nix.url = "sourcehut:~alexdavid/jail.nix";
     kured.flake = false;
     kured.url = "github:kubereboot/kured";
+    llm-agents.url = "github:numtide/llm-agents.nix";
+    llm-agents.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
