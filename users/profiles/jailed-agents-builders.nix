@@ -182,6 +182,17 @@ let
         "~/.agents"
         "~/.pi"
       ];
+      # agent-browser is installed unjailed via the pi profile, but it lives on the
+      # host's home-manager PATH (e.g. /etc/profiles/per-user/.../bin) which isn't
+      # bound in the jail, so `agent-browser` isn't found inside jailed-pi. Re-add
+      # its store bin to the in-jail PATH at runtime. This add-runtime is appended
+      # AFTER forwardHostEnv's PATH setenv (extra runs after common), so it wins; we
+      # re-include devToolsPath so the curated dev tools stay on PATH. The bundled
+      # Chromium is invoked by absolute path (wrapper env) via the ro /nix/store
+      # mount — though launching it under bubblewrap may need extra sandbox perms.
+      extra = c: [
+        (c.add-runtime ''RUNTIME_ARGS+=(--setenv PATH "${llm.agent-browser}/bin:${devToolsPath}:$PATH")'')
+      ];
     };
   };
 
