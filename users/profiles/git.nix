@@ -45,6 +45,7 @@ in
     ignores = [
       ".nvimlog" # TODO(blazed): find out why this is needed?
       ".aider*"
+      "pi-session*.html" # agent-browser session dumps (see users/profiles/pi)
     ];
   };
 

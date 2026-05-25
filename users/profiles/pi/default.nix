@@ -23,6 +23,9 @@ let
   system = pkgs.stdenv.hostPlatform.system;
   llm = inputs.llm-agents.packages.${system};
   inherit (llm) pi;
+  # Browser-automation CLI for agents (Vercel Labs). The llm-agents build bundles
+  # a Nix Chromium, so it works on NixOS with no Chrome download / nix-ld.
+  inherit (llm) agent-browser;
 
   # ---- Declarative extensibility knobs --------------------------------------
   # THIRD-PARTY extensions Pi auto-installs (settings.packages):
@@ -35,6 +38,10 @@ let
 
   # Extra SKILL dirs beyond the auto-discovered ~/.pi/agent/skills + ~/.agents/skills:
   extraSkillDirs = [
+    # Official agent-browser skill, shipped inside the package and version-matched
+    # to the CLI. A discovery stub that loads real workflows on demand via
+    # `agent-browser skills get core`.
+    "${agent-browser}/share/agent-browser/skills"
     # "~/.claude/skills"   # reuse Claude Code skills, if wanted
   ];
 
@@ -66,7 +73,10 @@ let
   };
 in
 {
-  home.packages = [ pi ];
+  home.packages = [
+    pi
+    agent-browser
+  ];
 
   # Self-authored skills & extensions (per-file symlinks; parent dirs writable).
   home.file.".pi/agent/skills" = {
