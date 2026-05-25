@@ -192,6 +192,15 @@ let
       # mount — though launching it under bubblewrap may need extra sandbox perms.
       extra = c: [
         (c.add-runtime ''RUNTIME_ARGS+=(--setenv PATH "${llm.agent-browser}/bin:${devToolsPath}:$PATH")'')
+        # pi-web-access's web_search uses Exa. The jail can't read /run/agenix, but
+        # this wrapper runs on the HOST before bwrap — so read the exa-api-key
+        # agenix secret here and inject it as EXA_API_KEY (env overrides the
+        # ~/.pi/web-search.json provider config). Best-effort: only if present.
+        (c.add-runtime ''
+          if [ -r /run/agenix/exa-api-key ]; then
+            RUNTIME_ARGS+=(--setenv EXA_API_KEY "$(${cu}/cat /run/agenix/exa-api-key)")
+          fi
+        '')
       ];
     };
   };

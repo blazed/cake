@@ -49,6 +49,10 @@
       file = ../../secrets/copilot-api-key.age;
       owner = "${toString adminUser.uid}";
     };
+    exa-api-key = {
+      file = ../../secrets/exa-api-key.age;
+      owner = "${toString adminUser.uid}";
+    };
   };
 
   home-manager = {
