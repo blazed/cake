@@ -11,6 +11,11 @@ pkgs.testers.runNixOSTest {
           inputs.impermanence.nixosModules.impermanence
         ];
 
+        # Persist /var/lib/nixos so impermanence doesn't warn about uid/gid
+        # reassignment. Real hosts get this via profiles/state.nix (under
+        # ephemeralRoot); the test node imports the router module directly.
+        environment.persistence."/keep".directories = [ "/var/lib/nixos" ];
+
         virtualisation.vlans = [
           1
           2
