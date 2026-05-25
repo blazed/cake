@@ -24,6 +24,7 @@ in
     ./neovim.nix
     ./nh.nix
     ./nushell/default.nix
+    ./pi/default.nix
     ./rbw.nix
     ./ssh.nix
     ./starship.nix
