@@ -1,0 +1,27 @@
+#!/usr/bin/env nu
+# Apply transformation to multiple revisions
+# Usage: jj-batch-desc <SED_SCRIPT_FILE> <REV1> [REV2...]
+# Example: jj-batch-desc /tmp/replacements.sed abc xyz mno
+
+def main [...args: string] {
+  if (($args | length) < 2) {
+    print -e "Usage: jj-batch-desc <SED_SCRIPT_FILE> <REV1> [REV2...]"
+    exit 1
+  }
+
+  let sed_script = ($args | first)
+  let revs = ($args | skip 1)
+
+  if not ($sed_script | path exists) {
+    print -e $"Error: sed script not found: ($sed_script)"
+    exit 1
+  }
+
+  for rev in $revs {
+    print $"Processing ($rev)..."
+    ^jj log -r $rev -n1 --no-graph -T description | ^sed -f $sed_script | ^jj describe $rev --stdin
+  }
+
+  let count = ($revs | length)
+  print $"✅ Processed ($count) revisions"
+}
