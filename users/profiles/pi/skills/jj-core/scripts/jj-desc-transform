@@ -1,0 +1,19 @@
+#!/usr/bin/env nu
+# Transform revision description through a command
+# Usage: jj-desc-transform <REV> <COMMAND...>
+# Example: jj-desc-transform @ sed 's/foo/bar/'
+# Example: jj-desc-transform mxyz awk '/^##/{print; next} {print "  "$0}'
+
+def main [...args: string] {
+  if (($args | length) < 2) {
+    print -e "Usage: jj-desc-transform <REV> <COMMAND...>"
+    exit 1
+  }
+
+  let rev = ($args | first)
+  let command = ($args | skip 1)
+  let program = ($command | first)
+  let rest = ($command | skip 1)
+
+  ^jj log -r $rev -n1 --no-graph -T description | run-external $program ...$rest | ^jj describe $rev --stdin
+}

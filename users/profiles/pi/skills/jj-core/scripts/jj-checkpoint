@@ -1,0 +1,15 @@
+#!/usr/bin/env nu
+# Create a named checkpoint before risky operations
+# Usage: jj-checkpoint [NAME]
+# Later restore with: jj op restore <op-id>
+# NAME defaults to "checkpoint"
+
+def main [name: string = "checkpoint"] {
+  let op_id = (^jj op log -n1 --no-graph -T 'self.id().short(12)' | str trim)
+
+  print $"📍 Checkpoint '($name)' at operation: ($op_id)"
+  print $"   Restore with: jj op restore ($op_id)"
+  print ""
+  print "   Current state:"
+  ^jj log -r @ -n1 -T 'change_id.shortest(8) ++ " " ++ description.first_line()'
+}

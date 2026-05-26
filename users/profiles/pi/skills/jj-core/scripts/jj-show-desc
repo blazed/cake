@@ -1,0 +1,8 @@
+#!/usr/bin/env nu
+# Get revision description only (for reading or piping)
+# Usage: jj-show-desc [REV]
+# REV defaults to @
+
+def main [rev: string = "@"] {
+  ^jj log -r $rev -n1 --no-graph -T description
+}
