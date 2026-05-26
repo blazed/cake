@@ -1,21 +1,14 @@
-# Agent instructions
+# Global Pi agent instructions
 
-This machine uses **JJ (Jujutsu)** for version control (git backend) — prefer
-`jj` over `git` for all version-control operations.
+These instructions apply to every repository on this machine. Keep them project-agnostic; repository-specific conventions belong in that repository's `AGENTS.md` and should take precedence for local code style, build commands, and tests.
 
-Add project-agnostic guidance for Pi here. Project-specific instructions belong
-in an `AGENTS.md` at the project root (Pi reads both).
+## Version control
+
+All repositories on this machine use **JJ (Jujutsu)** with a Git backend. Prefer `jj` over `git` for version-control operations: status, diff, log, commits, bookmarks/branches, fetch, push, and history inspection. Use `git` only when a tool specifically requires Git or for explicit Git interop.
 
 ## Web access
 
-For reading or searching the web, prefer **pi-web-access** (`web_search`,
-`fetch_content`) — pure HTTP, works inside the jail.
+For reading or searching the web, prefer **pi-web-access** (`web_search`, `fetch_content`) — pure HTTP, works inside the jail.
 
-`agent-browser` (interactive automation) is also installed; its Chrome is
-Nix-provided, so ignore `agent-browser doctor`'s "No Chrome binary found"
-(false negative) and **never run `agent-browser install`** (the downloaded
-Chrome can't run on NixOS). Browsing works unjailed, but in jailed-pi it can
-fail with "CDP response channel closed" — use pi-web-access there.
+`agent-browser` is also installed for interactive browser automation. Its Chrome is Nix-provided, so ignore `agent-browser doctor`'s "No Chrome binary found" warning and **never run `agent-browser install`**; downloaded Chrome builds cannot run on NixOS. Browsing works unjailed, but in jailed Pi it can fail with "CDP response channel closed" — use pi-web-access there.
 
-This file is managed by Nix (`users/profiles/pi/AGENTS.md`); edit it there and
-`switch` to update.
