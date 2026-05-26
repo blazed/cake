@@ -32,8 +32,8 @@ let
   thirdPartyPackages = [
     "npm:@juicesharp/rpiv-ask-user-question@1.13.0"
     "npm:@juicesharp/rpiv-todo@1.13.0"
-    "npm:pi-hashline-edit@0.6.1"
-    # "npm:pi-hashline-readmap@0.8.14"
+    # "npm:pi-hashline-edit@0.6.1"
+    "npm:pi-hashline-readmap@0.8.15"
     # Pure-HTTP web search + fetch (no browser) — jail-friendly. Non-secret config
     # is ~/.pi/web-search.json (below); web_search uses Exa, whose key comes from
     # the exa-api-key agenix secret, injected into the jail by the pi spec in
