@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   ...
@@ -387,6 +388,26 @@
           every = "15s";
         };
       };
+  };
+
+  systemd.services.tailscale-serve-llama-swap = {
+    description = "Expose llama-swap over Tailscale HTTPS";
+    after = [
+      "tailscaled.service"
+      "tailscale-auth.service"
+      "llama-swap.service"
+    ];
+    wants = [
+      "tailscaled.service"
+      "llama-swap.service"
+    ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${lib.getExe config.services.tailscale.package} serve --bg --https=443 http://127.0.0.1:9292";
+      ExecStop = "${lib.getExe config.services.tailscale.package} serve --https=443 off";
+    };
   };
 
   systemd.services.llama-swap.serviceConfig = {
