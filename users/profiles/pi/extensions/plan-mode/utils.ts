@@ -1,20 +1,19 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, join, normalize, resolve } from "node:path";
+import { basename, dirname, join, normalize, resolve } from "node:path";
 
-export interface PlanState {
-  active: boolean;
-  planSlug: string | null;
-  planFilePath: string | null;
-  lastTransition: "entered" | "approved" | "cancelled" | null;
-  lastApprovedPlanFilePath: string | null;
-  hasExitedPlanModeInSession: boolean;
+export interface PendingFreshImplementation {
+  planFilePath: string;
+  requestedAt: string;
 }
 
-export interface TodoItem {
-  step: number;
-  text: string;
-  completed: boolean;
+export interface PlanModeState {
+  active: boolean;
+  planFilePath: string | null;
+  planSlug: string | null;
+  lastApprovedPlanFilePath: string | null;
+  previousToolNames: string[] | null;
+  pendingFreshImplementation: PendingFreshImplementation | null;
 }
 
 const ADJECTIVES = [
@@ -47,89 +46,85 @@ const NOUNS = [
   "wave",
 ];
 
-const MUTATING_PATTERNS = [
-  /\brm\b/i,
-  /\brmdir\b/i,
-  /\bmv\b/i,
-  /\bcp\b/i,
-  /\bmkdir\b/i,
-  /\btouch\b/i,
-  /\bchmod\b/i,
-  /\bchown\b/i,
-  /\bchgrp\b/i,
-  /\bln\b/i,
-  /\btee\b/i,
-  /\btruncate\b/i,
-  /\bdd\b/i,
-  /\bshred\b/i,
-  /\b(bash|sh|zsh|fish|nu|python|python3|node|ruby|perl)\s+-c\b/i,
-  /\bnpm\s+(install|uninstall|update|ci|link|publish)\b/i,
-  /\byarn\s+(add|remove|install|publish)\b/i,
-  /\bpnpm\s+(add|remove|install|publish)\b/i,
-  /\bpip\s+(install|uninstall)\b/i,
-  /\bnix\s+(build|develop|flake\s+update|run|shell|profile|collect-garbage)\b/i,
-  /\bnh\s+(os|home)\s+switch\b/i,
-  /\bapt(-get)?\s+(install|remove|purge|update|upgrade)\b/i,
-  /\bbrew\s+(install|uninstall|upgrade)\b/i,
-  /\bgit\s+(add|commit|push|pull|merge|rebase|reset|checkout|switch|branch\s+-[dD]|stash|cherry-pick|revert|tag|init|clone)\b/i,
-  /\bjj\s+(new|describe|desc|commit|bookmark|git\s+push|git\s+fetch|rebase|squash|split|abandon|restore|undo|operation\s+restore)\b/i,
-  /\bsudo\b/i,
-  /\bsu\b/i,
-  /\bkill\b/i,
-  /\bpkill\b/i,
-  /\bkillall\b/i,
-  /\breboot\b/i,
-  /\bshutdown\b/i,
-  /\bsystemctl\s+(start|stop|restart|enable|disable)\b/i,
-  /\bservice\s+\S+\s+(start|stop|restart)\b/i,
-];
-
-
 export const DEFAULT_PLAN_ROOT = join(homedir(), ".pi", "agent", "plans");
 
-export function createInitialState(): PlanState {
+export function createInitialState(): PlanModeState {
   return {
     active: false,
-    planSlug: null,
     planFilePath: null,
-    lastTransition: null,
+    planSlug: null,
     lastApprovedPlanFilePath: null,
-    hasExitedPlanModeInSession: false,
+    previousToolNames: null,
+    pendingFreshImplementation: null,
+  };
+}
+
+export function sanitizePlanModeState(candidate: Partial<PlanModeState> | null | undefined): PlanModeState {
+  const initial = createInitialState();
+  if (!candidate || typeof candidate !== "object") return initial;
+
+  return {
+    active: candidate.active === true,
+    planFilePath: typeof candidate.planFilePath === "string" ? candidate.planFilePath : null,
+    planSlug: typeof candidate.planSlug === "string" ? candidate.planSlug : null,
+    lastApprovedPlanFilePath:
+      typeof candidate.lastApprovedPlanFilePath === "string" ? candidate.lastApprovedPlanFilePath : null,
+    previousToolNames: Array.isArray(candidate.previousToolNames)
+      ? candidate.previousToolNames.filter((name): name is string => typeof name === "string")
+      : null,
+    pendingFreshImplementation: sanitizePendingFreshImplementation(candidate.pendingFreshImplementation),
+  };
+}
+
+function sanitizePendingFreshImplementation(candidate: unknown): PendingFreshImplementation | null {
+  if (!candidate || typeof candidate !== "object") return null;
+  const value = candidate as Partial<PendingFreshImplementation>;
+  if (typeof value.planFilePath !== "string") return null;
+  return {
+    planFilePath: value.planFilePath,
+    requestedAt: typeof value.requestedAt === "string" ? value.requestedAt : new Date(0).toISOString(),
   };
 }
 
 export function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48) || "workspace";
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "workspace"
+  );
 }
 
-export function generateSlug(random: () => number = Math.random): string {
-  const adj = ADJECTIVES[Math.floor(random() * ADJECTIVES.length)];
-  const noun = NOUNS[Math.floor(random() * NOUNS.length)];
+function generateSlug(random: () => number = Math.random): string {
+  const adj = ADJECTIVES[Math.floor(random() * ADJECTIVES.length)] ?? "clear";
+  const noun = NOUNS[Math.floor(random() * NOUNS.length)] ?? "path";
   return `${adj}-${noun}`;
 }
 
-export function ensurePlanDir(cwd: string, root = DEFAULT_PLAN_ROOT): string {
+function ensurePlanDir(cwd: string, root = DEFAULT_PLAN_ROOT): string {
   const dir = join(root, slugify(basename(cwd) || cwd));
   mkdirSync(dir, { recursive: true });
   return dir;
 }
 
-export function generateUniquePlanPath(cwd: string): { slug: string; path: string } {
-  const dir = ensurePlanDir(cwd);
+export function generateUniquePlanPath(
+  cwd: string,
+  root = DEFAULT_PLAN_ROOT,
+  random: () => number = Math.random,
+): { slug: string; path: string } {
+  const dir = ensurePlanDir(cwd, root);
   for (let i = 0; i < 10; i++) {
-    const slug = generateSlug();
+    const slug = generateSlug(random);
     const path = join(dir, `${slug}.md`);
     if (!existsSync(path)) return { slug, path };
   }
-  const slug = `${generateSlug()}-${Date.now()}`;
+
+  const slug = `${generateSlug(random)}-${Date.now()}`;
   return { slug, path: join(dir, `${slug}.md`) };
 }
 
-export function readPlan(path: string | null): string | null {
+export function readPlan(path: string | null | undefined): string | null {
   if (!path) return null;
   try {
     return readFileSync(path, "utf-8");
@@ -139,120 +134,77 @@ export function readPlan(path: string | null): string | null {
 }
 
 export function writePlan(path: string, content: string): void {
-  mkdirSync(resolve(path, ".."), { recursive: true });
+  mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content, "utf-8");
 }
 
-export function samePath(a: string | undefined, b: string | null): boolean {
-  if (!a || !b) return false;
-  return normalize(resolve(a)) === normalize(resolve(b));
+export function normalizePlanTitle(title: string | null | undefined): string {
+  const normalized = (title ?? "")
+    .replace(/^#+\s*/, "")
+    .replace(/^Plan:\s*/i, "")
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/[`*_#[\]()]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return (normalized || "Approved plan").slice(0, 80);
 }
 
-export function isSafeReadOnlyCommand(command: string): boolean {
-  const trimmed = command.trim();
-  if (!trimmed) return false;
+export function extractPlanTitle(content: string | null | undefined): string {
+  if (!content) return "Approved plan";
+  const explicitPlanTitle = content.match(/^#\s+Plan:\s*(.+)$/im)?.[1];
+  if (explicitPlanTitle) return normalizePlanTitle(explicitPlanTitle);
 
-  // Shell parsing is a losing game for an extension. Use a conservative
-  // blacklist for high-confidence mutations, and otherwise rely on the plan-mode
-  // system prompt plus write/edit tool gating. This avoids blocking normal
-  // read-only discovery pipelines (`find | sed | head`, `pi --help`, etc.).
-  if (/`|\$\(/.test(trimmed)) return false;
-  if (hasUnsafeRedirection(trimmed)) return false;
+  const firstHeading = content.match(/^#\s+(.+)$/m)?.[1];
+  if (firstHeading) return normalizePlanTitle(firstHeading);
 
-  const unquoted = stripQuotedStrings(trimmed);
-  return !MUTATING_PATTERNS.some((pattern) => pattern.test(unquoted));
+  const firstLine = content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean);
+  return normalizePlanTitle(firstLine);
 }
 
-function hasUnsafeRedirection(command: string): boolean {
-  let quote: "'" | '"' | null = null;
+export function resolvePlanTargetPath(
+  targetPath: string | null | undefined,
+  cwd: string,
+  planFilePath: string | null | undefined,
+): string | null {
+  if (!targetPath || !planFilePath) return null;
+  const cleanedTarget = stripPathPrefix(targetPath);
+  const normalizedPlanPath = normalizeAbsolutePath(planFilePath);
 
-  for (let i = 0; i < command.length; i++) {
-    const char = command[i];
-
-    if (quote) {
-      if (char === quote) quote = null;
-      continue;
-    }
-
-    if (char === "'" || char === '"') {
-      quote = char;
-      continue;
-    }
-
-    if (char !== ">") continue;
-
-    const prefix = command.slice(Math.max(0, i - 2), i).trim();
-    const suffix = command.slice(i + 1).trimStart();
-    // Redirecting output to /dev/null is read-only noise suppression.
-    // This covers `>/dev/null`, `1>/dev/null`, `2>/dev/null`, and `2>&1`.
-    if (suffix.startsWith("/dev/null")) continue;
-    if ((prefix === "2" || prefix === "1") && suffix.startsWith("&1")) continue;
-
-    return true;
-  }
-
-  return false;
+  if (basename(cleanedTarget) === basename(normalizedPlanPath)) return normalizedPlanPath;
+  return normalizeAbsolutePath(resolve(cwd, cleanedTarget));
 }
 
-function stripQuotedStrings(command: string): string {
-  let output = "";
-  let quote: "'" | '"' | null = null;
-
-  for (const char of command) {
-    if (quote) {
-      if (char === quote) quote = null;
-      continue;
-    }
-
-    if (char === "'" || char === '"') {
-      quote = char;
-      output += " ";
-      continue;
-    }
-
-    output += char;
-  }
-
-  return output;
+export function isPlanFileTarget(
+  targetPath: string | null | undefined,
+  cwd: string,
+  planFilePath: string | null | undefined,
+): boolean {
+  if (!planFilePath) return false;
+  return resolvePlanTargetPath(targetPath, cwd, planFilePath) === normalizeAbsolutePath(planFilePath);
 }
 
-export function extractPlanTitle(content: string): string {
-  const title = content.match(/^#\s+Plan:\s*(.+)$/im)?.[1]?.trim();
-  return title || "Approved plan";
+export function buildPlanFileSummary(plan: string | null | undefined, planFilePath: string | null | undefined): string {
+  if (!planFilePath) return "Plan file: none";
+  const content = plan ?? "";
+  const trimmed = content.trim();
+  const lineCount = trimmed ? content.split(/\r?\n/).length : 0;
+
+  return [
+    `Plan file: ${planFilePath}`,
+    `Title: ${extractPlanTitle(content)}`,
+    `Status: ${trimmed ? "present" : "empty or missing"}`,
+    `Size: ${content.length} chars, ${lineCount} lines`,
+  ].join("\n");
 }
 
-export function extractTodoItems(content: string): TodoItem[] {
-  const items: TodoItem[] = [];
-  const taskLines = content.match(/^\s*- \[ \]\s+(.+)$/gim) ?? [];
-  for (const line of taskLines) {
-    const text = line.replace(/^\s*- \[ \]\s+/, "").trim();
-    if (text.length > 3) items.push({ step: items.length + 1, text: truncate(text), completed: false });
-  }
-
-  if (items.length > 0) return items;
-
-  const numbered = content.match(/^\s*\d+[.)]\s+(.+)$/gm) ?? [];
-  for (const line of numbered) {
-    const text = line.replace(/^\s*\d+[.)]\s+/, "").trim();
-    if (text.length > 3) items.push({ step: items.length + 1, text: truncate(text), completed: false });
-  }
-  return items;
+function stripPathPrefix(path: string): string {
+  return path.startsWith("@") ? path.slice(1) : path;
 }
 
-export function markCompletedSteps(text: string, items: TodoItem[]): number {
-  let count = 0;
-  for (const match of text.matchAll(/\[DONE:(\d+)\]/gi)) {
-    const step = Number(match[1]);
-    const item = items.find((candidate) => candidate.step === step);
-    if (item && !item.completed) {
-      item.completed = true;
-      count++;
-    }
-  }
-  return count;
-}
-
-function truncate(text: string): string {
-  const cleaned = text.replace(/`([^`]+)`/g, "$1").replace(/\s+/g, " ").trim();
-  return cleaned.length > 90 ? `${cleaned.slice(0, 87)}...` : cleaned;
+function normalizeAbsolutePath(path: string): string {
+  return normalize(resolve(path));
 }
