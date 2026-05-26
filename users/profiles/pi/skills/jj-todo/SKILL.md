@@ -1,7 +1,10 @@
 ---
 name: jj-todo
 description: Structured TODO commit workflow using JJ (Jujutsu). MUST be used at the start of any implementation task likely to involve more than one commit/revision, multi-step feature work, larger bug fixes, refactors, task DAGs, or structured progress tracking. Plans work as empty commits with [task:*] flags and dependency checks. **Requires the jj-core skill**
-version_target: "0.41.x"
+metadata:
+  keywords: ["jj", "todo", "task", "planning", "commits", "workflow"]
+  related: [jj-core, conventional-commits]
+  version_target: "0.41.x"
 ---
 
 # JJ TODO Workflow

@@ -2,7 +2,7 @@
 name: nu
 description: Nushell guidance for writing/debugging Nu scripts and pipelines, manipulating structured data, replacing jq/sed/awk one-liners, parsing command output, working with CSV/JSON/YAML/TOML, and shell automation. Use when the user asks about Nushell/nu or when adding/editing .nu scripts.
 metadata:
-  tags: ["nushell", "nu", "shell", "structured-data", "jq"]
+  keywords: ["nushell", "nu", "shell", "structured-data", "jq"]
 ---
 
 # Nushell (`nu`)

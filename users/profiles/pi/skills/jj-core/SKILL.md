@@ -1,10 +1,17 @@
 ---
 name: jj-core
 description: Expert guidance for using JJ (Jujutsu) version control system. MUST be used before any `jj` or `git` command or version-control operation in JJ-backed repositories, including status/log/diff/fetch/push/bookmark/branch/history inspection. Covers JJ operations, revsets, templates, evolog, recovery, and Git interop boundaries.
-version_target: "0.41.x"
+metadata:
+  keywords: ["jj", "jujutsu", "git", "revsets", "bookmarks", "history"]
+  related: [jj-todo, conventional-commits]
+  version_target: "0.41.x"
 ---
 
 # JJ (Jujutsu) Version Control Helper
+
+Git-compatible VCS with a different data model: no staging area; the working copy is an editable commit (`@`) that is normally auto-snapshotted before JJ commands. Untracked files can still exist.
+
+> ⚠️ **Avoid `git` mutations in a JJ repo** — they bypass JJ's operation log and can confuse colocated state. Prefer `jj` for mutating operations. Read-only Git commands like `git log`, `git diff`, `git show`, `git blame`, and `git grep` are fine.
 
 Tested against `jj 0.41.0`. Prefer current canonical command names in examples;
 short aliases are often configured by default but can be disabled or confusing in
