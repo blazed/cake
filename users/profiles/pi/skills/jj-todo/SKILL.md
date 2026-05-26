@@ -403,9 +403,23 @@ If any dependency (ancestor) has a `[task:*]` flag which is still `draft`, `todo
 
 **Note:** `jj-todo-next` checks dependencies automatically to indicate which children tasks aren't ready, but it's just here to smooth things out, not to abstract from `jj`. Inspect the graph yourself with `jj log` whenever needed.
 
+## Pi Tool (Planners & Workers)
+
+Use the `jj_todo` Pi tool for routine mechanical operations when it is available:
+
+- `action: "list"` — list `[task:*]` revisions, optionally filtered by flag
+- `action: "next"` — summarize child tasks that are ready, draft, blocked, or done
+- `action: "create"` — create a `[task:todo]` or `[task:draft]` revision without switching `@`
+- `action: "update"` — safely change a revision's `[task:*]` flag
+- `action: "check"` — summarize task counts, conflicts, and suspicious state like multiple WIP tasks
+
+The tool is for compact, structured TODO mechanics only. Keep planning, task DAG design,
+dependency judgment, and done/not-done decisions in this skill's workflow. Use `jj` via
+`bash` for full graph inspection, rebases, splits, merges, and unusual mutations.
+
 ## Helper Scripts (Planners & Workers)
 
-Helper scripts in `scripts/` are Nushell scripts (`#!/usr/bin/env nu`). Invoke with full path to avoid PATH setup.
+Helper scripts in `scripts/` are Nushell scripts (`#!/usr/bin/env nu`). They remain useful as CLI fallbacks or for manual shell workflows. Invoke with full path to avoid PATH setup.
 
 | Script                                                            | Purpose                                                                 |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------- |
