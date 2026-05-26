@@ -29,6 +29,7 @@ interface JjTodoParams {
   draft?: boolean;
   limit?: number;
   fresh?: boolean;
+  dryRun?: boolean;
 }
 
 interface CommandResult {
@@ -36,6 +37,11 @@ interface CommandResult {
   stdout: string;
   stderr: string;
   code: number;
+}
+
+interface WouldRun {
+  command: "jj";
+  args: string[];
 }
 
 interface TaskInfo {
@@ -76,6 +82,9 @@ const jjTodoParams = Type.Object({
   })),
   fresh: Type.Optional(Type.Boolean({
     description: "For read-only actions, true/default lets JJ snapshot first; false uses --ignore-working-copy.",
+  })),
+  dryRun: Type.Optional(Type.Boolean({
+    description: "Preview create/update without mutating JJ history; previews default to fresh=false.",
   })),
 });
 
@@ -120,6 +129,10 @@ function compactError(command: string[], result: CommandResult): string {
   const stdout = result.stdout.trim();
   const message = stderr || stdout || `jj exited with code ${result.code}`;
   return `${command.join(" ")}: ${message}`;
+}
+
+function wouldRun(args: string[]): WouldRun {
+  return { command: "jj", args };
 }
 
 async function runJj(
@@ -243,6 +256,7 @@ async function nextTasks(pi: ExtensionAPI, ctx: ExtensionContext, signal: AbortS
 }
 
 async function createTask(pi: ExtensionAPI, ctx: ExtensionContext, signal: AbortSignal | undefined, params: JjTodoParams) {
+  const fresh = params.dryRun ? (params.fresh ?? false) : true;
   const parent = params.parent?.trim() || "@";
   const title = params.title?.trim();
   if (!title) throw new Error("action=create requires title");
@@ -250,41 +264,77 @@ async function createTask(pi: ExtensionAPI, ctx: ExtensionContext, signal: Abort
   const flag = params.flag ?? (params.draft ? "draft" : "todo");
   if (!isTaskFlag(flag)) throw new Error(`invalid task flag: ${flag}`);
 
-  await requireJjRepo(pi, ctx, signal, true);
   const body = params.body?.trim();
   const message = body ? `[task:${flag}] ${title}\n\n${body}` : `[task:${flag}] ${title}`;
-  const result = await runJj(pi, ctx, ["new", "--no-edit", parent, "-m", message], signal, true);
+  const args = ["new", "--no-edit", parent, "-m", message];
+
+  if (params.dryRun === true) {
+    await requireJjRepo(pi, ctx, signal, fresh);
+    await taskDescription(pi, ctx, signal, parent, fresh);
+    return {
+      action: "create",
+      dryRun: true,
+      parent,
+      flag,
+      title,
+      message,
+      wouldRun: wouldRun(args),
+      previewTask: { flag, title, firstLine: `[task:${flag}] ${title}`, parent, body: body ?? "" },
+    };
+  }
+
+  await requireJjRepo(pi, ctx, signal, fresh);
+  const result = await runJj(pi, ctx, args, signal, fresh);
   if (!result.ok) throw new Error(compactError(["jj", "new", "--no-edit", parent], result));
 
   const created = result.stdout.match(/Created new commit\s+([a-z]+)/)?.[1];
-  const task = created ? await taskInfo(pi, ctx, signal, created, true) : undefined;
+  const task = created ? await taskInfo(pi, ctx, signal, created, fresh) : undefined;
   return { action: "create", parent, created, task, stdout: result.stdout.trim() };
 }
 
 async function updateTask(pi: ExtensionAPI, ctx: ExtensionContext, signal: AbortSignal | undefined, params: JjTodoParams) {
+  const fresh = params.dryRun ? (params.fresh ?? false) : true;
   const rev = params.rev?.trim() || "@";
   const flag = params.flag;
   if (!flag) throw new Error("action=update requires flag");
   if (!isTaskFlag(flag)) throw new Error(`invalid task flag: ${flag}`);
 
-  await requireJjRepo(pi, ctx, signal, true);
-  const currentDescription = await taskDescription(pi, ctx, signal, rev, true);
+  await requireJjRepo(pi, ctx, signal, fresh);
+  const currentDescription = await taskDescription(pi, ctx, signal, rev, fresh);
   const firstLine = currentDescription.split(/\r?\n/, 1)[0] ?? "";
   const current = detectTask(firstLine);
-
-  if (current.flag === flag) {
-    const task = await taskInfo(pi, ctx, signal, rev, true);
-    return { action: "update", rev, changed: false, from: current.flag, to: flag, task };
-  }
-
   const nextDescription = current.flag
     ? currentDescription.replace(/^\[task:[^\]]+\]/, `[task:${flag}]`)
     : `[task:${flag}] ${currentDescription}`;
+  const changed = current.flag !== flag;
+  const args = ["describe", rev, "-m", nextDescription];
 
-  const result = await runJj(pi, ctx, ["describe", rev, "-m", nextDescription], signal, true);
+  if (!changed) {
+    const task = await taskInfo(pi, ctx, signal, rev, fresh);
+    return { action: "update", ...(params.dryRun === true ? { dryRun: true } : {}), rev, changed: false, from: current.flag, to: flag, task };
+  }
+
+  if (params.dryRun === true) {
+    const nextFirstLine = nextDescription.split(/\r?\n/, 1)[0] ?? "";
+    const preview = detectTask(nextFirstLine);
+    return {
+      action: "update",
+      dryRun: true,
+      rev,
+      changed: true,
+      from: current.flag,
+      to: flag,
+      currentDescription,
+      nextDescription,
+      wouldRun: wouldRun(args),
+      previewTask: { flag: preview.flag, title: preview.title, firstLine: nextFirstLine, rev },
+    };
+  }
+
+  const result = await runJj(pi, ctx, args, signal, fresh);
   if (!result.ok) throw new Error(compactError(["jj", "describe", rev], result));
 
-  const task = await taskInfo(pi, ctx, signal, rev, true);
+  const task = await taskInfo(pi, ctx, signal, rev, fresh);
   return { action: "update", rev, changed: true, from: current.flag, to: flag, task };
 }
 
@@ -315,10 +365,11 @@ export default function jjTodoExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "jj_todo",
     label: "JJ TODO",
-    description: "Perform compact JJ TODO workflow operations: list task commits, find ready child tasks, create task commits, update task flags, and check task state.",
-    promptSnippet: "Manage mechanical JJ TODO workflow operations with compact structured output.",
+    description: "Perform compact JJ TODO workflow operations: list task commits, find ready child tasks, create or preview task commits, update or preview task flags, and check task state.",
+    promptSnippet: "Manage mechanical JJ TODO workflow operations with compact structured output. Use dryRun: true to preview create/update before changing JJ history.",
     promptGuidelines: [
       "Use jj_todo for routine JJ TODO mechanics such as listing tasks, creating task commits, and updating [task:*] flags; keep planning and task judgment in normal reasoning.",
+      "Use dryRun: true with create/update to preview the exact jj command and resulting metadata without mutating history.",
       "Use jj_todo read actions before verbose jj shell commands when task state summaries are enough; use bash with jj for full graph inspection, rebases, splits, and unusual mutations.",
     ],
     parameters: jjTodoParams,
