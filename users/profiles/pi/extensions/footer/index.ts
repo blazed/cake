@@ -3,7 +3,7 @@
  *
  * Replaces the built-in footer with a custom layout:
  *   Left:  MODEL | think LEVEL | VCS_BRANCH +add -del
- *   Right: tok TOKENS | $COST | PROVIDER used/total
+ *   Right: tok TOKENS | $COST | PROVIDER quota used/total
  *
  * Supports jj (Jujutsu) and git VCS backends (auto-detected).
  */
@@ -17,10 +17,13 @@ import type {
   Theme,
 } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
+import { createCodexQuotaTracker, type QuotaTracker } from "./codex-usage.ts";
+import { createOpenCodeGoQuotaTracker } from "./opencode-go-usage.ts";
 import {
   renderCost,
   renderModel,
   renderProviderContext,
+  renderQuota,
   renderThinking,
   renderTokens,
   renderVcs,
@@ -255,6 +258,24 @@ function providerLabel(provider: string | undefined): string | undefined {
   return KNOWN_PROVIDER_LABELS[provider] ?? provider;
 }
 
+function getModelProvider(model: { id?: string; provider?: string } | undefined): string | undefined {
+  return (
+    model?.provider ??
+    (model?.id?.includes("/") ? model.id.slice(0, model.id.indexOf("/")) : undefined)
+  )?.toLowerCase();
+}
+
+/** Return true when the active model uses ChatGPT Codex subscription auth. */
+function isOpenAICodexModel(model: { id?: string; provider?: string } | undefined): boolean {
+  const provider = getModelProvider(model);
+  return provider === "openai-codex" || /^openai-codex-\d+$/.test(provider ?? "");
+}
+
+/** Return true when the active model uses the OpenCode Go provider. */
+function isOpenCodeGoModel(model: { id?: string; provider?: string } | undefined): boolean {
+  return getModelProvider(model) === "opencode-go";
+}
+
 // ── Footer line builder ─────────────────────────────────────
 
 function buildLine(
@@ -262,6 +283,8 @@ function buildLine(
   ctx: ExtensionContext,
   pi: ExtensionAPI,
   footerData: ReadonlyFooterDataProvider,
+  codexQuotaTracker: QuotaTracker,
+  openCodeGoQuotaTracker: QuotaTracker,
   width: number,
 ): string {
   if (width <= 0) return "";
@@ -276,6 +299,11 @@ function buildLine(
   const modelId = ctx.model?.id;
   const modelProvider = ctx.model?.provider;
   const thinkingLevel = pi.getThinkingLevel() as string | undefined;
+  const typedModel = ctx.model as { id?: string; provider?: string } | undefined;
+  const showCodexQuotaUsage = isOpenAICodexModel(typedModel);
+  const showOpenCodeGoQuotaUsage = isOpenCodeGoModel(typedModel);
+  codexQuotaTracker.setEnabled(showCodexQuotaUsage);
+  openCodeGoQuotaTracker.setEnabled(showOpenCodeGoQuotaUsage);
 
   // ── Left segments ──
   const left: string[] = [];
@@ -298,12 +326,32 @@ function buildLine(
   const costSeg = renderCost(theme, usage.cost);
   if (costSeg) right.push(costSeg);
 
+  let quotaSeg: string | null = null;
+  if (showCodexQuotaUsage || showOpenCodeGoQuotaUsage) {
+    const quota = showOpenCodeGoQuotaUsage
+      ? openCodeGoQuotaTracker.getSnapshot()
+      : codexQuotaTracker.getSnapshot();
+    quotaSeg = renderQuota(
+      theme,
+      quota
+        ? {
+            limitId: quota.limitId,
+            limitName: quota.limitName,
+            primary: quota.primary,
+            secondary: quota.secondary,
+            tertiary: quota.tertiary ?? null,
+          }
+        : null,
+    );
+  }
+
   const pLabel = providerLabel(modelProvider);
   const provCtxSeg = renderProviderContext(
     theme,
     pLabel,
     contextUsage?.tokens ?? null,
     contextUsage?.contextWindow ?? 0,
+    quotaSeg,
   );
   if (provCtxSeg) right.push(provCtxSeg);
 
@@ -349,15 +397,34 @@ export default function footerExtension(pi: ExtensionAPI): void {
         tui.requestRender();
       });
 
+      const codexQuotaTracker = createCodexQuotaTracker(ctx, () => {
+        tui.requestRender();
+      });
+      const openCodeGoQuotaTracker = createOpenCodeGoQuotaTracker(ctx, () => {
+        tui.requestRender();
+      });
+
       const component = {
         invalidate() {
           lastVcsRefresh = 0;
         },
         render(width: number): string[] {
-          return [buildLine(theme, ctx, pi, footerData, width)];
+          return [
+            buildLine(
+              theme,
+              ctx,
+              pi,
+              footerData,
+              codexQuotaTracker,
+              openCodeGoQuotaTracker,
+              width,
+            ),
+          ];
         },
         dispose() {
           unsubscribeBranchChange();
+          codexQuotaTracker.dispose();
+          openCodeGoQuotaTracker.dispose();
         },
       };
       return component;
