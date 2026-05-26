@@ -1,0 +1,24 @@
+#!/usr/bin/env nu
+# Find revisions with status flags.
+# Usage: jj-find-flagged [FLAG]
+# FLAG: any canonical TASK_FLAGS value; omit for all flagged revs.
+
+const TASK_FLAGS = [draft todo wip blocked standby untested review done]
+
+def is-valid-flag [candidate: string] {
+  $candidate in $TASK_FLAGS
+}
+
+def main [flag: string = ""] {
+  if ($flag | is-not-empty) {
+    if not (is-valid-flag $flag) {
+      print -e $"Error: '($flag)' is not a recognized task flag"
+      print -e $"Valid flags: ($TASK_FLAGS | str join ' ')"
+      exit 1
+    }
+    let revset = "description(substring:\"[task:" + $flag + "]\")"
+    ^jj log -r $revset
+  } else {
+    ^jj log -r 'description(substring:"[task:")'
+  }
+}

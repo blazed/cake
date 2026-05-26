@@ -1,0 +1,53 @@
+#!/usr/bin/env nu
+# Update status flag in revision description.
+# Usage: jj-flag-update <REV> <TO_FLAG>
+# TO_FLAG is one of the canonical TASK_FLAGS.
+# Example: jj-flag-update @ wip
+# Example: jj-flag-update mxyz done
+
+const TASK_FLAGS = [draft todo wip blocked standby untested review done]
+
+def detect-task-flag [desc: string] {
+  $TASK_FLAGS
+  | where {|flag| $desc | str starts-with $"[task:($flag)]" }
+  | first
+  | default ""
+}
+
+def is-valid-flag [candidate: string] {
+  $candidate in $TASK_FLAGS
+}
+
+def main [rev?: string, to_flag?: string] {
+  if ($rev == null or $to_flag == null) {
+    print -e "Usage: jj-flag-update <REV> <TO_FLAG>"
+    print -e $"Flags: ($TASK_FLAGS | str join ' ')"
+    exit 1
+  }
+
+  if not (is-valid-flag $to_flag) {
+    print -e $"Error: '($to_flag)' is not a recognized task flag"
+    print -e $"Valid flags: ($TASK_FLAGS | str join ' ')"
+    exit 1
+  }
+
+  let desc = (^jj log -r $rev -n1 --no-graph -T description)
+  let current_flag = (detect-task-flag $desc)
+
+  if ($current_flag | is-not-empty) {
+    if $current_flag == $to_flag {
+      print -e $"ℹ️  ($rev) is already [task:($to_flag)] — no change"
+      exit 0
+    }
+    if $current_flag == "done" and $to_flag == "wip" {
+      print -e $"⚠️  ($rev) is being unwound from [task:done] back to [task:wip]"
+    }
+  }
+
+  if ($current_flag | is-empty) {
+    $"[task:($to_flag)] ($desc)" | ^jj describe $rev --stdin
+    exit 0
+  }
+
+  $desc | str replace $"[task:($current_flag)]" $"[task:($to_flag)]" | ^jj describe $rev --stdin
+}
