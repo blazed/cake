@@ -54,6 +54,7 @@ let
   # Local extension FS paths outside the auto-discovered dir (rarely needed):
   localExtensionPaths = [ ];
 
+  themeName = "catppuccin-frappe";
   settings = {
     defaultProvider = "openai-codex";
     defaultModel = "gpt-5.5";
@@ -65,6 +66,7 @@ let
     skills = extraSkillDirs;
     steeringMode = "all";
     followUpMode = "all";
+    theme = themeName;
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
 
@@ -161,6 +163,7 @@ in
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
   home.file.".pi/web-search.json".text = builtins.toJSON webSearch;
+  home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
 
   # settings.json must be WRITABLE (Pi appends lastChangelogVersion). Install a
   # real copy from the generated store file; re-copied each switch so Nix wins.
