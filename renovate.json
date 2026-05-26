@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["github-actions", "custom.regex"],
+  "dependencyDashboard": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update Pi npm packages in users/profiles/pi/default.nix",
+      "managerFilePatterns": ["/^users\\/profiles\\/pi\\/default\\.nix$/"],
+      "matchStrings": [
+        "(?m)^\\s*\"npm:(?<depName>(?:@[^/\\s\"]+/)?[^@\\s\"]+)@(?<currentValue>[^\"\\s]+)\""
+      ],
+      "datasourceTemplate": "npm",
+      "versioningTemplate": "npm",
+      "depTypeTemplate": "pi-package"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Group Pi third-party package updates",
+      "matchManagers": ["custom.regex"],
+      "groupName": "Pi third-party packages"
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    }
+  ]
+}
