@@ -1,0 +1,52 @@
+#!/usr/bin/env nu
+# Create an empty merge revision that joins multiple parallel TODO branches.
+# Usage: jj-merge-todo [--draft] <TITLE> <PARENT1> <PARENT2> [PARENT3...]
+#        jj-merge-todo --desc "<full body>" [--draft] <TITLE> <PARENT...>
+#
+# The merge revision carries [task:todo] (or [task:draft]) and stays unedited.
+# The new change_id is printed on stdout.
+
+const TASK_FLAGS = [draft todo wip blocked standby untested review done]
+
+def parse-created-change-id [output: string] {
+  $output
+  | parse -r '^Created new commit (?P<short>[a-z]+) .*'
+  | get -o short.0
+  | default ""
+}
+
+def main [
+  --draft      # Create with [task:draft] flag instead of [task:todo]
+  --desc: string = ""  # Full body for the task description
+  title?: string
+  parent1?: string
+  parent2?: string
+  ...parents_rest: string
+] {
+  let flag = if $draft { "draft" } else { "todo" }
+  let body = $desc
+
+  if ($title == null or $parent1 == null or $parent2 == null) {
+    print -e "Usage: jj-merge-todo [--draft] [--desc BODY] <TITLE> <PARENT1> <PARENT2> [PARENT...]"
+    exit 1
+  }
+
+  let parents = ([$parent1 $parent2] ++ $parents_rest)
+  let msg = if ($body | is-not-empty) {
+    $"[task:($flag)] ($title)\n\n($body)"
+  } else {
+    $"[task:($flag)] ($title)"
+  }
+
+  let out = (^jj new --no-edit ...$parents -m $msg out+err>| complete)
+  print -e ($out.stdout | str trim)
+  if $out.exit_code != 0 { exit $out.exit_code }
+
+  let short = (parse-created-change-id $out.stdout)
+  if ($short | is-empty) {
+    print -e "Error: could not parse new change_id from jj output"
+    exit 1
+  }
+
+  ^jj log -r $short -n1 --no-graph -T 'change_id.shortest(8) ++ "\n"'
+}

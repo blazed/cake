@@ -1,0 +1,50 @@
+#!/usr/bin/env nu
+# Create empty TODO revision without editing (stays on current @).
+# Usage: jj-todo-create [--draft] <PARENT> <TITLE> [DESCRIPTION]
+# Example: jj-todo-create @ "implement feature X" "detailed specs here"
+# Example: jj-todo-create --draft @ "implement feature X"
+#
+# Prints the new revision's 8-char change_id on stdout, so callers can capture it.
+
+const TASK_FLAGS = [draft todo wip blocked standby untested review done]
+
+def parse-created-change-id [output: string] {
+  $output
+  | parse -r '^Created new commit (?P<short>[a-z]+) .*'
+  | get -o short.0
+  | default ""
+}
+
+def main [
+  --draft  # Create with [task:draft] flag instead of [task:todo]
+  parent?: string
+  title?: string
+  description?: string
+] {
+  let flag = if $draft { "draft" } else { "todo" }
+
+  if ($parent == null or $title == null) {
+    print -e "Usage: jj-todo-create [--draft] <PARENT> <TITLE> [DESCRIPTION]"
+    print -e "  --draft: Create with [task:draft] flag instead of [task:todo]"
+    exit 1
+  }
+
+  let description = ($description | default "")
+  let msg = if ($description | is-not-empty) {
+    $"[task:($flag)] ($title)\n\n($description)"
+  } else {
+    $"[task:($flag)] ($title)"
+  }
+
+  let out = (^jj new --no-edit $parent -m $msg out+err>| complete)
+  print -e ($out.stdout | str trim)
+  if $out.exit_code != 0 { exit $out.exit_code }
+
+  let short = (parse-created-change-id $out.stdout)
+  if ($short | is-empty) {
+    print -e "Error: could not parse new change_id from jj output"
+    exit 1
+  }
+
+  ^jj log -r $short -n1 --no-graph -T 'change_id.shortest(8) ++ "\n"'
+}

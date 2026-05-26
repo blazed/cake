@@ -1,0 +1,187 @@
+#!/usr/bin/env nu
+# Review current task or transition to next task.
+# Usage:
+#   jj-todo-next                           # Review mode: show current and available next
+#   jj-todo-next --mark-as <status> <REV>  # Mark current as status, move to REV
+
+const TASK_FLAGS = [draft todo wip blocked standby untested review done]
+const TASK_FLAGS_BLOCKING = [draft todo wip blocked]
+
+def detect-task-flag [desc: string] {
+  $TASK_FLAGS
+  | where {|flag| $desc | str starts-with $"[task:($flag)]" }
+  | first
+  | default ""
+}
+
+def is-valid-flag [candidate: string] {
+  $candidate in $TASK_FLAGS
+}
+
+def is-blocking-flag [candidate: string] {
+  $candidate in $TASK_FLAGS_BLOCKING
+}
+
+def jj-lines [args: list<string>] {
+  let out = (^jj ...$args out+err>| complete)
+  if $out.exit_code != 0 { [] } else { $out.stdout | lines | where {|line| $line | is-not-empty } }
+}
+
+def show-review-mode [current_rev_id: string, current_desc: string, current_flag: string] {
+  if (($current_flag | is-not-empty) and $current_flag != "done") {
+    print ("📋 Current task (" + $current_rev_id + ", currently " + $current_flag + ") specs for review:")
+    print "─────────────────────"
+    print $current_desc
+    print "─────────────────────"
+    print ""
+  }
+
+  let all_children = (jj-lines ["log" "-r" "children(@)" "--no-graph" "-T" 'change_id.shortest(8) ++ "\n"'])
+
+  mut ready = []
+  mut drafts = []
+  mut blocked = []
+
+  for child in $all_children {
+    let child_desc = (^jj log -r $child -n1 --no-graph -T 'description.first_line()')
+    let child_flag = (detect-task-flag $child_desc)
+    if ($child_flag | is-empty) { continue }
+
+    if $child_flag == "draft" {
+      $drafts = ($drafts | append {id: $child, desc: $child_desc})
+      continue
+    }
+
+    let parent_revset = "parents(" + $child + ") ~ @"
+    let parents = (jj-lines ["log" "-r" $parent_revset "--no-graph" "-T" 'change_id.shortest(8) ++ "\n"'])
+    mut blocking = []
+    for parent in $parents {
+      let parent_desc = (^jj log -r $parent -n1 --no-graph -T 'description.first_line()')
+      let parent_flag = (detect-task-flag $parent_desc)
+      if (($parent_flag | is-not-empty) and (is-blocking-flag $parent_flag)) {
+        $blocking = ($blocking | append $parent)
+      }
+    }
+
+    if ($blocking | is-empty) {
+      $ready = ($ready | append {id: $child, desc: $child_desc})
+    } else {
+      $blocked = ($blocked | append {id: $child, desc: $child_desc, by: ($blocking | str join ", ")})
+    }
+  }
+
+  if (($ready | is-empty) and ($blocked | is-empty) and ($drafts | is-empty)) {
+    if ($all_children | is-not-empty) {
+      print -e "ERROR: current task has children but none carry a [task:*] flag. Check 'jj log' manually"
+    } else {
+      print $"ℹ️  No child tasks found below ($current_rev_id)."
+    }
+    exit 1
+  }
+
+  if ($ready | is-not-empty) {
+    print "✅ Child tasks ready for work:"
+    print ""
+    for item in $ready {
+      print $"  ($item.id)  ($item.desc)"
+    }
+    print ""
+    print $"Once you are SURE you are good to go, mark ($current_rev_id) & transition to next task with:"
+    print "  jj-todo-next --mark-as <new-status> <change-id>"
+    print ""
+  } else {
+    print "NO CHILD TASK READY FOR WORK"
+    print ""
+    print "  - Manually update flag with `jj-flag-update @ <new-status>`"
+    print "  - Check remaining TODOs with jj-find-flagged or jj log"
+  }
+
+  print $"  - Keep working on ($current_rev_id) if something is left to do"
+  print "  - ALL divergences with the specs MUST be documented (edit description to add Post-Implementation notes)"
+  print "  - Choose <new-status> appropriately, mark as [task:done] only if FULLY COMPLIANT with specs above"
+  print ""
+
+  if ($drafts | is-not-empty) {
+    print "📝 Child tasks NOT ready (still draft):"
+    print ""
+    for item in $drafts {
+      print $"  ($item.id)  ($item.desc)"
+    }
+    print ""
+  }
+
+  if ($blocked | is-not-empty) {
+    print "⚠️ Child tasks NOT ready (unmet dependencies):"
+    print ""
+    for item in $blocked {
+      print $"  ($item.id)  ($item.desc)"
+      print $"             Blocked by: ($item.by)"
+    }
+    print ""
+    print "Check dependencies (ancestors) of a task with: jj log -r '::<task-id>'"
+    print ""
+  }
+}
+
+def main [
+  --mark-as: string = ""
+  next_rev: string = ""
+ ] {
+  let script_dir = $env.FILE_PWD
+
+  let current_rev_id = (^jj log -r @ -n1 --no-graph -T 'change_id.shortest(8)')
+  let current_desc = (^jj log -r @ -n1 --no-graph -T description)
+  let current_flag = (detect-task-flag $current_desc)
+
+  if ($next_rev | is-empty) {
+    show-review-mode $current_rev_id $current_desc $current_flag
+    exit 0
+  }
+
+  if ($mark_as | is-empty) {
+    print -e "Error: --mark-as is required when transitioning to next task"
+    print -e ""
+    print -e "Usage: jj-todo-next --mark-as <status> <next-rev>"
+    print -e $"Status: ($TASK_FLAGS | str join ' ')"
+    print -e ""
+    print -e $"Examples:"
+    print -e $"  jj-todo-next --mark-as done ($next_rev)"
+    print -e $"  jj-todo-next --mark-as standby ($next_rev)"
+    exit 1
+  }
+
+  if not (is-valid-flag $mark_as) {
+    print -e $"Error: Invalid status '($mark_as)'"
+    print -e $"Valid statuses: ($TASK_FLAGS | str join ' ')"
+    exit 1
+  }
+
+  let next_probe = (^jj log -r $next_rev -n1 --no-graph -T 'description.first_line()' out+err>| complete)
+  let next_desc = if $next_probe.exit_code == 0 { $next_probe.stdout | str trim } else { "" }
+  if ($next_desc | is-empty) {
+    print -e $"Error: Revision ($next_rev) not found or description empty"
+    exit 1
+  }
+
+  if ((detect-task-flag $next_desc) | is-empty) {
+    print -e $"ERROR: ($next_rev) doesn't appear to be a task (no [task:*] flag)"
+    exit 1
+  }
+
+  let current = (^jj log -r @ -n1 --no-graph -T 'change_id.shortest(8)')
+
+  if ($current_flag | is-not-empty) {
+    ^nu ($script_dir | path join "jj-flag-update") @ $mark_as
+    print $"✅ Marked ($current) as [task:($mark_as)]"
+  } else {
+    print "⚠️  Current revision has no [task:*] flag to change"
+  }
+
+  ^jj edit $next_rev
+  ^nu ($script_dir | path join "jj-flag-update") @ wip
+
+  print $"✅ Marked ($next_rev) as [task:wip]"
+  print $"📋 Now editing revision ($next_rev)"
+  print "─────────────────"
+  ^jj log -r @ -n1 --no-graph -T description
+}

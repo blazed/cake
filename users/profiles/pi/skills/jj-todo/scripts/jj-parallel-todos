@@ -1,0 +1,48 @@
+#!/usr/bin/env nu
+# Create multiple parallel TODO branches from same parent.
+# Usage: jj-parallel-todos [--draft] <PARENT> <TITLE1> <TITLE2> [TITLE3...]
+# Example: jj-parallel-todos @ "Widget A" "Widget B" "Widget C"
+# Example: jj-parallel-todos --draft @ "Widget A" "Widget B"
+#
+# Prints each new revision's 8-char change_id (one per line) on stdout.
+
+const TASK_FLAGS = [draft todo wip blocked standby untested review done]
+
+def parse-created-change-id [output: string] {
+  $output
+  | parse -r '^Created new commit (?P<short>[a-z]+) .*'
+  | get -o short.0
+  | default ""
+}
+
+def main [
+  --draft  # Create with [task:draft] flag instead of [task:todo]
+  parent?: string
+  ...titles: string
+] {
+  let flag = if $draft { "draft" } else { "todo" }
+
+  if ($parent == null or ($titles | is-empty)) {
+    print -e "Usage: jj-parallel-todos [--draft] <PARENT> <TITLE1> <TITLE2> [TITLE3...]"
+    print -e "  --draft: Create with [task:draft] flag instead of [task:todo]"
+    exit 1
+  }
+  mut count = 0
+
+  for title in $titles {
+    let out = (^jj new --no-edit $parent -m $"[task:($flag)] ($title)" out+err>| complete)
+    print -e ($out.stdout | str trim)
+    if $out.exit_code != 0 { exit $out.exit_code }
+
+    let short = (parse-created-change-id $out.stdout)
+    if ($short | is-empty) {
+      print -e "Error: could not parse new change_id from jj output"
+      exit 1
+    }
+
+    ^jj log -r $short -n1 --no-graph -T 'change_id.shortest(8) ++ "\n"'
+    $count = $count + 1
+  }
+
+  print -e $"✅ Created ($count) parallel task branches from ($parent)"
+}
