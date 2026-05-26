@@ -492,9 +492,10 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
     }
 
     if (event.toolName === "jj_todo") {
-      const action = (event.input as { action?: unknown }).action;
-      if (action === "create" || action === "update") {
-        return { block: true, reason: "Plan mode blocks mutating jj_todo actions." };
+      const input = event.input as { action?: unknown; dryRun?: unknown };
+      const action = input.action;
+      if ((action === "create" || action === "update") && input.dryRun !== true) {
+        return { block: true, reason: "Plan mode blocks mutating jj_todo actions; use dryRun: true to preview." };
       }
     }
 

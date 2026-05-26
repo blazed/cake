@@ -413,6 +413,8 @@ Use the `jj_todo` Pi tool for routine mechanical operations when it is available
 - `action: "update"` — safely change a revision's `[task:*]` flag
 - `action: "check"` — summarize task counts, conflicts, and suspicious state like multiple WIP tasks
 
+For `action: "create"` and `action: "update"`, pass `dryRun: true` to preview the exact `jj` command and resulting task metadata without mutating JJ history. Dry-run previews default to `fresh: false` / `--ignore-working-copy`; set `fresh: true` only when you intentionally want JJ to snapshot before the preview. Plan mode permits only these `dryRun: true` create/update previews, not real mutations.
+
 The tool is for compact, structured TODO mechanics only. Keep planning, task DAG design,
 dependency judgment, and done/not-done decisions in this skill's workflow. Use `jj` via
 `bash` for full graph inspection, rebases, splits, merges, and unusual mutations.
