@@ -200,9 +200,9 @@ add them to PATH or invoke them directly from the skill directory.
 
 ## Pi Tool
 
-Use the `jj_context` Pi tool when compact repository context is enough. It is
-implemented as a read-only inspection tool in
-`users/profiles/pi/extensions/jj-context/` and returns structured JSON/text for:
+Use the `jj_context` Pi tool for quick read-only repository orientation: current
+change, parent, dirty-file summary, conflicts, nearby bookmarks, and recovery op.
+It returns structured JSON/text for:
 
 - `mode: "summary"` (default): version, root, current change, nearest bookmarks,
   changed-file/diffstat/conflict summary, recovery operation ID, and a short log
@@ -211,9 +211,10 @@ implemented as a read-only inspection tool in
 - `mode: "recovery"`: current operation ID and recent operation log
 
 Prefer `jj_context` over several verbose `bash` calls to `jj status`, `jj log`,
-`jj diff --stat`, and `jj op log`. Use `bash` for full diffs, unusual JJ
-commands, or mutating operations. Avoid generic `jj_run` wrappers; JJ's CLI is
-already expressive and broad wrappers add risk without much token benefit.
+`jj diff --stat`, and `jj op log` when a compact overview is enough. Use the
+`jj` CLI via `bash` for precise revset inspection, full diffs, unusual commands,
+and all mutating operations. Avoid generic `jj_run` wrappers; JJ's CLI is already
+expressive and broad wrappers add risk without much token benefit.
 
 ## Recovery
 
