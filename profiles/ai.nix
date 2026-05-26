@@ -54,12 +54,12 @@
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9318";
+              version = "9351";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-nmKCeTAR/W3f8vtGJL5xdysdSYzEkViAr/+ola7Xx9o=";
+                hash = "sha256-qHzJpcpntdpIeZ5yX1y1nKnYX9Z6j30iJ+1LTjuomrg=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
