@@ -55,16 +55,16 @@ let
   localExtensionPaths = [ ];
 
   settings = {
-    defaultProvider = "opencode-go";
-    defaultModel = "deepseek-v4-flash";
-    defaultThinkingLevel = "high";
+    defaultProvider = "openai-codex";
+    defaultModel = "gpt-5.5";
+    defaultThinkingLevel = "medium";
     enableInstallTelemetry = false;
     enableSkillCommands = true;
     extensions = localExtensionPaths;
     packages = thirdPartyPackages;
     skills = extraSkillDirs;
     steeringMode = "all";
-    followupMode = "all";
+    followUpMode = "all";
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
 
@@ -73,9 +73,56 @@ let
     mcpServers = { };
   };
 
-  # Custom providers/models. Empty = use Pi's built-ins only.
+  # Custom providers/models. llama-swap exposes an OpenAI-compatible API over
+  # Tailscale HTTPS; Qwen models use llama.cpp's Qwen chat-template thinking
+  # control, which Pi enables via compat.thinkingFormat = "qwen-chat-template".
   models = {
-    providers = { };
+    providers = {
+      "margot" = {
+        baseUrl = "https://margot.tailef5cf.ts.net/v1";
+        api = "openai-responses";
+        apiKey = "llama-swap";
+        compat = {
+          supportsStore = false;
+          supportsDeveloperRole = false;
+          supportsReasoningEffort = false;
+          supportsUsageInStreaming = false;
+          maxTokensField = "max_tokens";
+          supportsStrictMode = false;
+          supportsLongCacheRetention = false;
+          thinkingFormat = "qwen-chat-template";
+        };
+        models =
+          map
+            (id: {
+              inherit id;
+              name = id;
+              reasoning = true;
+              input = [
+                "text"
+                "image"
+              ];
+              contextWindow = 262144;
+              maxTokens = 32768;
+              cost = {
+                input = 0;
+                output = 0;
+                cacheRead = 0;
+                cacheWrite = 0;
+              };
+            })
+            [
+              "qwen3.6:27b-mtp-q4"
+              "qwen3.6:27b-mtp-q8"
+              "qwen3.6:27b-q4"
+              "qwen3.6:27b-q8"
+              "qwen3.6:35b-a3b-mtp-q4"
+              "qwen3.6:35b-a3b-mtp-q8"
+              "qwen3.6:35b-a3b-q4"
+              "qwen3.6:35b-a3b-q8"
+            ];
+      };
+    };
   };
 
   # pi-web-access config (~/.pi/web-search.json — directly under ~/.pi, NOT
