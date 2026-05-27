@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 import { Key } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
@@ -42,16 +42,30 @@ const PLAN_TOOL_NAMES = [
 
 const WRITE_TOOL_NAMES = new Set(["write", "edit"]);
 
+const APPROVE_HERE = "Approve — implement here";
+const APPROVE_FRESH = "Approve — fresh session";
+const EDIT_PLAN = "Edit plan";
+const REJECT_REVISE = "Reject — revise";
+const CANCEL_APPROVAL = "Cancel";
+
 type StoredStateEntry = { type?: string; customType?: string; data?: Partial<PlanModeState> };
 type PathInput = { path?: unknown };
 type JjTodoInput = { action?: unknown; dryRun?: unknown; fresh?: unknown };
 
 function buildPlanningPrompt(task: string, planPath: string): string {
-  return `Enter plan mode for this task:\n\n${task}\n\nPlan file: ${planPath}\n\nExplore with non-mutating tools, keep the plan file updated, and call ExitPlanMode only when the plan is ready for approval.`;
+  return `Enter Pi Plan Mode for this task:\n\n${task}\n\nPlan file: ${planPath}\n\nStart by exploring the codebase with non-mutating tools. Keep the plan file self-contained and updated as you learn. Ask the user only for preferences or tradeoff decisions that cannot be discovered from the repository. Do not implement. When the plan is ready, call ExitPlanMode.`;
 }
 
 function buildPlanModeInstructions(planPath: string, existingPlan: string | null): string {
-  return `[PLAN MODE ACTIVE]\nYou are planning only. Do not implement until ExitPlanMode approval completes.\n\nPlan file: ${planPath}\n${existingPlan?.trim() ? `\nCurrent plan content:\n${existingPlan.trim()}\n` : ""}\nRules:\n- Explore first with read-only tools.\n- Write or edit only the plan file above.\n- Bash is disabled in plan mode.\n- Ask the user only for preferences or tradeoffs that cannot be discovered.\n- Keep the plan self-contained and call ExitPlanMode when ready.`;
+  const currentPlan = existingPlan?.trim()
+    ? `\nCurrent plan file content:\n\n${existingPlan.trim()}\n`
+    : "\nThe plan file is empty. Create a self-contained plan before requesting approval.\n";
+
+  return `[PLAN MODE ACTIVE]\nYou are in Pi Plan Mode, a conversation mode for collaborative planning. It is a tool/UI guard, not an OS sandbox. Bash is disabled; do not ask for bash access or claim shell sandboxing.\n\nStrict boundary:\n- Plan only. Do not implement, refactor, run mutating commands, or edit non-plan files.\n- The only writable target is the plan file: ${planPath}\n- Approval must happen through the ExitPlanMode tool. Never ask for approval in plain text.\n\nWorkflow:\n1. Explore first with non-mutating tools: read, grep, find, ls, web/code search, jj_context, and jj_todo dry-run previews.\n2. Ask the user only for preference/tradeoff decisions that exploration cannot answer.\n3. Keep updating the plan file as the source of truth. The plan must be self-contained enough for a fresh implementation session.\n4. Include goal, relevant files, ordered implementation steps, validation, risks, and rollback notes where useful.\n5. When ready, call ExitPlanMode and let the approval flow decide whether to implement here, start fresh, revise, or cancel.\n\nTool notes:\n- write/edit may target only the plan file above. If you mention the basename, it will be redirected to that exact file.\n- jj_context is forced to fresh=false in plan mode.\n- jj_todo create/update is allowed only with dryRun: true and fresh=false.\n- The normal todo tool is not a substitute for the plan file.\n${currentPlan}`;
+}
+
+function buildImplementationPrompt(plan: string, planPath: string): string {
+  return `Implement this approved plan step by step.\n\nPlan file: ${planPath}\n\n${plan.trim()}\n\nPlan mode has been deactivated and normal tools are available again. If progress tracking would help, initialize and maintain the normal todo tool. Do not rely on plan-mode widgets or [DONE:n] markers for extension state. If reality differs from the plan, pause and explain the required adjustment before making broad changes.`;
 }
 
 function buildPlanReview(plan: string, planPath: string): string {
@@ -182,11 +196,91 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
     input.path = targetPath;
   }
 
+  async function performFreshHandoff(ctx: ExtensionCommandContext): Promise<void> {
+    const planPath = state.pendingFreshImplementation?.planFilePath ?? state.lastApprovedPlanFilePath;
+    if (!planPath) {
+      ctx.ui.notify("No approved plan is queued for a fresh session.", "warning");
+      return;
+    }
+
+    const plan = readPlan(planPath) ?? "";
+    if (!plan.trim()) {
+      ctx.ui.notify(`Approved plan is empty or missing: ${planPath}`, "error");
+      return;
+    }
+
+    if (state.active) exitPlanMode(ctx, "approved");
+    state.pendingFreshImplementation = null;
+    state.lastApprovedPlanFilePath = planPath;
+    persistState();
+
+    const title = extractPlanTitle(plan);
+    const prompt = buildImplementationPrompt(plan, planPath);
+    const parentSession = ctx.sessionManager.getSessionFile();
+    const result = await ctx.newSession({
+      parentSession,
+      setup: async (sessionManager) => {
+        sessionManager.appendSessionInfo(title);
+      },
+      withSession: async (replacementCtx) => {
+        await replacementCtx.sendUserMessage(prompt);
+      },
+    });
+
+    if (result.cancelled) {
+      ctx.ui.notify("Fresh-session plan handoff was cancelled.", "warning");
+    }
+  }
+
   async function runApprovalLoop(ctx: ExtensionContext): Promise<string> {
     const planPath = ensurePlan(ctx);
     const plan = readPlan(planPath) ?? "";
     if (!plan.trim()) return `No plan found in ${planPath}. Write the plan file before calling ExitPlanMode.`;
-    return `Plan file is ready for approval: ${planPath}. Approval handoff will be handled by the plan-mode approval flow.`;
+    if (!ctx.hasUI) return "ExitPlanMode requires an interactive/RPC UI approval flow; no approval was granted.";
+
+    const title = extractPlanTitle(plan);
+    const choice = await ctx.ui.select(`Review plan: ${title}`, [
+      APPROVE_HERE,
+      APPROVE_FRESH,
+      EDIT_PLAN,
+      REJECT_REVISE,
+      CANCEL_APPROVAL,
+    ]);
+
+    if (choice === APPROVE_HERE) {
+      state.lastApprovedPlanFilePath = planPath;
+      state.pendingFreshImplementation = null;
+      pi.setSessionName(title);
+      exitPlanMode(ctx, "approved");
+      pi.sendUserMessage(buildImplementationPrompt(plan, planPath), { deliverAs: "followUp" });
+      return `Plan approved. Queued implementation in this session for ${planPath}.`;
+    }
+
+    if (choice === APPROVE_FRESH) {
+      state.lastApprovedPlanFilePath = planPath;
+      state.pendingFreshImplementation = { planFilePath: planPath, requestedAt: new Date().toISOString() };
+      exitPlanMode(ctx, "approved");
+      pi.sendUserMessage("/plan fresh", { deliverAs: "followUp" });
+      return `Plan approved. Queued a fresh-session handoff for ${planPath}.`;
+    }
+
+    if (choice === EDIT_PLAN) {
+      const edited = await ctx.ui.editor("Edit plan", plan);
+      if (typeof edited !== "string") return "Plan edit cancelled. Stay in plan mode and call ExitPlanMode when ready.";
+      writePlan(planPath, edited);
+      persistState();
+      return `Plan file updated: ${planPath}. Stay in plan mode, review the update, and call ExitPlanMode again when ready.`;
+    }
+
+    if (choice === REJECT_REVISE) {
+      const feedback = await ctx.ui.editor("Revision feedback for the agent", "");
+      const note = feedback?.trim()
+        ? `\n\nUser revision feedback:\n${feedback.trim()}`
+        : "\n\nNo specific feedback was provided.";
+      return `Plan was not approved. Stay in plan mode, revise the plan file, and call ExitPlanMode again.${note}`;
+    }
+
+    return "Plan approval cancelled. Stay in plan mode and call ExitPlanMode when the plan is ready.";
   }
 
   pi.registerFlag("plan", {
@@ -196,9 +290,14 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
   });
 
   pi.registerCommand("plan", {
-    description: "Plan before implementing. Usage: /plan <task>, /plan review|status|off|clear",
+    description: "Plan before implementing. Usage: /plan <task>, /plan review|status|off|clear|fresh",
     handler: async (args, ctx) => {
       const trimmed = args.trim();
+
+      if (trimmed === "fresh") {
+        await performFreshHandoff(ctx);
+        return;
+      }
 
       if (trimmed === "off") {
         exitPlanMode(ctx, "cancelled");
