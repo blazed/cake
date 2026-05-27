@@ -290,7 +290,7 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
   });
 
   pi.registerCommand("plan", {
-    description: "Plan before implementing. Usage: /plan <task>, /plan review|status|off|clear|fresh",
+    description: "Plan before implementing. Usage: /plan <task>, /plan open|review|status|off|clear|fresh",
     handler: async (args, ctx) => {
       const trimmed = args.trim();
 
@@ -300,15 +300,19 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
       }
 
       if (trimmed === "off") {
-        exitPlanMode(ctx, "cancelled");
-        ctx.ui.notify("Plan mode cancelled.", "info");
+        if (state.active) {
+          exitPlanMode(ctx, "cancelled");
+          ctx.ui.notify("Plan mode cancelled and tools restored.", "info");
+        } else {
+          ctx.ui.notify("Plan mode is not active.", "info");
+        }
         return;
       }
 
       if (trimmed === "status") {
         const plan = readPlan(state.planFilePath);
         ctx.ui.notify(
-          `Plan mode status\n\nActive: ${state.active ? "yes" : "no"}\n${buildPlanFileSummary(plan, state.planFilePath)}\nApproved plan: ${state.lastApprovedPlanFilePath ?? "none"}\nActive tools: ${pi.getActiveTools().join(", ")}`,
+          `Plan mode status\n\nActive: ${state.active ? "yes" : "no"}\n${buildPlanFileSummary(plan, state.planFilePath)}\nApproved plan: ${state.lastApprovedPlanFilePath ?? "none"}\nPending fresh handoff: ${state.pendingFreshImplementation?.planFilePath ?? "none"}\nActive tools: ${pi.getActiveTools().join(", ")}`,
           "info",
         );
         return;
@@ -320,8 +324,26 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
         return;
       }
 
+      if (trimmed === "open") {
+        const planPath = ensurePlan(ctx);
+        const edited = await ctx.ui.editor("Edit plan", readPlan(planPath) ?? "");
+        if (typeof edited !== "string") {
+          ctx.ui.notify("Plan edit cancelled.", "info");
+          return;
+        }
+        writePlan(planPath, edited);
+        persistState();
+        ctx.ui.notify(`Plan saved: ${planPath}`, "info");
+        return;
+      }
+
       if (trimmed === "clear") {
         const planPath = ensurePlan(ctx);
+        const ok = !ctx.hasUI || (await ctx.ui.confirm("Clear plan?", `Empty the current plan file?\n\n${planPath}`));
+        if (!ok) {
+          ctx.ui.notify("Plan clear cancelled.", "info");
+          return;
+        }
         writePlan(planPath, "");
         state.lastApprovedPlanFilePath = null;
         state.pendingFreshImplementation = null;
