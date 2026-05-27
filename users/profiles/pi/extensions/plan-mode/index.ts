@@ -1,3 +1,4 @@
+// Plan mode is a Pi tool/UI guard, not an OS sandbox; bash is disabled rather than allowlisted.
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 import { Key } from "@earendil-works/pi-tui";
@@ -94,6 +95,8 @@ function isCustomContextMessage(message: unknown, customType: string): boolean {
 
 export default function blazedPlanMode(pi: ExtensionAPI): void {
   let state: PlanModeState = createInitialState();
+  let latestCommandContext: ExtensionCommandContext | null = null;
+  let freshHandoffTimer: ReturnType<typeof setTimeout> | null = null;
 
   function ensurePlan(ctx: ExtensionContext): string {
     if (!state.planFilePath) {
@@ -232,6 +235,42 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
     }
   }
 
+  function scheduleFreshHandoff(ctx: ExtensionContext, planPath: string): string {
+    if (!latestCommandContext) {
+      if (ctx.hasUI) {
+        ctx.ui.setEditorText("/plan fresh");
+        ctx.ui.notify("Plan approved. Submit the prefilled /plan fresh command to start the fresh session.", "warning");
+      }
+      return `Plan approved for fresh-session implementation, but no command context is available to switch sessions automatically. Submit /plan fresh to continue with ${planPath}.`;
+    }
+
+    if (freshHandoffTimer) clearTimeout(freshHandoffTimer);
+    const commandCtx = latestCommandContext;
+
+    const runWhenIdle = async () => {
+      freshHandoffTimer = null;
+      if (!commandCtx.isIdle() || commandCtx.hasPendingMessages()) {
+        freshHandoffTimer = setTimeout(runWhenIdle, 100);
+        return;
+      }
+      await performFreshHandoff(commandCtx);
+    };
+
+    freshHandoffTimer = setTimeout(() => {
+      runWhenIdle().catch((error) => {
+        if (ctx.hasUI) {
+          ctx.ui.setEditorText("/plan fresh");
+          ctx.ui.notify(
+            `Automatic fresh-session handoff failed: ${error instanceof Error ? error.message : String(error)}. Submit /plan fresh manually.`,
+            "error",
+          );
+        }
+      });
+    }, 100);
+
+    return `Plan approved. Scheduled a fresh-session handoff for ${planPath}.`;
+  }
+
   async function runApprovalLoop(ctx: ExtensionContext): Promise<string> {
     const planPath = ensurePlan(ctx);
     const plan = readPlan(planPath) ?? "";
@@ -239,7 +278,7 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
     if (!ctx.hasUI) return "ExitPlanMode requires an interactive/RPC UI approval flow; no approval was granted.";
 
     const title = extractPlanTitle(plan);
-    const choice = await ctx.ui.select(`Review plan: ${title}`, [
+    const choice = await ctx.ui.select(`${buildPlanReview(plan, planPath)}\n\nChoose approval action for: ${title}`, [
       APPROVE_HERE,
       APPROVE_FRESH,
       EDIT_PLAN,
@@ -260,8 +299,7 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
       state.lastApprovedPlanFilePath = planPath;
       state.pendingFreshImplementation = { planFilePath: planPath, requestedAt: new Date().toISOString() };
       exitPlanMode(ctx, "approved");
-      pi.sendUserMessage("/plan fresh", { deliverAs: "followUp" });
-      return `Plan approved. Queued a fresh-session handoff for ${planPath}.`;
+      return scheduleFreshHandoff(ctx, planPath);
     }
 
     if (choice === EDIT_PLAN) {
@@ -292,6 +330,7 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
   pi.registerCommand("plan", {
     description: "Plan before implementing. Usage: /plan <task>, /plan open|review|status|off|clear|fresh",
     handler: async (args, ctx) => {
+      latestCommandContext = ctx;
       const trimmed = args.trim();
 
       if (trimmed === "fresh") {
@@ -339,7 +378,11 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
 
       if (trimmed === "clear") {
         const planPath = ensurePlan(ctx);
-        const ok = !ctx.hasUI || (await ctx.ui.confirm("Clear plan?", `Empty the current plan file?\n\n${planPath}`));
+        if (!ctx.hasUI) {
+          ctx.ui.notify("Plan clear requires UI confirmation.", "warning");
+          return;
+        }
+        const ok = await ctx.ui.confirm("Clear plan?", `Empty the current plan file?\n\n${planPath}`);
         if (!ok) {
           ctx.ui.notify("Plan clear cancelled.", "info");
           return;
