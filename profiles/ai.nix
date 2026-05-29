@@ -8,12 +8,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "217";
+      version = "219";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-nQWXukSCz0eIwm30aL1el03dJA5sfbwRQDeXtMC6RAc=";
+        hash = "sha256-OrvJCcDqfj9CsWqMwXOk/6pz0sUBMzMboEBx5JoB5W0=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -22,7 +22,7 @@
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-QysQ7YdwJcLTziwL25j73n3tQVvzVQIFxN4GkTU8JZg=";
+      vendorHash = "sha256-b+RreafBMCWT/jbWTlXaiDRzA4DRe76WaCEbrfRxV/4=";
       passthru = oa.passthru // {
         ui = pkgs.buildNpmPackage {
           pname = "llama-swap-ui";
@@ -54,12 +54,12 @@
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9384";
+              version = "9414";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-k2no9Bo5ZrXGgtotIx3XKJ4W3q1G31HrwwmvNSC15Qk=";
+                hash = "sha256-TluJAdD4DbJlBLPAUkeSnLpu9+XO7gDmCiNiHw7BuSM=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
