@@ -8,7 +8,8 @@
  * Supports jj (Jujutsu) and git VCS backends (auto-detected).
  */
 
-import { spawnSync } from "node:child_process";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import type {
   ExtensionAPI,
@@ -36,6 +37,8 @@ const JJ_TIMEOUT_MS = 1_500;
 const GIT_TIMEOUT_MS = 2_000;
 const VCS_CACHE_TTL_MS = 2_000;
 
+const execFileAsync = promisify(execFile);
+
 // ── Types ───────────────────────────────────────────────────
 
 interface UsageTotals {
@@ -48,6 +51,7 @@ interface UsageTotals {
 
 let cachedVcsInfo: VcsInfo | null = null;
 let lastVcsRefresh = 0;
+let vcsRefreshInFlight = false;
 
 // ── Usage collection ────────────────────────────────────────
 
@@ -92,46 +96,42 @@ function parseDiffStat(raw: string): DiffStat {
   return { files, insertions, deletions };
 }
 
-/** Detect whether cwd is inside a jj repository. */
-function isJjRepo(cwd: string): boolean {
+/** Run a VCS command asynchronously; returns stdout (empty string on any failure). */
+async function runVcs(cmd: string, args: string[], cwd: string, timeout: number): Promise<string> {
   try {
-    const result = spawnSync("jj", ["root"], {
+    const { stdout } = await execFileAsync(cmd, args, {
       cwd,
-      timeout: JJ_TIMEOUT_MS,
-      stdio: ["ignore", "pipe", "ignore"],
+      timeout,
+      windowsHide: true,
+      maxBuffer: 1024 * 1024,
     });
-    return result.status === 0 && (result.stdout?.toString() ?? "").trim().length > 0;
+    return stdout ?? "";
   } catch {
-    return false;
+    return "";
   }
 }
 
-/** Read jj VCS info synchronously. Returns null when not in a jj repo. */
-function readJjInfoSync(cwd: string): VcsInfo | null {
-  if (!isJjRepo(cwd)) return null;
+/** Detect whether cwd is inside a jj repository. */
+async function isJjRepo(cwd: string): Promise<boolean> {
+  return (await runVcs("jj", ["--ignore-working-copy", "root"], cwd, JJ_TIMEOUT_MS)).trim().length > 0;
+}
 
-  const runJj = (args: string[]): string => {
-    try {
-      const result = spawnSync("jj", args, {
-        cwd,
-        timeout: JJ_TIMEOUT_MS,
-        stdio: ["ignore", "pipe", "ignore"],
-      });
-      return result.status === 0 ? (result.stdout?.toString() ?? "") : "";
-    } catch {
-      return "";
-    }
-  };
+/** Read jj VCS info. Returns null when not in a jj repo. */
+async function readJjInfo(cwd: string): Promise<VcsInfo | null> {
+  if (!(await isJjRepo(cwd))) return null;
+  // `--ignore-working-copy` keeps these read-only renders from snapshotting the
+  // working copy (which would create operation-log noise on every refresh).
+  const runJj = (args: string[]) => runVcs("jj", ["--ignore-working-copy", ...args], cwd, JJ_TIMEOUT_MS);
 
   // Check if current commit is empty
-  const emptyText = runJj([
+  const emptyText = await runJj([
     "log", "-r", "@", "--no-graph", "-T", 'if(empty, "empty", "nonempty")',
   ]);
   const currentIsEmpty = emptyText.trim() === "empty";
   const revset: "@" | "@-" = currentIsEmpty ? "@-" : "@";
 
   // Get revision info
-  const logOutput = runJj([
+  const logOutput = await runJj([
     "log", "-r", revset, "--no-graph", "-T",
     'change_id.short() ++ "\\n" ++ commit_id.short() ++ "\\n" ++ description.first_line() ++ "\\n" ++ bookmarks.join(" ") ++ "\\n"',
   ]);
@@ -140,14 +140,13 @@ function readJjInfoSync(cwd: string): VcsInfo | null {
   const [changeId = "?", _commitId = "?", _description = "", bookmarkLine = ""] = logOutput.split("\n");
 
   // Check for conflicts
-  const conflictText = runJj([
+  const conflictText = await runJj([
     "log", "-r", `conflicts() & ${revset}`, "--no-graph", "-T", "change_id.short()",
   ]);
   const hasConflict = conflictText.trim().length > 0;
 
   // Get diff stat
-  const diffOutput = runJj(["diff", "--stat"]);
-  const diff = parseDiffStat(diffOutput);
+  const diff = parseDiffStat(await runJj(["diff", "--stat"]));
 
   const bookmarks = bookmarkLine.trim().split(/\s+/).filter(Boolean);
   const branch = bookmarks.length > 0 ? bookmarks[0] : changeId.slice(0, 8);
@@ -163,78 +162,57 @@ function readJjInfoSync(cwd: string): VcsInfo | null {
   };
 }
 
-/** Read git VCS info synchronously via git branch + diff. */
-function readGitInfoSync(cwd: string, footerData: ReadonlyFooterDataProvider): VcsInfo | null {
-  const branch = footerData.getGitBranch();
-  if (!branch) return null;
-
-  const runGit = (args: string[]): string => {
-    try {
-      const result = spawnSync("git", args, {
-        cwd,
-        timeout: GIT_TIMEOUT_MS,
-        stdio: ["ignore", "pipe", "ignore"],
-      });
-      return result.status === 0 ? (result.stdout?.toString() ?? "") : "";
-    } catch {
-      return "";
-    }
-  };
-
-  // Parse diff --numstat for added/deleted
-  const numstat = runGit(["diff", "--numstat", "--no-renames", "HEAD", "--"]);
-  if (!numstat.trim()) {
-    // Try staged + unstaged separately
-    const staged = runGit(["diff", "--cached", "--numstat", "--no-renames", "--"]);
-    const unstaged = runGit(["diff", "--numstat", "--no-renames", "--"]);
-    const parseNumstat = (output: string): { added: number; deleted: number } => {
-      let added = 0;
-      let deleted = 0;
-      for (const line of output.split("\n")) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-        const [a, d] = trimmed.split(/\s+/, 3);
-        added += Number.parseInt(a ?? "0", 10) || 0;
-        deleted += Number.parseInt(d ?? "0", 10) || 0;
-      }
-      return { added, deleted };
-    };
-    const s = parseNumstat(staged);
-    const u = parseNumstat(unstaged);
-    return {
-      type: "git",
-      branch,
-      added: s.added + u.added,
-      deleted: s.deleted + u.deleted,
-    };
-  }
-
+function parseNumstat(output: string): { added: number; deleted: number } {
   let added = 0;
   let deleted = 0;
-  for (const line of numstat.split("\n")) {
+  for (const line of output.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed) continue;
     const [a, d] = trimmed.split(/\s+/, 3);
     added += Number.parseInt(a ?? "0", 10) || 0;
     deleted += Number.parseInt(d ?? "0", 10) || 0;
   }
-
-  return {
-    type: "git",
-    branch,
-    added,
-    deleted,
-  };
+  return { added, deleted };
 }
 
-/** Refresh cached VCS info. */
-function refreshVcs(cwd: string, footerData: ReadonlyFooterDataProvider): void {
-  const now = Date.now();
-  if (now - lastVcsRefresh < VCS_CACHE_TTL_MS && cachedVcsInfo !== undefined) return;
+/** Read git VCS info via git branch + diff. */
+async function readGitInfo(cwd: string, footerData: ReadonlyFooterDataProvider): Promise<VcsInfo | null> {
+  const branch = footerData.getGitBranch();
+  if (!branch) return null;
+  const runGit = (args: string[]) => runVcs("git", args, cwd, GIT_TIMEOUT_MS);
 
-  // Try jj first, fall back to git
-  cachedVcsInfo = readJjInfoSync(cwd) ?? readGitInfoSync(cwd, footerData);
-  lastVcsRefresh = now;
+  const numstat = await runGit(["diff", "--numstat", "--no-renames", "HEAD", "--"]);
+  if (!numstat.trim()) {
+    // Try staged + unstaged separately
+    const s = parseNumstat(await runGit(["diff", "--cached", "--numstat", "--no-renames", "--"]));
+    const u = parseNumstat(await runGit(["diff", "--numstat", "--no-renames", "--"]));
+    return { type: "git", branch, added: s.added + u.added, deleted: s.deleted + u.deleted };
+  }
+
+  const { added, deleted } = parseNumstat(numstat);
+  return { type: "git", branch, added, deleted };
+}
+
+/**
+ * Non-blocking VCS refresh. render() always reads the cached value synchronously;
+ * when the cache is stale we kick off ONE background refresh (async child
+ * processes — never spawnSync, which froze the TUI event loop ~65ms every
+ * VCS_CACHE_TTL_MS) and requestRender() once the fresh value lands.
+ */
+function refreshVcs(cwd: string, footerData: ReadonlyFooterDataProvider, requestRender: () => void): void {
+  if (Date.now() - lastVcsRefresh < VCS_CACHE_TTL_MS) return;
+  if (vcsRefreshInFlight) return;
+  vcsRefreshInFlight = true;
+  void (async () => {
+    try {
+      // Try jj first, fall back to git.
+      cachedVcsInfo = (await readJjInfo(cwd)) ?? (await readGitInfo(cwd, footerData));
+    } finally {
+      lastVcsRefresh = Date.now();
+      vcsRefreshInFlight = false;
+      requestRender();
+    }
+  })();
 }
 
 // ── Provider-label helper ───────────────────────────────────
@@ -286,11 +264,12 @@ function buildLine(
   codexQuotaTracker: QuotaTracker,
   openCodeGoQuotaTracker: QuotaTracker,
   width: number,
+  requestRender: () => void,
 ): string {
   if (width <= 0) return "";
 
-  // Ensure VCS info is fresh (bounded by TTL)
-  refreshVcs(ctx.cwd, footerData);
+  // Kick a background VCS refresh if stale (non-blocking; render uses the cache).
+  refreshVcs(ctx.cwd, footerData, requestRender);
 
   // Collect usage data
   const usage = collectUsage(ctx);
@@ -418,6 +397,7 @@ export default function footerExtension(pi: ExtensionAPI): void {
               codexQuotaTracker,
               openCodeGoQuotaTracker,
               width,
+              () => tui.requestRender(),
             ),
           ];
         },
