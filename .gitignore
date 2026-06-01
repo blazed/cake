@@ -1,6 +1,7 @@
 .devenv
 .direnv
 result
+.pi/workflows/runs/
 nix-repl.nix
 wifi-networks
 cached-iso.iso
