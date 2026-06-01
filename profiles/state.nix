@@ -17,7 +17,6 @@
       }
       "/var/lib/bluetooth"
       "/var/lib/containers"
-      "/var/lib/docker"
       "/var/lib/flatpak"
       "/var/lib/libvirt"
       "/var/lib/nixos"

@@ -19,7 +19,6 @@
       ];
       extraGroups = [
         "wheel"
-        "docker"
         "video"
         "audio"
         "kvm"

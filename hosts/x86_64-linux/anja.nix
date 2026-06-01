@@ -29,6 +29,7 @@
   disk.dosLabel = true;
 
   virtualisation.docker.enable = lib.mkForce false;
+  virtualisation.podman.enable = lib.mkForce false;
 
   age.secrets = {
     nextdns-profile = {
