@@ -127,24 +127,45 @@ let
     };
   };
 
-  # pi-web-access config (~/.pi/web-search.json — directly under ~/.pi, NOT
-  # ~/.pi/agent). Non-secret settings only; the Exa API key is supplied via env
-  # (agenix → jail), which the package treats as overriding this file, so the
-  # secret never lands in the Nix store.
   webSearch = {
     provider = "exa";
     allowBrowserCookies = false; # keep it pure-HTTP; never spawn Chromium
-    # Autonomous agent: skip the interactive "curator" review UI and its extra
-    # summarization step. "none" returns raw results straight to the agent (which
-    # summarizes them itself). This also avoids needing a Gemini/Anthropic key for
-    # searchModel/summaryModel — so those are deliberately left unset, keeping Exa
-    # the only required key.
     workflow = "none";
+  };
+
+  acornVendor =
+    let
+      src = pkgs.fetchurl {
+        url = "https://registry.npmjs.org/acorn/-/acorn-8.16.0.tgz";
+        hash = "sha256-i63KCtwCuJgHx/mlMMLNULQLqrFK3nr1O3BPGYqr4R4=";
+      };
+    in
+    pkgs.runCommand "acorn-8.16.0-vendor" { } ''
+      tar -xzf ${src} package/dist/acorn.mjs package/LICENSE
+      install -Dm444 package/dist/acorn.mjs $out/acorn.mjs
+      install -Dm444 package/LICENSE $out/ACORN-LICENSE
+    '';
+
+  piExtensions = pkgs.runCommand "pi-extensions" { } ''
+    cp -r ${./extensions}/. $out
+    chmod -R u+w $out
+    install -Dm444 ${acornVendor}/acorn.mjs $out/dynamic-workflows/vendor/acorn.mjs
+    install -Dm444 ${acornVendor}/ACORN-LICENSE $out/dynamic-workflows/vendor/ACORN-LICENSE
+  '';
+
+  piWithExa = pkgs.symlinkJoin {
+    name = "pi-with-exa";
+    paths = [ pi ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/pi \
+        --run 'if [ -z "''${EXA_API_KEY:-}" ] && [ -r /run/agenix/exa-api-key ]; then export EXA_API_KEY="$(< /run/agenix/exa-api-key)"; fi'
+    '';
   };
 in
 {
   home.packages = [
-    pi
+    piWithExa
     agent-browser
   ];
 
@@ -153,8 +174,9 @@ in
     source = ./skills;
     recursive = true;
   };
+
   home.file.".pi/agent/extensions" = {
-    source = ./extensions;
+    source = piExtensions;
     recursive = true;
   };
 
