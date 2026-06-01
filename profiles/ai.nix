@@ -8,12 +8,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "221";
+      version = "222";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-YN6jqKjTW/n69bBiVtlfodTuUWah4oHmH8cUzEKTCZ4=";
+        hash = "sha256-dROwL45tO4crAxIR0qml+q6viOovInHAMhHAW6nqRkE=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -23,6 +23,18 @@
         '';
       };
       vendorHash = "sha256-b+RreafBMCWT/jbWTlXaiDRzA4DRe76WaCEbrfRxV/4=";
+      postPatch = lib.optionalString (oa ? postPatch && oa.postPatch != null) oa.postPatch + ''
+        substituteInPlace internal/process/process_command_forking_test.go \
+          --replace-fail "#!/bin/bash" "#!${pkgs.bash}/bin/bash"
+      '';
+      preBuild = ''
+        ldflags+=" -X main.commit=$(cat COMMIT)"
+        ldflags+=" -X main.date=$(cat SOURCE_DATE_EPOCH)"
+
+        rm -rf proxy/ui_dist internal/server/ui_dist
+        cp -r ${passthru.ui}/ui_dist proxy/
+        cp -r ${passthru.ui}/ui_dist internal/server/
+      '';
       passthru = oa.passthru // {
         ui = pkgs.buildNpmPackage {
           pname = "llama-swap-ui";
@@ -31,7 +43,7 @@
           npmDepsHash = "sha256-NJqEJ+XTdpPFtJJxP4CGu+JDUW7lKDcFgsixQJ3SXtQ=";
           postPatch = ''
             substituteInPlace vite.config.ts \
-              --replace-fail "../proxy/ui_dist" "${placeholder "out"}/ui_dist"
+              --replace-fail "../internal/server/ui_dist" "${placeholder "out"}/ui_dist"
           '';
           postInstall = ''
             rm -rf $out/lib
@@ -49,17 +61,15 @@
             rocmSupport = true;
             blasSupport = true;
             cudaSupport = false;
-            # Only build for the Strix Halo iGPU (gfx1151). Sets CMAKE_HIP_ARCHITECTURES
-            # to a single target instead of nixpkgs' default 17 — dramatically faster builds.
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9444";
+              version = "9451";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-q8GrEodKatMpykFUO46YuZycHlyTsjzc5KvAsmsbkO8=";
+                hash = "sha256-HKJsyvqOWC/xr8UIUgZQTSiA1/YlCIw9/YPmSZVGM10=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -71,12 +81,7 @@
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
-                # rocWMMA flash attention: keeps token-gen flat and prompt processing fast
-                # as context grows — the generic HIP FA path degrades badly past ~32K.
                 "-DGGML_HIP_ROCWMMA_FATTN=ON"
-                # ggml's hip.h includes <rocwmma/...> unconditionally, but cmake drives the
-                # unwrapped hipClang via CMAKE_HIP_COMPILER, so buildInputs' -isystem injection
-                # never reaches HIP compiles. Add the header-only rocWMMA include dir explicitly.
                 "-DCMAKE_HIP_FLAGS=-I${pkgs.rocmPackages.rocwmma}/include"
               ];
 
