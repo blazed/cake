@@ -82,6 +82,8 @@
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
                 "-DGGML_HIP_ROCWMMA_FATTN=ON"
+                "-DGGML_HIP_NO_VMM=ON"
+                "-DGGML_HIP_MMQ_MFMA=ON"
                 "-DCMAKE_HIP_FLAGS=-I${pkgs.rocmPackages.rocwmma}/include"
               ];
 
@@ -91,297 +93,125 @@
               '';
             });
         llama-server = lib.getExe' llama-cpp "llama-server";
+
+        qwenSampling = [
+          "--temp 0.6"
+          "--top-p 0.95"
+          "--top-k 20"
+          "--min-p 0.00"
+        ];
+        gemmaSampling = [
+          "--temp 1.0"
+          "--top-p 0.95"
+          "--top-k 64"
+          "--min-p 0.01"
+        ];
+
+        # KV dtype convention: q8 weights keep q8_0/q8_0 (max-context memory saving);
+        # q4/q6 weights use f16/f16 (f16 avoids the severe long-context slowdown that
+        # quantized V cache causes on gfx1151).
+        mkModel =
+          {
+            hf,
+            kv,
+            ctx ? 262144,
+            sampling ? qwenSampling,
+            mtp ? false,
+            thinking ? true,
+          }:
+          {
+            cmd = lib.concatStringsSep "\n" (
+              [
+                llama-server
+                "-hf ${hf}"
+                "--port \${PORT}"
+                "--ctx-size ${toString ctx}"
+                "--batch-size 4096"
+                "--ubatch-size 2048"
+                "--cache-reuse 256"
+                "--threads 16"
+                "--threads-batch 32"
+                "--kv-unified"
+                "-ngl 999"
+                "-fa on"
+                "--cache-type-k ${kv}"
+                "--cache-type-v ${kv}"
+                "--no-mmap"
+                "--direct-io"
+              ]
+              ++ sampling
+              ++ [
+                "--repeat-penalty 1.0"
+                "--jinja"
+                "--metrics"
+                "--slots"
+              ]
+              ++ lib.optionals mtp [
+                "--spec-type draft-mtp"
+                "--spec-draft-n-max 2"
+              ]
+              ++ lib.optionals thinking [
+                "--chat-template-kwargs '{\"preserve_thinking\":true}'"
+              ]
+            );
+          };
       in
       {
         models = {
-          "qwen3.6:27b-mtp-q8" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q8_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --spec-type draft-mtp
-              --spec-draft-n-max 2
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:27b-mtp-q8" = mkModel {
+            hf = "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q8_K_XL";
+            kv = "q8_0";
+            mtp = true;
           };
-
-          "qwen3.6:27b-mtp-q4" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --spec-type draft-mtp
-              --spec-draft-n-max 2
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:27b-mtp-q4" = mkModel {
+            hf = "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL";
+            kv = "f16";
+            mtp = true;
           };
-
-          "qwen3.6:35b-a3b-mtp-q4" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --spec-type draft-mtp
-              --spec-draft-n-max 2
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:35b-a3b-mtp-q4" = mkModel {
+            hf = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
+            kv = "f16";
+            mtp = true;
           };
-
-          "qwen3.6:35b-a3b-mtp-q8" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q8_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --spec-type draft-mtp
-              --spec-draft-n-max 2
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:35b-a3b-mtp-q8" = mkModel {
+            hf = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q8_K_XL";
+            kv = "q8_0";
+            mtp = true;
           };
-
-          "qwen3.6:27b-q8" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-27B-GGUF:UD-Q8_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:27b-q8" = mkModel {
+            hf = "unsloth/Qwen3.6-27B-GGUF:UD-Q8_K_XL";
+            kv = "q8_0";
           };
-
-          "qwen3.6:27b-q4" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:27b-q4" = mkModel {
+            hf = "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL";
+            kv = "f16";
           };
-
-          "qwen3.6:35b-a3b-q4" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:35b-a3b-q4" = mkModel {
+            hf = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL";
+            kv = "f16";
           };
-
-          "qwen3.6:35b-a3b-q8" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q8_K_XL
-              --port ''${PORT}
-              --ctx-size 262144
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 0.6
-              --top-p 0.95
-              --top-k 20
-              --min-p 0.00
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-              --chat-template-kwargs '{"preserve_thinking":true}'
-            '';
+          "qwen3.6:35b-a3b-q8" = mkModel {
+            hf = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q8_K_XL";
+            kv = "q8_0";
           };
-
-          "gemma-4:31b-q6" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/gemma-4-31B-it-GGUF:UD-Q6_K_XL
-              --port ''${PORT}
-              --ctx-size 200000
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 1.0
-              --top-p 0.95
-              --top-k 64
-              --min-p 0.01
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-            '';
+          "gemma-4:31b-q6" = mkModel {
+            hf = "unsloth/gemma-4-31B-it-GGUF:UD-Q6_K_XL";
+            kv = "f16";
+            ctx = 200000;
+            sampling = gemmaSampling;
+            thinking = false;
           };
-
-          "gemma-4:26b-a4b-q6" = {
-            cmd = ''
-              ${llama-server}
-              -hf unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q6_K_XL
-              --port ''${PORT}
-              --ctx-size 200000
-              --batch-size 4096
-              --ubatch-size 1024
-              --cache-reuse 256
-              --threads 16
-              --kv-unified
-              -ngl 999
-              -fa on
-              --cache-type-k q8_0
-              --cache-type-v q8_0
-              --no-mmap
-              --temp 1.0
-              --top-p 0.95
-              --top-k 64
-              --min-p 0.01
-              --repeat-penalty 1.0
-              --jinja
-              --metrics
-              --slots
-            '';
+          "gemma-4:26b-a4b-q6" = mkModel {
+            hf = "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q6_K_XL";
+            kv = "f16";
+            ctx = 200000;
+            sampling = gemmaSampling;
+            thinking = false;
           };
         };
 
         healthCheckTimeout = 7200;
-        ttl = 3600;
-
+        globalTTL = 3600;
         groups = { };
 
         # Experimental system/GPU performance monitor (UI tab + Prometheus /metrics).
@@ -422,7 +252,7 @@
       "huggingface"
     ];
     # The upstream module sets ProcSubset = "pid", which hides /proc/meminfo, /proc/stat
-    # and /proc/loadavg — the performance monitor's gopsutil reads need them. Relax it so
+    # and /proc/loadavg - the performance monitor's gopsutil reads need them. Relax it so
     # system CPU/RAM/load metrics work (other processes stay hidden via ProtectProc).
     ProcSubset = lib.mkForce "all";
     Environment = [
@@ -430,6 +260,8 @@
       "PATH=/run/current-system/sw/bin:${pkgs.rocmPackages.rocm-smi}/bin"
       "LD_LIBRARY_PATH=/run/opengl-driver/lib:/run/opengl-driver-32/lib"
       "XDG_CACHE_HOME=/var/cache"
+      # Let ROCm allocate from the full unified-memory/GTT pool on this APU.
+      "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
       # Strix Halo (gfx1151) ROCm tuning:
       # Force correct gfx1151 identification on recent kernels (else misdetected as gfx1100).
       "HSA_OVERRIDE_GFX_VERSION=11.5.1"
