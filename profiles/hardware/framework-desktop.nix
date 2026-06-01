@@ -13,4 +13,9 @@
     "ttm.pages_limit=29360128"
     "ttm.page_pool_size=29360128"
   ];
+
+  # The XDNA2 NPU (amdxdna) is unused by the llama.cpp iGPU stack and can't bind SVA
+  # with the IOMMU off above, so the ROCm accel-node probe spams "SVA bind device
+  # failed, ret -19" on every model load. Blacklist the leaf driver to silence it.
+  boot.blacklistedKernelModules = [ "amdxdna" ];
 }
