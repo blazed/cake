@@ -3,6 +3,7 @@ import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@e
 import { isToolCallEventType } from "@earendil-works/pi-coding-agent";
 import { Key } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
+import { showPlanReview } from "./plan-review.ts";
 import {
   buildPlanFileSummary,
   createInitialState,
@@ -278,13 +279,12 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
     if (!ctx.hasUI) return "ExitPlanMode requires an interactive/RPC UI approval flow; no approval was granted.";
 
     const title = extractPlanTitle(plan);
-    const choice = await ctx.ui.select(`${buildPlanReview(plan, planPath)}\n\nChoose approval action for: ${title}`, [
-      APPROVE_HERE,
-      APPROVE_FRESH,
-      EDIT_PLAN,
-      REJECT_REVISE,
-      CANCEL_APPROVAL,
-    ]);
+    const choice = await showPlanReview(ctx.ui, {
+      plan,
+      title,
+      summary: buildPlanFileSummary(plan, planPath),
+      actions: [APPROVE_HERE, APPROVE_FRESH, EDIT_PLAN, REJECT_REVISE, CANCEL_APPROVAL],
+    });
 
     if (choice === APPROVE_HERE) {
       state.lastApprovedPlanFilePath = planPath;
@@ -319,6 +319,21 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
     }
 
     return "Plan approval cancelled. Stay in plan mode and call ExitPlanMode when the plan is ready.";
+  }
+
+  async function showReadOnlyReview(ctx: ExtensionContext, planPath: string): Promise<void> {
+    const plan = readPlan(planPath) ?? "";
+    // The custom overlay needs an interactive UI; fall back to a (clipped) toast otherwise.
+    if (!ctx.hasUI) {
+      ctx.ui.notify(buildPlanReview(plan, planPath), "info");
+      return;
+    }
+    await showPlanReview(ctx.ui, {
+      plan,
+      title: extractPlanTitle(plan),
+      summary: buildPlanFileSummary(plan, planPath),
+      actions: ["Close"],
+    });
   }
 
   pi.registerFlag("plan", {
@@ -359,7 +374,7 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
 
       if (trimmed === "review") {
         const planPath = ensurePlan(ctx);
-        ctx.ui.notify(buildPlanReview(readPlan(planPath) ?? "", planPath), "info");
+        await showReadOnlyReview(ctx, planPath);
         return;
       }
 
@@ -398,7 +413,7 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
       if (!trimmed) {
         if (state.active) {
           const planPath = ensurePlan(ctx);
-          ctx.ui.notify(buildPlanReview(readPlan(planPath) ?? "", planPath), "info");
+          await showReadOnlyReview(ctx, planPath);
         } else {
           const planPath = enterPlanMode(ctx);
           ctx.ui.notify(`Plan mode enabled. Plan file: ${planPath}`, "info");
@@ -511,23 +526,32 @@ export default function blazedPlanMode(pi: ExtensionAPI): void {
   });
 
   pi.on("context", async (event) => {
-    if (state.active) return;
-    return {
-      messages: event.messages.filter(
-        (message) => !isCustomContextMessage(message, PLAN_CONTEXT_TYPE) && !isCustomContextMessage(message, LEGACY_APPROVED_CONTEXT_TYPE),
-      ),
-    };
+    // Strip any prior plan-context snapshots (older sessions persisted one per
+    // turn), and — while active — inject exactly one fresh, EPHEMERAL copy of the
+    // current plan. The context result applies only to this LLM call, so nothing
+    // accumulates in the stored conversation.
+    const messages = event.messages.filter(
+      (message) => !isCustomContextMessage(message, PLAN_CONTEXT_TYPE) && !isCustomContextMessage(message, LEGACY_APPROVED_CONTEXT_TYPE),
+    );
+    if (state.active && state.planFilePath) {
+      messages.push({
+        role: "custom",
+        customType: PLAN_CONTEXT_TYPE,
+        content: buildPlanModeInstructions(state.planFilePath, readPlan(state.planFilePath)),
+        display: false,
+        timestamp: Date.now(),
+      });
+    }
+    return { messages };
   });
 
   pi.on("before_agent_start", async (event, ctx) => {
     if (!state.active) return;
-    const planPath = ensurePlan(ctx);
+    // Ensure a plan file exists; the plan CONTENT is injected ephemerally by the
+    // `context` hook (above), not as a persisted message here — otherwise a fresh
+    // snapshot would be appended to the conversation every turn and pile up.
+    ensurePlan(ctx);
     return {
-      message: {
-        customType: PLAN_CONTEXT_TYPE,
-        content: buildPlanModeInstructions(planPath, readPlan(planPath)),
-        display: false,
-      },
       systemPrompt: `${event.systemPrompt}\n\n[PLAN MODE] Planning is active. Do not implement. Bash is disabled. Write only the plan file and call ExitPlanMode for approval.`,
     };
   });
