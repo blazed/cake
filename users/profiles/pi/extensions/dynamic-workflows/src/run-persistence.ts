@@ -2,8 +2,8 @@
  * Workflow run state persistence for pause/resume support.
  */
 
-import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { writeFile } from "node:fs/promises";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
+import { rename, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { WORKFLOW_RUNS_DIR } from "./config.ts";
 import { assertInside, assertSafeName } from "./fs-safety.ts";
@@ -88,6 +88,39 @@ export function createRunPersistence(cwd: string): RunPersistence {
   // under runsDir, so an externally-supplied runId can't escape via `../`.
   const runPath = (runId: string) => assertInside(runsDir, join(runsDir, `${assertSafeName(runId)}.json`));
 
+  // Atomic write: a crash mid-write must never leave a truncated `${runId}.json`
+  // (which list() would drop and load() would silently discard). Write a uniquely
+  // named temp in the same dir, then rename into place (atomic on POSIX). The temp
+  // ends in `.tmp`, so list()'s `.json` filter ignores any orphan. The pid+seq
+  // suffix keeps a sync save() and an in-flight async write from sharing a temp.
+  let tmpSeq = 0;
+  const tmpPath = (path: string) => `${path}.${process.pid}.${tmpSeq++}.tmp`;
+
+  const writeAtomicSync = (path: string, data: string) => {
+    const tmp = tmpPath(path);
+    try {
+      writeFileSync(tmp, data);
+      renameSync(tmp, path);
+    } catch (err) {
+      try {
+        if (existsSync(tmp)) unlinkSync(tmp);
+      } catch {
+        // best-effort temp cleanup
+      }
+      throw err;
+    }
+  };
+
+  const writeAtomic = async (path: string, data: string) => {
+    const tmp = tmpPath(path);
+    try {
+      await writeFile(tmp, data);
+      await rename(tmp, path);
+    } catch {
+      await unlink(tmp).catch(() => {});
+    }
+  };
+
   // Debounced async-write state for scheduleSave(). One pending state + one timer
   // per run; writes are serialized through a chain so they never interleave.
   const pending = new Map<string, PersistedRunState>();
@@ -109,7 +142,7 @@ export function createRunPersistence(cwd: string): RunPersistence {
       cancelPending(state.runId);
       ensureDir();
       state.updatedAt = new Date().toISOString();
-      writeFileSync(runPath(state.runId), JSON.stringify(state));
+      writeAtomicSync(runPath(state.runId), JSON.stringify(state));
     },
 
     scheduleSave(state: PersistedRunState) {
@@ -122,9 +155,7 @@ export function createRunPersistence(cwd: string): RunPersistence {
         pending.delete(state.runId);
         ensureDir();
         latest.updatedAt = new Date().toISOString();
-        writeChain = writeChain.then(() =>
-          writeFile(runPath(latest.runId), JSON.stringify(latest)).catch(() => {}),
-        );
+        writeChain = writeChain.then(() => writeAtomic(runPath(latest.runId), JSON.stringify(latest)));
       }, PERSIST_DEBOUNCE_MS);
       // Don't keep the process alive just for a pending progress write.
       if (typeof (timer as { unref?: () => void }).unref === "function") {
