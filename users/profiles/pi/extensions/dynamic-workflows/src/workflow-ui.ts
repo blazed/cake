@@ -22,6 +22,10 @@ import { registerSavedWorkflow } from "./saved-commands.ts";
 import type { WorkflowManager } from "./workflow-manager.ts";
 import type { WorkflowStorage } from "./workflow-saved.ts";
 
+// Max cadence for the navigator's on-disk run-list refresh (listRuns = readdir +
+// readFile-per-run). Bounds disk I/O regardless of manager-event volume.
+const NAV_REFRESH_THROTTLE_MS = 200;
+
 const STATUS_ICON: Record<string, string> = {
   pending: "·",
   queued: "·",
@@ -77,18 +81,34 @@ function shortModel(model: string | undefined): string | undefined {
 
 /** Reads run/phase/agent data from the manager, preferring live snapshots. */
 export class NavigatorModel {
+  // Cached on-disk run list. listRuns() does readdirSync + readFileSync-per-run,
+  // so render must never call it; callers refresh() this on open and on a throttled
+  // cadence. Live per-run contents are still overlaid from getRun() (in-memory) on
+  // every render, so progress stays current between refreshes.
+  private cachedRuns: PersistedRunState[] | null = null;
+
   constructor(private readonly manager: Pick<WorkflowManager, "listRuns" | "getRun">) {}
+
+  /** Re-read the persisted run list from disk. Call on open + throttled, NOT per render. */
+  refresh(): void {
+    this.cachedRuns = this.manager.listRuns();
+  }
+
+  private persistedRuns(): PersistedRunState[] {
+    if (this.cachedRuns === null) this.cachedRuns = this.manager.listRuns();
+    return this.cachedRuns;
+  }
 
   private snapshot(runId: string): { snapshot: WorkflowSnapshot; status: string } | undefined {
     const live = this.manager.getRun(runId);
     if (live) return { snapshot: live.snapshot, status: live.status };
-    const p = this.manager.listRuns().find((r) => r.runId === runId);
+    const p = this.persistedRuns().find((r) => r.runId === runId);
     if (!p) return undefined;
     return { snapshot: persistedToSnapshot(p), status: p.status };
   }
 
   runs(): RunRow[] {
-    return this.manager.listRuns().map((p) => {
+    return this.persistedRuns().map((p) => {
       const live = this.manager.getRun(p.runId);
       const agents = (live?.snapshot.agents ?? p.agents) as WorkflowAgentSnapshot[];
       return {
@@ -437,10 +457,34 @@ export function openWorkflowNavigator(
     (tui: TUI, theme: Theme, _keybindings, done: (r: void) => void) => {
       const rerender = () => tui.requestRender();
       const events = ["agentStart", "agentEnd", "phase", "log", "complete", "error", "stopped", "paused", "resumed"];
-      const onEvent = () => rerender();
+      // Coalesce disk refreshes: events burst (log/agentStart per agent during a
+      // fan-out). Re-read the run list at most once per window — renders in between
+      // use the cache + in-memory getRun overlay. We still rerender() immediately on
+      // each event (cheap, no disk) so live progress shows without waiting.
+      let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+      const scheduleRefresh = () => {
+        if (refreshTimer) return;
+        refreshTimer = setTimeout(() => {
+          refreshTimer = null;
+          model.refresh();
+          rerender();
+        }, NAV_REFRESH_THROTTLE_MS);
+        if (typeof (refreshTimer as { unref?: () => void }).unref === "function") {
+          (refreshTimer as { unref: () => void }).unref();
+        }
+      };
+      model.refresh(); // initial on-open snapshot
+      const onEvent = () => {
+        rerender();
+        scheduleRefresh();
+      };
       for (const ev of events) manager.on(ev, onEvent);
       const cleanup = () => {
         for (const ev of events) manager.off(ev, onEvent);
+        if (refreshTimer) {
+          clearTimeout(refreshTimer);
+          refreshTimer = null;
+        }
       };
 
       const act = (data: string) => {
