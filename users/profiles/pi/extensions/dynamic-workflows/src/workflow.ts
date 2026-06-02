@@ -54,6 +54,10 @@ export interface SharedRuntime {
   spent: number;
   tokenUsage: { input: number; output: number; total: number; cost: number };
   depth: number;
+  /** Real subagent runs started (excludes cached resume replays). */
+  agentsAttempted: number;
+  /** Of those, how many failed and were degraded to a null result. */
+  agentsFailed: number;
 }
 
 export interface WorkflowRunOptions extends WorkflowAgentOptions {
@@ -200,12 +204,15 @@ export async function runWorkflow<T = unknown>(
     Math.min(options.concurrency ?? Math.max(1, (globalThis.navigator?.hardwareConcurrency ?? 8) - 2), MAX_CONCURRENCY),
   );
   // Global caps + budget are shared with any nested workflow() so they hold across nesting.
+  const isOutermost = !options.sharedRuntime;
   const shared: SharedRuntime = options.sharedRuntime ?? {
     limiter: createLimiter(concurrency),
     agentCount: 0,
     spent: 0,
     tokenUsage: { input: 0, output: 0, total: 0, cost: 0 },
     depth: 0,
+    agentsAttempted: 0,
+    agentsFailed: 0,
   };
   const limiter = shared.limiter;
 
@@ -284,6 +291,8 @@ export async function runWorkflow<T = unknown>(
     return limiter(async () => {
       const label = requestedLabel || defaultAgentLabel(assignedPhase, agentNumber);
       const timeout = agentOptions.timeoutMs ?? agentTimeoutMs;
+      // A real subagent run (cached resume replays returned earlier, above).
+      shared.agentsAttempted++;
 
       options.onAgentStart?.({ label, phase: assignedPhase, prompt, model: displayModel });
 
@@ -368,6 +377,7 @@ export async function runWorkflow<T = unknown>(
 
         // Return null for recoverable errors
         if (workflowError.recoverable) {
+          shared.agentsFailed++;
           return null;
         }
         throw workflowError;
@@ -520,6 +530,17 @@ export async function runWorkflow<T = unknown>(
     throw error;
   } finally {
     options.signal?.removeEventListener("abort", onExternalAbort);
+  }
+
+  // Every subagent failed: each agent() degraded to null, so the script likely
+  // "succeeded" with all-null results. Surface that loudly instead of letting an
+  // empty success slip into the conversation. Only the outermost run reports, so
+  // a fully-failed nested workflow isn't double-counted.
+  if (isOutermost && shared.agentsAttempted > 0 && shared.agentsFailed >= shared.agentsAttempted) {
+    log(
+      `⚠️ all ${shared.agentsAttempted} agent run(s) failed — results are empty/null. ` +
+        `Check the run log; the workflow did not produce real output.`,
+    );
   }
 
   // Persist logs
