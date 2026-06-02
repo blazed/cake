@@ -40,7 +40,22 @@ const investigation = await agent(
   'Investigate the following and list concrete, individually-checkable findings:\\n' + task,
   { label: 'investigate', schema: { type: 'object', properties: { findings: { type: 'array', items: { type: 'string' } } }, required: ['findings'] } }
 )
-const findings = investigation.findings || []
+const findings = (investigation && investigation.findings) || []
+
+// Nothing concrete to review — return a clear, visible message instead of an
+// empty/thin report (which reads as "the command did nothing"). This also covers
+// a failed investigate agent (investigation === null).
+if (findings.length === 0) {
+  return {
+    total: 0,
+    survivors: [],
+    report:
+      'No checkable findings were produced, so there was nothing to adversarially review.\\n\\n' +
+      'Tip: give a concrete target the reviewers can investigate with their tools (bash/read/grep) — ' +
+      'e.g. a specific file or directory to audit, or a single factual claim. These agents have no web access.\\n\\n' +
+      'TASK: ' + task,
+  }
+}
 
 phase('Refute')
 const judged = await parallel(findings.map((f, i) => () =>
