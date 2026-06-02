@@ -21,12 +21,39 @@ import { Type } from "typebox";
 const UA =
   "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-async function fetchText(url: string, timeoutMs = 15000): Promise<{ status: number; body: string }> {
+// Hard cap on the bytes we read from any fetched body. Stripped/truncated to
+// `maxChars` afterwards anyway; this bounds memory so a huge or slow-drip
+// response can't be fully buffered into the shared host process (OOM/stall).
+const MAX_FETCH_BYTES = 2 * 1024 * 1024;
+
+async function fetchText(
+  url: string,
+  timeoutMs = 15000,
+  maxBytes = MAX_FETCH_BYTES,
+): Promise<{ status: number; body: string }> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { headers: { "user-agent": UA }, signal: controller.signal, redirect: "follow" });
-    return { status: res.status, body: await res.text() };
+    if (!res.body) return { status: res.status, body: await res.text() };
+    // Read incrementally and stop once we've seen maxBytes, so the rest of the
+    // transfer is cancelled rather than buffered.
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let body = "";
+    let total = 0;
+    try {
+      while (total < maxBytes) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        body += decoder.decode(value, { stream: true });
+      }
+      body += decoder.decode();
+    } finally {
+      await reader.cancel().catch(() => {});
+    }
+    return { status: res.status, body };
   } finally {
     clearTimeout(timer);
   }
