@@ -788,17 +788,24 @@ function validateMeta(meta: unknown): asserts meta is WorkflowMeta {
 function createLimiter(limit: number) {
   let active = 0;
   const queue: Array<() => void> = [];
-  const next = () => {
-    active--;
-    queue.shift()?.();
+  // On completion, hand the slot DIRECTLY to the next waiter instead of
+  // release-then-reacquire. A release-then-reacquire leaves a microtask gap in
+  // which a fresh limiter() call can also pass the `active >= limit` check and
+  // take the just-freed slot, so it and the resumed waiter both run — exceeding
+  // `limit`. Here a resumed waiter inherits the completing task's slot (active is
+  // left unchanged); only a caller that never waited increments active.
+  const release = () => {
+    const wake = queue.shift();
+    if (wake) wake();
+    else active--;
   };
   return async <T>(fn: () => Promise<T>): Promise<T> => {
     if (active >= limit) await new Promise<void>((resolve) => queue.push(resolve));
-    active++;
+    else active++;
     try {
       return await fn();
     } finally {
-      next();
+      release();
     }
   };
 }
