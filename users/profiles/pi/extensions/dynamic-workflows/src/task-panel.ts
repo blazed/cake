@@ -75,20 +75,27 @@ export function installResultDelivery(pi: ExtensionAPI, manager: WorkflowManager
  * over a terminal wallpaper; `width` is the viewport width from Component.render.
  */
 function renderPanel(manager: WorkflowManager, theme: Theme, width: number): string[] {
-  // Serve from the in-memory runs map (listActiveRuns) — NOT listRuns(), which
-  // does readdirSync + a readFileSync per run file on every render and would block
-  // the TUI event loop during a wide fan-out.
-  const active = manager.listActiveRuns();
-  if (!active.length) return [];
-  const rows = active.map((r) => {
-    const agents = r.snapshot.agents;
-    const done = agents.filter((a) => a.status === "done").length;
-    const icon = r.status === "paused" ? theme.fg("warning", "⏸") : theme.fg("accent", "◆");
-    const phase = r.snapshot.currentPhase ? theme.fg("dim", ` · ${r.snapshot.currentPhase}`) : "";
-    return `${icon} ${r.snapshot.name}  ${done}/${agents.length} agents${phase}`;
-  });
-  rows.push(theme.fg("dim", "run /workflows to open"));
-  return framePanel(rows, theme, { title: `Workflows running (${active.length})`, maxWidth: width });
+  // This runs in the TUI render timer: an uncaught throw (e.g. theme.fg on an
+  // unregistered role) would crash Pi, so the whole build — not just framePanel —
+  // degrades to an empty panel on failure.
+  try {
+    // Serve from the in-memory runs map (listActiveRuns) — NOT listRuns(), which
+    // does readdirSync + a readFileSync per run file on every render and would block
+    // the TUI event loop during a wide fan-out.
+    const active = manager.listActiveRuns();
+    if (!active.length) return [];
+    const rows = active.map((r) => {
+      const agents = r.snapshot.agents;
+      const done = agents.filter((a) => a.status === "done").length;
+      const icon = r.status === "paused" ? theme.fg("warning", "⏸") : theme.fg("accent", "◆");
+      const phase = r.snapshot.currentPhase ? theme.fg("dim", ` · ${r.snapshot.currentPhase}`) : "";
+      return `${icon} ${r.snapshot.name}  ${done}/${agents.length} agents${phase}`;
+    });
+    rows.push(theme.fg("dim", "run /workflows to open"));
+    return framePanel(rows, theme, { title: `Workflows running (${active.length})`, maxWidth: width });
+  } catch {
+    return [];
+  }
 }
 
 /**
