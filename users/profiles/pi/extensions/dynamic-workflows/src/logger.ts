@@ -1,8 +1,12 @@
 /**
  * Workflow logger with file persistence.
+ *
+ * All disk I/O is serialized on a single async write chain (mirroring
+ * profiler.ts) so log()/warn()/error() never block the TUI event loop —
+ * synchronous fs writes here would freeze Pi on every log line.
  */
 
-import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { appendFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { WORKFLOW_RUNS_DIR } from "./config.ts";
 
@@ -30,21 +34,28 @@ export function createWorkflowLogger(options: WorkflowLoggerOptions = {}): Workf
   const persistLogs = options.persist ?? true;
   const cwd = options.cwd ?? process.cwd();
   const runId = options.runId ?? `run-${Date.now()}`;
-  let logFile: string | null = null;
+  const logFile = persistLogs ? join(cwd, WORKFLOW_RUNS_DIR, `${runId}.log`) : null;
+
+  // Serialized I/O chain: starts with a one-time async mkdir, then every write
+  // is appended to the tail. Each step swallows its own error so a single failed
+  // write can never reject the chain or block a later one.
+  let writeChain: Promise<void> = logFile
+    ? mkdir(join(cwd, WORKFLOW_RUNS_DIR), { recursive: true }).then(
+        () => {},
+        () => {},
+      )
+    : Promise.resolve();
+
+  const queue = (op: () => Promise<unknown>): void => {
+    writeChain = writeChain.then(() => op().then(() => {}, () => {}));
+  };
 
   const write = (level: string, message: string) => {
     const timestamp = new Date().toISOString();
     const entry = `[${timestamp}] [${level}] ${message}`;
     logs.push(entry);
     options.onLog?.(message);
-
-    if (persistLogs && logFile) {
-      try {
-        appendFileSync(logFile, `${entry}\n`);
-      } catch {
-        // Silent fail for log persistence
-      }
-    }
+    if (logFile) queue(() => appendFile(logFile, `${entry}\n`));
   };
 
   const logger: WorkflowLogger = {
@@ -61,29 +72,15 @@ export function createWorkflowLogger(options: WorkflowLoggerOptions = {}): Workf
       return [...logs];
     },
     persist() {
-      if (!persistLogs) return null;
-      try {
-        const runsDir = join(cwd, WORKFLOW_RUNS_DIR);
-        mkdirSync(runsDir, { recursive: true });
-        logFile = join(runsDir, `${runId}.log`);
-        writeFileSync(logFile, `${logs.join("\n")}\n`);
-        return logFile;
-      } catch {
-        return null;
-      }
+      if (!logFile) return null;
+      // Snapshot the buffer now (matches the old sync semantics) and queue the
+      // full rewrite. The path is deterministic, so we return it synchronously
+      // while the write drains on the chain.
+      const snapshot = `${logs.join("\n")}\n`;
+      queue(() => writeFile(logFile, snapshot));
+      return logFile;
     },
   };
-
-  // Initialize log file if persisting
-  if (persistLogs) {
-    try {
-      const runsDir = join(cwd, WORKFLOW_RUNS_DIR);
-      mkdirSync(runsDir, { recursive: true });
-      logFile = join(runsDir, `${runId}.log`);
-    } catch {
-      // Silent fail
-    }
-  }
 
   return logger;
 }
