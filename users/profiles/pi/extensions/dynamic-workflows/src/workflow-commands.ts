@@ -208,14 +208,21 @@ export function registerWorkflowCommands(
             ctx.ui.notify(runIdArg ? `No run ${runIdArg} with a script` : "No saved run to save", "error");
             return;
           }
-          const saved = opts.storage.save({
-            name,
-            description: run.workflowName,
-            script: run.script,
-            location: "project",
-          });
-          registerSavedWorkflow(pi, opts.cwd ?? process.cwd(), saved);
-          ctx.ui.notify(`Saved /${name} (from ${run.runId})`, "info");
+          // storage.save -> assertSafeName throws for names with spaces/special
+          // chars; surface a friendly error instead of an unhandled command throw
+          // (matches the navigator's save path).
+          try {
+            const saved = opts.storage.save({
+              name,
+              description: run.workflowName,
+              script: run.script,
+              location: "project",
+            });
+            registerSavedWorkflow(pi, opts.cwd ?? process.cwd(), saved);
+            ctx.ui.notify(`Saved /${name} (from ${run.runId})`, "info");
+          } catch (error) {
+            ctx.ui.notify(`Cannot save workflow: ${error instanceof Error ? error.message : error}`, "error");
+          }
           return;
         }
         default:
