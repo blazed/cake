@@ -698,9 +698,22 @@ function assertDeterministic(ast: AnyNode): void {
     );
   };
   walkAst(ast, null, null, (n, parent, role) => {
-    // Math.random / Math['random'] (Math itself stays available for Math.floor etc.).
-    if (n.type === "MemberExpression" && n.object?.type === "Identifier" && n.object.name === "Math") {
-      if (memberPropName(n) === "random") reject("Math.random");
+    if (n.type === "MemberExpression") {
+      // Math.random / Math['random'] (Math itself stays available for Math.floor etc.).
+      if (n.object?.type === "Identifier" && n.object.name === "Math" && memberPropName(n) === "random") {
+        reject("Math.random");
+      }
+      // Prototype/constructor reach-arounds. The context is seeded with host-realm
+      // intrinsics, so `Object.constructor` is the host Function constructor and
+      // `Object.constructor("return Date.now()")()` would evaluate arbitrary,
+      // non-deterministic (host) code — bypassing the bare-`Function`/`eval` guard
+      // below. Reject both `x.constructor` and `x['constructor']` (and __proto__/
+      // prototype). Dynamically-built keys (`x["cons"+"tructor"]`) are out of scope
+      // for this static guard — it's a determinism guard, not a hard sandbox.
+      const prop = memberPropName(n);
+      if (prop === "constructor" || prop === "__proto__" || prop === "prototype") {
+        reject(`.${prop} access`);
+      }
     }
     // Any value reference to a forbidden global, however it's reached.
     if (n.type === "Identifier" && FORBIDDEN_GLOBALS.has(n.name) && isValueReference(parent, role)) {
