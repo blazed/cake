@@ -41,7 +41,14 @@ function alreadyRegistered(pi: ExtensionAPI, name: string): boolean {
 function reportText(result: WorkflowRunResult): string {
   const r = result.result as { report?: unknown } | undefined;
   if (r && typeof r.report === "string" && r.report.trim()) return r.report;
-  return JSON.stringify(result.result, null, 2);
+  // No usable report (e.g. every agent failed and degraded to null). Lead with a
+  // plain-language line so the message never looks like the command "did nothing",
+  // then include the raw result for debugging.
+  return `The workflow finished but produced no report. This usually means its agents returned no usable output.\n\n${JSON.stringify(
+    result.result,
+    null,
+    2,
+  )}`;
 }
 
 export function registerBuiltinWorkflows(pi: ExtensionAPI, opts: { cwd: string }): void {

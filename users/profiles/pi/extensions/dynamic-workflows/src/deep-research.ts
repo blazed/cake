@@ -39,7 +39,18 @@ const plan = await agent(
   '\\n\\nProduce ' + angles + ' diverse, specific search queries that together cover the question from different angles.',
   { label: 'plan queries', schema: { type: 'object', properties: { queries: { type: 'array', items: { type: 'string' } } }, required: ['queries'] } }
 )
-const queries = (plan.queries || []).slice(0, angles)
+const queries = ((plan && plan.queries) || []).slice(0, angles)
+
+if (queries.length === 0) {
+  return {
+    question,
+    queries: [],
+    supported: [],
+    report:
+      'Could not produce any search queries for this question, so no research was run.\\n\\n' +
+      'Tip: try rephrasing into a more concrete, factual question.\\n\\nQUESTION: ' + question,
+  }
+}
 
 phase('Gather')
 const gathered = await parallel(queries.map((q, i) => () =>
