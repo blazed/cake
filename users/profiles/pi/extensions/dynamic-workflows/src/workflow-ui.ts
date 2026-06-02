@@ -521,7 +521,18 @@ export function openWorkflowNavigator(
       };
 
       const component: Component & { dispose?(): void } = {
-        render: (width: number) => profile("render:navigator", () => renderNavigator(state, model, width, theme)),
+        // Guard the render: it runs in the TUI render timer, where an uncaught
+        // throw (e.g. theme.fg on an unregistered role, or a model read) crashes
+        // Pi. renderNavigator stays pure; the catch lives at the call site and
+        // falls back to a plain (un-themed) line so the overlay can't take Pi down.
+        render: (width: number) =>
+          profile("render:navigator", () => {
+            try {
+              return renderNavigator(state, model, width, theme);
+            } catch {
+              return ["(workflow navigator failed to render — press esc/q to close)"];
+            }
+          }),
         handleInput: (data: string) => act(data),
         invalidate: () => {},
         dispose: () => cleanup(),
