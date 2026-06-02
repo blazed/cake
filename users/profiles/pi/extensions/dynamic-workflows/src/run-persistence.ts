@@ -3,7 +3,7 @@
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
-import { rename, unlink, writeFile } from "node:fs/promises";
+import { unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { WORKFLOW_RUNS_DIR } from "./config.ts";
 import { assertInside, assertSafeName } from "./fs-safety.ts";
@@ -96,10 +96,23 @@ export function createRunPersistence(cwd: string): RunPersistence {
   let tmpSeq = 0;
   const tmpPath = (path: string) => `${path}.${process.pid}.${tmpSeq++}.tmp`;
 
-  const writeAtomicSync = (path: string, data: string) => {
+  // Per-run write ordering. atomicity guarantees a non-torn file, but NOT that the
+  // newest intent wins: a debounced async write chained before a terminal save()
+  // could rename stale data on top of it (e.g. `running` over `completed`). Every
+  // write takes a monotonic seq when its snapshot is captured; a write commits only
+  // if its seq is still the newest for that runId. The async path commits with
+  // renameSync (synchronous), so a durable save() can't slip in during an await
+  // between the staleness re-check and the rename.
+  let writeSeq = 0;
+  const committedSeq = new Map<string, number>();
+  const isStale = (runId: string, seq: number) => seq <= (committedSeq.get(runId) ?? -1);
+
+  const writeAtomicSync = (runId: string, seq: number, path: string, data: string) => {
+    if (isStale(runId, seq)) return;
     const tmp = tmpPath(path);
     try {
       writeFileSync(tmp, data);
+      committedSeq.set(runId, seq);
       renameSync(tmp, path);
     } catch (err) {
       try {
@@ -111,11 +124,20 @@ export function createRunPersistence(cwd: string): RunPersistence {
     }
   };
 
-  const writeAtomic = async (path: string, data: string) => {
+  const writeAtomic = async (runId: string, seq: number, path: string, data: string) => {
+    if (isStale(runId, seq)) return;
     const tmp = tmpPath(path);
     try {
-      await writeFile(tmp, data);
-      await rename(tmp, path);
+      await writeFile(tmp, data); // the expensive part stays off the event loop
+      // A durable save() may have committed a newer seq while we were writing the
+      // temp; drop ours instead of clobbering it. The check + renameSync below run
+      // without an intervening await, so no save() can interleave between them.
+      if (isStale(runId, seq)) {
+        await unlink(tmp).catch(() => {});
+        return;
+      }
+      committedSeq.set(runId, seq);
+      renameSync(tmp, path);
     } catch {
       await unlink(tmp).catch(() => {});
     }
@@ -142,7 +164,7 @@ export function createRunPersistence(cwd: string): RunPersistence {
       cancelPending(state.runId);
       ensureDir();
       state.updatedAt = new Date().toISOString();
-      writeAtomicSync(runPath(state.runId), JSON.stringify(state));
+      writeAtomicSync(state.runId, ++writeSeq, runPath(state.runId), JSON.stringify(state));
     },
 
     scheduleSave(state: PersistedRunState) {
@@ -155,7 +177,12 @@ export function createRunPersistence(cwd: string): RunPersistence {
         pending.delete(state.runId);
         ensureDir();
         latest.updatedAt = new Date().toISOString();
-        writeChain = writeChain.then(() => writeAtomic(runPath(latest.runId), JSON.stringify(latest)));
+        // Capture the snapshot + its seq now; the chained write may run much later.
+        const rid = latest.runId;
+        const seq = ++writeSeq;
+        const path = runPath(rid);
+        const data = JSON.stringify(latest);
+        writeChain = writeChain.then(() => writeAtomic(rid, seq, path, data));
       }, PERSIST_DEBOUNCE_MS);
       // Don't keep the process alive just for a pending progress write.
       if (typeof (timer as { unref?: () => void }).unref === "function") {
@@ -194,6 +221,8 @@ export function createRunPersistence(cwd: string): RunPersistence {
     },
 
     delete(runId: string): boolean {
+      cancelPending(runId);
+      committedSeq.delete(runId);
       try {
         const path = runPath(runId);
         if (existsSync(path)) {
