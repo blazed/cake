@@ -64,12 +64,12 @@
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9484";
+              version = "9496";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-YPf563WfSLlV4qc9eQRjW1YPxCbqsRs9yN/x30C/IGA=";
+                hash = "sha256-1jAowfGVzrrHDwWWzKESY7aV82whnuIg1N37fmtcgyw=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -77,7 +77,7 @@
                 '';
               };
               npmRoot = "tools/ui";
-              npmDepsHash = "sha256-Iyg8FpcTKf2UYHuK7mA3cTAqVaLcQPcS0YCa5Qf01Gc=";
+              npmDepsHash = "sha256-1iM0LGeI9e+gZEHk46lkBe51DxIhiimfAm9o3Z3m9Ik=";
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
