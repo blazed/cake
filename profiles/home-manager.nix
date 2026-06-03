@@ -8,6 +8,5 @@
   home-manager.sharedModules = [
     ../users/modules/theme.nix
     ../users/modules/userinfo.nix
-  ]
-  ++ [ inputs.zen-browser.homeModules.default ];
+  ];
 }

@@ -30,7 +30,6 @@ in
     ./starship.nix
     ./wezterm/default.nix
     ./zellij.nix
-    ./zen-browser.nix
     # keep-sorted end
   ];
 
