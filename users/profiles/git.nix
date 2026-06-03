@@ -32,7 +32,7 @@ in
         ui = true;
         pager = true;
       };
-      url."git@github.com:".insteadOf = "https://github.com/";
+      # url."git@github.com:".insteadOf = "https://github.com/";
       advice.pushnonfastforward = false;
       branch.autosetuprebase = "always";
       rebase.autosquash = true;
@@ -43,8 +43,9 @@ in
     };
 
     ignores = [
-      ".nvimlog" # TODO(blazed): find out why this is needed?
       ".aider*"
+      ".nvimlog" # TODO(blazed): find out why this is needed?
+      ".pi/workflows/"
       "pi-session*.html" # agent-browser session dumps (see users/profiles/pi)
     ];
   };
