@@ -30,10 +30,10 @@ let
   # ---- Declarative extensibility knobs --------------------------------------
   # THIRD-PARTY extensions Pi auto-installs (settings.packages):
   thirdPartyPackages = [
-    "npm:@juicesharp/rpiv-ask-user-question@1.16.1"
-    "npm:@juicesharp/rpiv-todo@1.16.1"
+    "npm:@juicesharp/rpiv-ask-user-question@1.18.2"
+    "npm:@juicesharp/rpiv-todo@1.18.2"
     # "npm:pi-hashline-edit@0.6.1"
-    "npm:pi-hashline-readmap@0.8.16"
+    "npm:pi-hashline-readmap@0.9.1"
     # Pure-HTTP web search + fetch (no browser) — jail-friendly. Non-secret config
     # is ~/.pi/web-search.json (below); web_search uses Exa, whose key comes from
     # the exa-api-key agenix secret, injected into the jail by the pi spec in
