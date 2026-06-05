@@ -12,10 +12,10 @@ in
     profiles = {
       default = {
         extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
-          bitwarden
           consent-o-matic
           duckduckgo-privacy-essentials
           privacy-badger
+          proton-pass
           tridactyl
           ublock-origin
         ];
