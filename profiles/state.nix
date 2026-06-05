@@ -87,6 +87,7 @@
         ".local/share/keyrings"
         ".local/share/lutris"
         ".local/share/nix"
+        ".local/share/proton-pass-cli"
         ".local/share/vulkan"
         ".local/share/zoxide"
         ".local/state/pipewire/media-session.d"

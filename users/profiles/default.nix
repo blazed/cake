@@ -26,6 +26,7 @@ in
     ./nh.nix
     ./nushell/default.nix
     ./pi/default.nix
+    ./protonpass.nix
     ./rbw.nix
     ./ssh.nix
     ./starship.nix
