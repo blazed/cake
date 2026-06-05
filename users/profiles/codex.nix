@@ -5,10 +5,10 @@
 }:
 let
   system = pkgs.stdenv.hostPlatform.system;
+  llm = inputs.llm-agents.packages.${system};
 in
 {
   home.packages = [
-    inputs.claude-code.packages.${system}.default
-    pkgs.python3
+    llm.codex
   ];
 }

@@ -14,6 +14,7 @@ in
     ./bat.nix
     ./chromium.nix
     ./claude.nix
+    ./codex.nix
     ./dunst.nix
     ./firefox.nix
     ./git.nix
