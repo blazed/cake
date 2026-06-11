@@ -30,8 +30,8 @@ let
   # ---- Declarative extensibility knobs --------------------------------------
   # THIRD-PARTY extensions Pi auto-installs (settings.packages):
   thirdPartyPackages = [
-    "npm:@juicesharp/rpiv-ask-user-question@1.18.2"
-    "npm:@juicesharp/rpiv-todo@1.18.2"
+    "npm:@juicesharp/rpiv-ask-user-question@1.19.1"
+    "npm:@juicesharp/rpiv-todo@1.19.1"
     # "npm:pi-hashline-edit@0.6.1"
     "npm:pi-hashline-readmap@0.9.1"
     # Pure-HTTP web search + fetch (no browser) — jail-friendly. Non-secret config
