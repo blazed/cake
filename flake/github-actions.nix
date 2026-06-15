@@ -19,6 +19,14 @@ let
     "devenv-up"
     "candle" # Disabled until I can figure out why it fails
   ];
+  # These workstation hosts currently exceed GitHub-hosted runner limits when
+  # building from a cold cache. Keep lighter host builds enabled, and cache the
+  # agent packages through the package matrix instead.
+  hostSkip = [
+    "amelia"
+    "diana"
+    "nicolina"
+  ];
 in
 {
   flake = {
@@ -54,7 +62,9 @@ in
     github-actions-host-matrix-x86-64-linux = {
       os = [ "ubuntu-latest" ];
       host = mapAttrsToList (name: _: name) (
-        filterAttrs (_: config: config.pkgs.system == "x86_64-linux") self.nixosConfigurations
+        filterAttrs (
+          name: config: config.pkgs.system == "x86_64-linux" && !(elem name hostSkip)
+        ) self.nixosConfigurations
       );
     };
 

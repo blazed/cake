@@ -48,6 +48,7 @@
           };
           persway = inputs.persway.packages.${system}.default;
           candle = inputs.candle.packages.${system}.default;
+          codex = inputs.llm-agents.packages.${system}.codex;
 
           inherit (inputs.hyprland.packages.${system})
             hyprland
