@@ -92,7 +92,7 @@ jobs:
     - env:
         PKG: ${{ matrix.pkg }}
       run: |
-        nix build .#packages.x86_64-linux.$PKG -L
+        nix build ".#packages.x86_64-linux.$PKG" -L
 
   router_test:
     runs-on: ubuntu-latest
@@ -115,33 +115,31 @@ jobs:
         # against the seeded output, instead of just trusting the cache.
         nix build .#checks.x86_64-linux.router -L --rebuild
 
-  # Disable until own runners
-  # host_x86_64_linux:
-  #   needs: hosts_x86_64_linux
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix: ${{ fromJson(needs.hosts_x86_64_linux.outputs.matrix) }}
-  #   steps:
-  #   - uses: actions/checkout@v6
-  #   - uses: DeterminateSystems/nix-installer-action@v22
-  #     with:
-  #       extra-conf: |
-  #         accept-flake-config = true
-  #   - uses: cachix/cachix-action@v17
-  #     with:
-  #       name: blazed
-  #   - name: Run the Magic Nix Cache
-  #     uses: DeterminateSystems/magic-nix-cache-action@v13
-  #   - env:
-  #       HOST: ${{ matrix.host }}
-  #     run: |
-  #       nix build .#nixosConfigurations.$HOST.config.system.build.toplevel
+  host_x86_64_linux:
+    needs: hosts_x86_64_linux
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix: ${{ fromJson(needs.hosts_x86_64_linux.outputs.matrix) }}
+    steps:
+    - uses: actions/checkout@v6
+    - uses: DeterminateSystems/nix-installer-action@v22
+      with:
+        extra-conf: |
+          accept-flake-config = true
+    - uses: cachix/cachix-action@v17
+      with:
+        name: blazed
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - env:
+        HOST: ${{ matrix.host }}
+      run: |
+        nix build ".#nixosConfigurations.$HOST.config.system.build.toplevel"
 
   summarize:
     if: ${{ always() }}
     runs-on: ubuntu-latest
     name: Build (matrix)
-    needs: [pkg_x86_64_linux, nix_lint, nix_check, router_test]
+    needs: [pkg_x86_64_linux, host_x86_64_linux, nix_lint, nix_check, router_test]
     steps:
       - name: Check linting status
         if: ${{ needs.nix_lint.result != 'success' }}
@@ -152,9 +150,9 @@ jobs:
       - name: Check router test status
         if: ${{ needs.router_test.result != 'success' }}
         run: exit 1
-      # - name: Check x86_64-linux host build matrix status
-      #   if: ${{ needs.host_x86_64_linux.result != 'success' }}
-      #   run: exit 1
+      - name: Check x86_64-linux host build matrix status
+        if: ${{ needs.host_x86_64_linux.result != 'success' }}
+        run: exit 1
       - name: Check x86_64-linux package build matrix status
         if: ${{ needs.pkg_x86_64_linux.result != 'success' }}
         run: exit 1
