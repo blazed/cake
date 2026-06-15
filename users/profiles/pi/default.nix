@@ -32,7 +32,7 @@ let
   thirdPartyPackages = [
     "npm:@juicesharp/rpiv-ask-user-question@1.18.2"
     "npm:@juicesharp/rpiv-todo@1.18.2"
-    "npm:@plannotator/pi-extension@0.20.2"
+    "npm:@blazed/plannotator-pi-extension@0.20.2-blazed.0"
     "npm:pi-hashline-readmap@0.9.1"
     "npm:pi-web-access@0.10.7"
   ];
