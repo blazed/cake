@@ -8,12 +8,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "224";
+      version = "226";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-IblAaM9FBdI2Y9rg36SWpclQ0jV6Y93RC+N+cXWEO94=";
+        hash = "sha256-V0Wev8EpjMSmMqHXJjKJ7SAKobN69232CjghTjyZXfU=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -22,7 +22,7 @@
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-b+RreafBMCWT/jbWTlXaiDRzA4DRe76WaCEbrfRxV/4=";
+      vendorHash = "sha256-/IFiRXyiKL2+YfMUSHfCizNFuxj/VVuN20mwnpC12o0=";
       postPatch = lib.optionalString (oa ? postPatch && oa.postPatch != null) oa.postPatch + ''
         substituteInPlace internal/process/process_command_forking_test.go \
           --replace-fail "#!/bin/bash" "#!${pkgs.bash}/bin/bash"
@@ -64,12 +64,12 @@
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9601";
+              version = "9637";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-ZNSjy7iSQ6wLY8MC2rR8Evo8Fku5oAw8WT5TUU39N6g=";
+                hash = "sha256-z/c70TWqH4DBXwlV4AXAGYprSzocTqRncnClhfP83QE=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -77,7 +77,7 @@
                 '';
               };
               npmRoot = "tools/ui";
-              npmDepsHash = "sha256-pjdbI6NcZRlJVd62xhgbLhWrwFYwgsIwjORqvo1+VD8=";
+              npmDepsHash = "sha256-TU4Gv+dd48WDpswhfVtm79IVIOwoCXz1fZ/DI/z40Wg=";
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
