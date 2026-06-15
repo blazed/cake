@@ -16,9 +16,6 @@ in
   networking.usePredictableInterfaceNames = false;
   networking.useDHCP = true;
 
-  virtualisation.podman.enable = true;
-  virtualisation.podman.dockerCompat = true;
-
   environment.systemPackages = [
     pkgs.wget
     pkgs.vim
