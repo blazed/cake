@@ -56,8 +56,11 @@
   environment.persistence."/keep".directories = [ "/var/cache/powertop" ];
 
   virtualisation.docker.enable = false;
-  virtualisation.podman.enable = true;
-  virtualisation.podman.dockerCompat = true;
+  virtualisation.podman = {
+    enable = true;
+    dockerCompat = true;
+    extraPackages = [ pkgs.podman-compose ];
+  };
 
   programs.ssh.startAgent = true;
   services.gnome.gcr-ssh-agent.enable = false;
