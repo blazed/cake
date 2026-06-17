@@ -30,9 +30,9 @@ let
   # ---- Declarative extensibility knobs --------------------------------------
   # THIRD-PARTY extensions Pi auto-installs (settings.packages):
   thirdPartyPackages = [
+    "npm:@blazed/plannotator-pi-extension@0.20.2-blazed.1"
     "npm:@juicesharp/rpiv-ask-user-question@1.18.2"
     "npm:@juicesharp/rpiv-todo@1.18.2"
-    "npm:@blazed/plannotator-pi-extension@0.20.2-blazed.0"
     "npm:pi-hashline-readmap@0.9.1"
     "npm:pi-web-access@0.10.7"
   ];
@@ -53,7 +53,7 @@ let
   settings = {
     defaultProvider = "openai-codex";
     defaultModel = "gpt-5.5";
-    defaultThinkingLevel = "medium";
+    defaultThinkingLevel = "xhigh";
     enableInstallTelemetry = false;
     enableSkillCommands = true;
     extensions = localExtensionPaths;
