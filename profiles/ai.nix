@@ -8,12 +8,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "226";
+      version = "228";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-V0Wev8EpjMSmMqHXJjKJ7SAKobN69232CjghTjyZXfU=";
+        hash = "sha256-NtlMeQdxl0TjWdlpK7RgZ/sSpabxtnovGEMgs1Iapzc=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -22,11 +22,7 @@
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-/IFiRXyiKL2+YfMUSHfCizNFuxj/VVuN20mwnpC12o0=";
-      postPatch = lib.optionalString (oa ? postPatch && oa.postPatch != null) oa.postPatch + ''
-        substituteInPlace internal/process/process_command_forking_test.go \
-          --replace-fail "#!/bin/bash" "#!${pkgs.bash}/bin/bash"
-      '';
+      vendorHash = "sha256-is8pm5g27in/LraLVJUzsa7EPqs+C3qzY8OQ/DXe98A=";
       preBuild = ''
         ldflags+=" -X main.commit=$(cat COMMIT)"
         ldflags+=" -X main.date=$(cat SOURCE_DATE_EPOCH)"
@@ -64,12 +60,12 @@
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9660";
+              version = "9697";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-H4ZzzPE4crl4+PTprZKZiqRZ9jD9UU9D9nMUetYBY28=";
+                hash = "sha256-tVMIriTp0QaYLCepAjox8jPogsRZQA4OnpDCu+UARIo=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -77,7 +73,7 @@
                 '';
               };
               npmRoot = "tools/ui";
-              npmDepsHash = "sha256-T6CpsyZ1zxU9uEr/9JcmABCrtaB9aCz2EpdTS0IJzX0=";
+              npmDepsHash = "sha256-0dctM/apI3ysMIEVBaBXO9hZMWskpJpNpOws1gwiOYc=";
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
