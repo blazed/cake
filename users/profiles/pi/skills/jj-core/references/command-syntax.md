@@ -1,6 +1,6 @@
 # JJ Command Syntax Reference
 
-Target: `jj 0.41.x`.
+Target: `jj 0.42.x`.
 
 ## The `-r` Flag
 
@@ -16,9 +16,9 @@ jj rebase -r <revset> -o main
 jj edit <revset>
 ```
 
-In 0.41, some help prose mentions `--revisions/-r` while the option table says
-`--revision`. Avoid the mismatch by using `-r` unless the long form is important
-for readability.
+As of 0.42, help prose and option tables can still use different long-form
+names for some revision arguments. Avoid the mismatch by using `-r` unless the
+long form is important for readability.
 
 ## Canonical Command Names
 
@@ -50,7 +50,7 @@ jj revert -d main           → jj revert -o main
 jj describe --edit          → jj describe --editor
 ```
 
-By 0.41, `-d` is still accepted as an alias for `-o` on rebase/split/revert.
+By 0.42, `-d` is still accepted as an alias for `-o` on rebase/split/revert.
 Prefer `-o`/`--onto` in new scripts and docs.
 
 ## Command Patterns
@@ -128,6 +128,33 @@ jj op restore <op-id>
 
 `--no-integrate-operation` is useful for local JJ graph mutations, but it does
 not prevent side effects outside the repo (for example, a Git push still pushes).
+
+### `jj fix` Config Patterns
+
+`jj fix` tools are subprocess filters: JJ sends file content on stdin and uses
+stdout as the fixed file content when the command exits successfully.
+
+```toml
+[fix.tools.clang-format]
+command = ["clang-format", "--assume-filename=$path"]
+patterns = ["glob:**/*.cc", "glob:**/*.h"]
+line-range-arg = "--lines=$first:$last"
+
+[fix.tools.black]
+command = ["black", "-", "--stdin-filename=$path"]
+patterns = ["glob:**/*.py"]
+
+[fix.tools.biome]
+command = ["$root/node_modules/@biomejs/biome/bin/biome", "format", "--stdin-file-path=$path"]
+patterns = ["glob:**/*.ts", "glob:**/*.tsx"]
+```
+
+Useful optional keys:
+
+- `enabled = false`: define a global tool but enable it per repo.
+- `line-range-arg`: pass modified-line ranges to tools that support them.
+- `run-tool-if-zero-line-ranges = true`: run even when there are no modified
+  line ranges, useful for import sorting or `--include-unchanged-files`.
 
 ## Revset Syntax
 
