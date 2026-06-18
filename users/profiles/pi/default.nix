@@ -30,7 +30,7 @@ let
   # ---- Declarative extensibility knobs --------------------------------------
   # THIRD-PARTY extensions Pi auto-installs (settings.packages):
   thirdPartyPackages = [
-    "npm:@blazed/plannotator-pi-extension@0.20.2-blazed.1"
+    "npm:@blazed/plannotator-pi-extension@0.20.3-blazed.3"
     "npm:@juicesharp/rpiv-ask-user-question@1.20.0"
     "npm:@juicesharp/rpiv-todo@1.20.0"
     "npm:pi-hashline-readmap@0.10.0"

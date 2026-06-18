@@ -1,10 +1,10 @@
 ---
 name: jj-core
-description: Expert guidance for using JJ (Jujutsu) version control system. MUST be used before any `jj` or `git` command or version-control operation in JJ-backed repositories, including status/log/diff/fetch/push/bookmark/branch/history inspection. Covers JJ operations, revsets, templates, evolog, recovery, and Git interop boundaries.
+description: Expert guidance for using JJ (Jujutsu) version control system. MUST be used before any `jj` or `git` command or version-control operation in JJ-backed repositories, including status/log/diff/fetch/push/bookmark/branch/history inspection. Covers JJ operations, revsets, templates, evolog, recovery, `jj fix`, and Git interop boundaries.
 metadata:
-  keywords: ["jj", "jujutsu", "git", "revsets", "bookmarks", "history"]
+  keywords: ["jj", "jujutsu", "git", "revsets", "bookmarks", "history", "fix", "formatting"]
   related: [jj-todo, conventional-commits]
-  version_target: "0.41.x"
+  version_target: "0.42.x"
 ---
 
 # JJ (Jujutsu) Version Control Helper
@@ -13,7 +13,7 @@ Git-compatible VCS with a different data model: no staging area; the working cop
 
 > ⚠️ **Avoid `git` mutations in a JJ repo** — they bypass JJ's operation log and can confuse colocated state. Prefer `jj` for mutating operations. Read-only Git commands like `git log`, `git diff`, `git show`, `git blame`, and `git grep` are fine.
 
-Tested against `jj 0.41.0`. Prefer current canonical command names in examples;
+Tested against `jj 0.42.0`. Prefer current canonical command names in examples;
 short aliases are often configured by default but can be disabled or confusing in
 `jj help` output.
 
@@ -56,6 +56,8 @@ jj restore --from <rev> <fileset>     # Restore files from another revision
 
 jj split -r <rev> <paths> -m "text"   # Split selected paths into another revision
 jj absorb                             # Auto-squash changes into ancestor commits
+jj fix [filesets]                    # Run configured fix tools (default source: revsets.fix or reachable(@, mutable()))
+jj fix -s <revset> [filesets]        # Limit source revisions and paths/filesets to fix
 jj rebase -s <src> -o <dest>          # Rebase source and descendants onto dest
 jj rebase -r <rev> -o <dest>          # Rebase only selected revision(s)
 
@@ -82,6 +84,30 @@ jj tag delete <name>                  # Delete local tag
 jj git colocation enable              # Convert to colocated repo
 jj git colocation disable             # Convert to non-colocated
 ```
+
+## Formatting/Fixing with `jj fix`
+
+Use `jj fix` when configured formatters or content transformers should be applied
+through JJ history rather than directly editing the working tree.
+
+```bash
+jj fix                         # Fix changed files in revsets.fix, else reachable(@, mutable())
+jj fix -s @                    # Fix @ and its descendants
+jj fix 'glob:**/*.nix'         # Limit to matching paths/filesets
+jj fix --include-unchanged-files <fileset>  # Also process unchanged matching files
+jj fix --all-lines             # Ignore line-range config and format whole modified files
+```
+
+By default, `jj fix` rewrites files changed in the source revisions and updates
+descendants for the same paths so fixes are not lost. Path arguments are JJ
+filesets. Review the operation with `jj op show -p`; recover with `jj undo` (or
+`jj op restore <op>` from `jj op log`).
+
+Configure tools in JJ config under `fix.tools.<name>` with a `command` array and
+`patterns` filesets. Optional keys include `enabled`, `line-range-arg`, and
+`run-tool-if-zero-line-ranges`. Tool commands read stdin and write fixed content
+to stdout; use `$path` for the repo-relative file path and `$root` for the
+workspace root. See [command syntax](references/command-syntax.md#jj-fix-config-patterns) for expanded examples.
 
 ## Quick Revset Reference
 

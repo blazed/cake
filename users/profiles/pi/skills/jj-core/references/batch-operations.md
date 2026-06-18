@@ -1,6 +1,6 @@
 # Batch Operations on Multiple Revisions
 
-Target: `jj 0.41.x`.
+Target: `jj 0.42.x`.
 
 ## Problem
 
