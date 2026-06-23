@@ -9,6 +9,7 @@
       "https://cachix.cachix.org"
       "https://hyprland.cachix.org"
       "https://cache.numtide.com"
+      "https://nix-amd-ai.cachix.org"
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
@@ -16,6 +17,7 @@
       "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
       "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ="
     ];
   };
 
@@ -61,6 +63,11 @@
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
+    # AMD AI stack (Lemonade server, XRT/NPU, ROCm/Vulkan backends). Deliberately
+    # NOT `.follows`-ing nixpkgs: the overlay is built against this flake's own
+    # pinned nixpkgs so its Cachix (nix-amd-ai.cachix.org) substitutes; following
+    # our nixpkgs would re-hash every backend and force a from-source rebuild.
+    nix-amd-ai.url = "github:noamsto/nix-amd-ai";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-hardware.url = "github:nixos/nixos-hardware";
