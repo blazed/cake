@@ -8,12 +8,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "229";
+      version = "230";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-IFDO54LFSHb4vJlKlYu0bNX8Vqk1wp2kuaheXfQh4po=";
+        hash = "sha256-IoA7YMxOtrAeyVBSRVjUx64lPxBLNEzu5J5HAl2vr98=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -60,12 +60,12 @@
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9775";
+              version = "9802";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-kTY9Pwzk8JbmlTwfCpKMenK2PB9lob69sbq8R55wCsw=";
+                hash = "sha256-muVLC9PBzu6fRD5ddz5I4b1INRGsfgjkuqnMj4MUoqk=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -73,7 +73,7 @@
                 '';
               };
               npmRoot = "tools/ui";
-              npmDepsHash = "sha256-0dctM/apI3ysMIEVBaBXO9hZMWskpJpNpOws1gwiOYc=";
+              npmDepsHash = "sha256-X1DZgmhS/zHTqDT5zq0kywwntthcJ9vRXeqyO3zz6UU=";
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
