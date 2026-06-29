@@ -22,6 +22,7 @@
         ];
         overlays = [
           inputs.agenix.overlays.default
+          inputs.niri.overlays.niri
           inputs.nur.overlays.default
           (
             _final: _prev:
