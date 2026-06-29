@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   ...
@@ -81,6 +82,24 @@ let
     cmd = "${pkgs.hyprland}/bin/Hyprland";
   };
 
+  runNiri = runViaShell {
+    env = {
+      XDG_SESSION_TYPE = "wayland";
+      XDG_CURRENT_DESKTOP = "niri";
+      XDG_SESSION_DESKTOP = "niri";
+    };
+    name = "niri";
+    cmd = "${config.programs.niri.package}/bin/niri-session";
+  };
+
+  defaultSessionCommand =
+    {
+      sway = "${runSway}/bin/sway";
+      Hyprland = "${runHyprland}/bin/Hyprland";
+      niri = "${runNiri}/bin/niri";
+    }
+    .${config.greeter.defaultSession};
+
   desktopSession =
     name: command:
     pkgs.writeText "${name}.desktop" ''
@@ -107,6 +126,10 @@ let
       name = "bash.desktop";
       path = desktopSession "bash" "${pkgs.bashInteractive}/bin/bash";
     }
+    {
+      name = "niri.desktop";
+      path = desktopSession "niri" "${runNiri}/bin/niri";
+    }
   ];
 
   createGreeter =
@@ -132,46 +155,60 @@ let
     };
 in
 {
-  programs.regreet.enable = true;
-
-  environment.systemPackages = [
-    pkgs.nordic
-    pkgs.nordzy-cursor-theme
-    pkgs.arc-icon-theme
-  ];
-
-  programs.regreet.settings = {
-    commands = {
-      reboot = [
-        "systemctl"
-        "reboot"
+  options.greeter = {
+    defaultSession = lib.mkOption {
+      type = lib.types.enum [
+        "sway"
+        "Hyprland"
+        "niri"
       ];
-      poweroff = [
-        "systemctl"
-        "poweroff"
-      ];
-    };
-    appearance = {
-      greeting_msg = "Welcome back!";
-    };
-    GTK = {
-      cursor_theme_name = lib.mkForce "Nordzy-cursors";
-      font_name = lib.mkForce "Roboto Medium 14";
-      icon_theme_name = lib.mkForce "Nordzy-dark";
-      theme_name = lib.mkForce "Nordic-darker";
-      application_prefer_dark_theme = lib.mkForce true;
+      default = "sway";
+      description = "Session greetd launches by default and tuigreet preselects.";
     };
   };
 
-  services.greetd = {
-    enable = true;
-    restart = true;
-    settings = {
-      default_session.command = "${createGreeter "${runSway}/bin/sway" sessions}/bin/greeter";
+  config = {
+    programs.regreet.enable = true;
+
+    environment.systemPackages = [
+      pkgs.nordic
+      pkgs.nordzy-cursor-theme
+      pkgs.arc-icon-theme
+    ];
+
+    programs.regreet.settings = {
+      commands = {
+        reboot = [
+          "systemctl"
+          "reboot"
+        ];
+        poweroff = [
+          "systemctl"
+          "poweroff"
+        ];
+      };
+      appearance = {
+        greeting_msg = "Welcome back!";
+      };
+      GTK = {
+        cursor_theme_name = lib.mkForce "Nordzy-cursors";
+        font_name = lib.mkForce "Roboto Medium 14";
+        icon_theme_name = lib.mkForce "Nordzy-dark";
+        theme_name = lib.mkForce "Nordic-darker";
+        application_prefer_dark_theme = lib.mkForce true;
+      };
     };
-  };
-  systemd.services.greetd.serviceConfig = {
-    ExecStartPre = "${pkgs.util-linux}/bin/kill -SIGRTMIN+21 1";
-    ExecStopPost = "${pkgs.util-linux}/bin/kill -SIGRTMIN+20 1";
+
+    services.greetd = {
+      enable = true;
+      restart = true;
+      settings = {
+        default_session.command = "${createGreeter defaultSessionCommand sessions}/bin/greeter";
+      };
+    };
+    systemd.services.greetd.serviceConfig = {
+      ExecStartPre = "${pkgs.util-linux}/bin/kill -SIGRTMIN+21 1";
+      ExecStopPost = "${pkgs.util-linux}/bin/kill -SIGRTMIN+20 1";
+    };
   };
 }

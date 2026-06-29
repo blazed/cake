@@ -14,6 +14,7 @@ in
     ./chromium.nix
     ./faugus.nix
     ./lutris.nix
+    ./niri.nix
     ./noctalia.nix
     ./obs.nix
     ./pueue.nix
