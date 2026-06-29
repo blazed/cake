@@ -1,6 +1,7 @@
 {
   adminUser,
   config,
+  inputs,
   ...
 }:
 {
@@ -20,6 +21,8 @@
     ../../profiles/tailscale.nix
     ../../profiles/zram.nix
   ];
+
+  greeter.defaultSession = "niri";
 
   boot.loader.systemd-boot.memtest86.enable = true;
 
@@ -57,7 +60,9 @@
 
   home-manager = {
     users.${adminUser.name} = {
-      imports = [ ../../users/profiles/workstation.nix ];
+      imports = [
+        ../../users/profiles/workstation.nix
+      ];
       programs.git.settings.user.signingKey = config.age.secrets.id_ed25519.path;
       programs.jujutsu.settings.signing = {
         behavior = "own";
