@@ -1,6 +1,6 @@
 { lib, ... }:
 {
-  programs.waybar.enable = true;
+  programs.waybar.enable = false;
   programs.waybar.settings.topBar = {
     bar_id = "top";
     ipc = true;

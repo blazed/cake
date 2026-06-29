@@ -13,6 +13,7 @@ in
   ++ [
     ./chromium.nix
     ./lutris.nix
+    ./noctalia.nix
     ./obs.nix
     ./pueue.nix
     ./rofi.nix
