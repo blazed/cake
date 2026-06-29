@@ -8,6 +8,7 @@
     modules-left = [
       "hyprland/workspaces"
       "sway/workspaces"
+      "niri/workspaces"
       "sway/mode"
       "hyprland/submap"
     ];
@@ -32,6 +33,10 @@
       format = "{id}";
       on-scroll-up = "hyprctl dispatch workspace e-1";
       on-scroll-down = "hyprctl dispatch workspace e+1";
+      all-outputs = false;
+    };
+    "niri/workspaces" = {
+      format = "{index}";
       all-outputs = false;
     };
     "hyprland/submap" = {
