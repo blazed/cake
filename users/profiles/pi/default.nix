@@ -33,8 +33,8 @@ let
     "npm:@blazed/plannotator-pi-extension@0.20.3-blazed.3"
     "npm:@juicesharp/rpiv-ask-user-question@1.20.0"
     "npm:@juicesharp/rpiv-todo@1.20.0"
-    "npm:pi-hashline-readmap@0.10.0"
-    "npm:pi-web-access@0.10.7"
+    "npm:pi-hashline-readmap@0.11.1"
+    "npm:pi-web-access@0.13.0"
   ];
 
   # Extra SKILL dirs beyond the auto-discovered ~/.pi/agent/skills + ~/.agents/skills:
