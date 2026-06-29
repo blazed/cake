@@ -72,6 +72,8 @@
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    noctalia.url = "github:noctalia-dev/noctalia-shell";
+    noctalia.inputs.nixpkgs.follows = "nixpkgs";
     nur.url = "github:nix-community/NUR";
     persway.inputs.crane.follows = "crane";
     persway.inputs.devenv.follows = "devenv";
