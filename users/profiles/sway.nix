@@ -1,11 +1,27 @@
 {
   pkgs,
   config,
+  inputs,
   lib,
   ...
 }:
 let
   inherit (config) gtk;
+  noctalia = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  noctaliaIPC = "${noctalia}/bin/noctalia msg";
+
+  noctaliaInit = pkgs.writeShellApplication {
+    name = "noctalia-init";
+    text = ''
+      while ! [ -S "''${XDG_RUNTIME_DIR}/noctalia-''${WAYLAND_DISPLAY:-wayland-0}.sock" ]; do
+        sleep 0.1
+      done
+      ${noctaliaIPC} wallpaper-random
+      sleep 0.1
+      ${noctaliaIPC} session lock
+    '';
+  };
+
   swayservice = Description: ExecStart: {
     Unit = {
       inherit Description;
@@ -316,7 +332,7 @@ in
         "${modifier}+x" = ''mode "disabled keybindings"'';
         "${modifier}+r" = ''mode "resize"'';
 
-        "${modifier}+Shift+x" = "exec ${swaylockEffects}/bin/swaylock-effects";
+        "${modifier}+Shift+x" = "exec ${noctaliaIPC} session lock";
 
         "${modifier}+i" = "exec ${pkgs.sway}/bin/swaymsg inhibit_idle open";
         "${modifier}+Shift+i" = "exec ${pkgs.sway}/bin/swaymsg inhibit_idle none";
@@ -326,7 +342,7 @@ in
         "${modifier}+Shift+a" = "scratchpad show";
 
         "${modifier}+Return" = "exec ${terminal-bin}";
-        "${modifier}+d" = "exec ${pkgs.rofi}/bin/rofi -show drun";
+        "${modifier}+d" = "exec ${noctaliaIPC} panel-toggle launcher";
 
         XF86AudioRaiseVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
         XF86AudioLowerVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
@@ -373,7 +389,7 @@ in
           command = "${pkgs.polkit_gnome.out}/libexec/polkit-gnome-authentication-agent-1";
         }
         {
-          command = "${pkgs.wpaperd}/bin/wpaperd";
+          command = "${noctaliaInit}/bin/noctalia-init";
         }
         {
           command = "${swayOnReload}/bin/sway-on-reload";
