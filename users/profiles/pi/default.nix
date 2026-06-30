@@ -36,6 +36,7 @@ let
     "npm:@juicesharp/rpiv-todo@1.20.0"
     "npm:pi-hashline-readmap@0.11.1"
     "npm:pi-web-access@0.13.0"
+    "npm:remote-pi@0.5.3"
   ];
 
   # Extra SKILL dirs beyond the auto-discovered ~/.pi/agent/skills + ~/.agents/skills:

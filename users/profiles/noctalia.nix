@@ -20,7 +20,6 @@
         thickness = 28;
         start = [
           "launcher"
-          "wallpaper"
           "workspaces"
           "spacer_2"
           "network_rx"
@@ -31,7 +30,6 @@
         end = [
           "caffeine"
           "media"
-          "tray"
           "notifications"
           "clipboard"
           "network"
@@ -39,51 +37,29 @@
           "volume"
           "brightness"
           "battery"
+          "tray"
           "control-center"
           "session"
         ];
       };
       location.auto_locate = true;
-      lockscreen_widgets = {
-        enabled = false;
-        schema_version = 2;
-        widget_order = [
-          "lockscreen-login-box@eDP-1"
-          "lockscreen-login-box@DP-1"
-        ];
-        grid = {
-          cell_size = 16;
-          major_interval = 4;
-          visible = true;
-        };
-        widget."lockscreen-login-box@DP-1" = {
-          box_height = 0.0;
-          box_width = 0.0;
-          cx = 1536.0;
-          cy = 1605.0;
-          output = "DP-1";
-          rotation = 0.0;
-          type = "login_box";
-        };
-        widget."lockscreen-login-box@eDP-1" = {
-          box_height = 0.0;
-          box_width = 0.0;
-          cx = 1440.0;
-          cy = 1797.0;
-          output = "eDP-1";
-          rotation = 0.0;
-          type = "login_box";
-        };
-      };
       nightlight.enabled = true;
       shell = {
         niri_overview_type_to_launch_enabled = true;
+        setup_wizard_enabled = false;
         panel.transparency_mode = "glass";
         screen_corners = {
           enabled = true;
           size = 16;
         };
         shadow.direction = "down_right";
+      };
+      notifications = {
+        monitors = [
+          "DP-1"
+          "eDP-1"
+        ];
+
       };
       theme = {
         builtin = "Nord";
@@ -94,12 +70,14 @@
         };
       };
       widget = {
-        bongocat = {
-          script = "scripts/bongocat.lua";
-          type = "scripted";
+        clock = {
+          format = "{:%-I:%M %p}";
         };
         spacer_2.type = "spacer";
         spacer_3.type = "spacer";
+        volume = {
+          scroll_step = 1;
+        };
       };
     };
   };
