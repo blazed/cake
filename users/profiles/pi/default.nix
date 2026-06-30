@@ -30,6 +30,7 @@ let
   # ---- Declarative extensibility knobs --------------------------------------
   # THIRD-PARTY extensions Pi auto-installs (settings.packages):
   thirdPartyPackages = [
+    "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
     "npm:@blazed/plannotator-pi-extension@0.20.3-blazed.3"
     "npm:@juicesharp/rpiv-ask-user-question@1.20.0"
     "npm:@juicesharp/rpiv-todo@1.20.0"
@@ -61,6 +62,22 @@ let
     skills = extraSkillDirs;
     steeringMode = "all";
     followUpMode = "all";
+    openaiNativeCompaction = {
+      enabled = true;
+      debug = false;
+      logProviderPayloads = false;
+      logCompactResponses = false;
+      redactSensitiveData = true;
+      supportedProviders = [
+        "openai"
+        "openai-codex"
+      ];
+      supportedApis = [
+        "openai-responses"
+        "openai-codex-responses"
+      ];
+      notifyOnLoad = false;
+    };
     theme = themeName;
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
