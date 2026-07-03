@@ -8,12 +8,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "234";
+      version = "235";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-7c2n6N+fmtlbzzSOua5KMp8zCNZte1ltfzTKH2h1luQ=";
+        hash = "sha256-paS4B3PQV2B98rZTi3j2YUiJkvhpDv+jTsNLdwgsGC8=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -60,12 +60,12 @@
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "9860";
+              version = "9870";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-6jq75W11pM0e+qajn+tcLJtQAQAQ1EH6wV803OoNdPY=";
+                hash = "sha256-zl/g5aQMKbV02dCyQM8YUO9pI2YVmIQWOhH63AeNooQ=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
