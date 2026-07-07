@@ -23,6 +23,7 @@
         '';
       };
       vendorHash = "sha256-jQRnFGqQvk6my7ejnesv1pylCmEXLs9GKbQJEZdsaYg=";
+      tags = (oa.tags or [ ]) ++ [ "embed_ui" ];
       preBuild = ''
         ldflags+=" -X main.commit=$(cat COMMIT)"
         ldflags+=" -X main.date=$(cat SOURCE_DATE_EPOCH)"
@@ -89,6 +90,7 @@
               '';
             });
         llama-server = lib.getExe' llama-cpp "llama-server";
+        froggericQwenChatTemplate = ./ai/chat-templates/froggeric-qwen3.6-v21.3.jinja;
 
         qwenSampling = [
           "--temp 0.6"
@@ -114,6 +116,7 @@
             sampling ? qwenSampling,
             mtp ? false,
             thinking ? true,
+            chatTemplateFile ? null,
           }:
           {
             cmd = lib.concatStringsSep "\n" (
@@ -142,6 +145,9 @@
                 "--metrics"
                 "--slots"
               ]
+              ++ lib.optionals (chatTemplateFile != null) [
+                "--chat-template-file ${chatTemplateFile}"
+              ]
               ++ lib.optionals mtp [
                 "--spec-type draft-mtp"
                 "--spec-draft-n-max 2"
@@ -151,42 +157,48 @@
               ]
             );
           };
+
+        mkQwenModel =
+          args:
+          mkModel (args // {
+            chatTemplateFile = froggericQwenChatTemplate;
+          });
       in
       {
         models = {
-          "qwen3.6:27b-mtp-q8" = mkModel {
+          "qwen3.6:27b-mtp-q8" = mkQwenModel {
             hf = "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q8_K_XL";
             kv = "q8_0";
             mtp = true;
           };
-          "qwen3.6:27b-mtp-q4" = mkModel {
+          "qwen3.6:27b-mtp-q4" = mkQwenModel {
             hf = "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL";
             kv = "f16";
             mtp = true;
           };
-          "qwen3.6:35b-a3b-mtp-q4" = mkModel {
+          "qwen3.6:35b-a3b-mtp-q4" = mkQwenModel {
             hf = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
             kv = "f16";
             mtp = true;
           };
-          "qwen3.6:35b-a3b-mtp-q8" = mkModel {
+          "qwen3.6:35b-a3b-mtp-q8" = mkQwenModel {
             hf = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q8_K_XL";
             kv = "q8_0";
             mtp = true;
           };
-          "qwen3.6:27b-q8" = mkModel {
+          "qwen3.6:27b-q8" = mkQwenModel {
             hf = "unsloth/Qwen3.6-27B-GGUF:UD-Q8_K_XL";
             kv = "q8_0";
           };
-          "qwen3.6:27b-q4" = mkModel {
+          "qwen3.6:27b-q4" = mkQwenModel {
             hf = "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL";
             kv = "f16";
           };
-          "qwen3.6:35b-a3b-q4" = mkModel {
+          "qwen3.6:35b-a3b-q4" = mkQwenModel {
             hf = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL";
             kv = "f16";
           };
-          "qwen3.6:35b-a3b-q8" = mkModel {
+          "qwen3.6:35b-a3b-q8" = mkQwenModel {
             hf = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q8_K_XL";
             kv = "q8_0";
           };
