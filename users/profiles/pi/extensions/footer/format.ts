@@ -2,6 +2,22 @@
  * Formatting helpers for the footer extension.
  */
 
+import { isAbsolute, relative, resolve, sep } from "node:path";
+
+/** Format the working directory, replacing the user's home directory with ~. */
+export function formatDirectory(cwd: string, home: string): string {
+  if (!home) return cwd;
+
+  const resolvedCwd = resolve(cwd);
+  const resolvedHome = resolve(home);
+  const relativeToHome = relative(resolvedHome, resolvedCwd);
+  const isInsideHome =
+    relativeToHome === "" ||
+    (relativeToHome !== ".." && !relativeToHome.startsWith(`..${sep}`) && !isAbsolute(relativeToHome));
+
+  if (!isInsideHome) return cwd;
+  return relativeToHome === "" ? "~" : `~${sep}${relativeToHome}`;
+}
 /** Format token count with k/M suffixes. */
 export function formatTokens(n: number): string {
   if (n < 1000) return String(n);

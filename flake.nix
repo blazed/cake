@@ -58,8 +58,9 @@
     jail-nix.url = "sourcehut:~alexdavid/jail.nix";
     kured.flake = false;
     kured.url = "github:kubereboot/kured";
+    # Keep llm-agents on its pinned nixpkgs: its agent-browser package currently
+    # uses pnpm 11 with a fetcher version incompatible with our newer nixpkgs.
     llm-agents.url = "github:numtide/llm-agents.nix";
-    llm-agents.inputs.nixpkgs.follows = "nixpkgs";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
@@ -71,7 +72,9 @@
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-hardware.url = "github:nixos/nixos-hardware";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Newer nixpkgs currently breaks input-remapper and avante.nvim builds;
+    # keep the last known-good revision until those regressions are fixed.
+    nixpkgs.url = "github:NixOS/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
     noctalia.url = "github:noctalia-dev/noctalia-shell";
     noctalia.inputs.nixpkgs.follows = "nixpkgs";
     nur.url = "github:nix-community/NUR";

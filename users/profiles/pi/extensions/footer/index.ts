@@ -3,7 +3,7 @@
  *
  * Replaces the built-in footer with a custom layout:
  *   Left:  MODEL | think LEVEL | VCS_BRANCH +add -del
- *   Right: tok TOKENS | $COST | PROVIDER quota used/total
+ *   Right: DIRECTORY | tok TOKENS | $COST | PROVIDER quota used/total
  *
  * Supports jj (Jujutsu) and git VCS backends (auto-detected).
  */
@@ -22,6 +22,7 @@ import { createCodexQuotaTracker, type QuotaTracker } from "./codex-usage.ts";
 import { createOpenCodeGoQuotaTracker } from "./opencode-go-usage.ts";
 import {
   renderCost,
+  renderDirectory,
   renderModel,
   renderProviderContext,
   renderQuota,
@@ -298,6 +299,9 @@ function buildLine(
 
   // ── Right segments ──
   const right: string[] = [];
+
+  const directorySeg = renderDirectory(theme, ctx.cwd);
+  if (directorySeg) right.push(directorySeg);
 
   const tokensSeg = renderTokens(theme, totalTokens);
   if (tokensSeg) right.push(tokensSeg);
