@@ -2,9 +2,11 @@
  * Themed segment renderers for the footer extension.
  */
 
+import { homedir } from "node:os";
+
 import type { Theme, ThemeColor } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth } from "@earendil-works/pi-tui";
-import { formatTokens, formatCost, formatModelDisplay } from "./format.ts";
+import { formatCost, formatDirectory, formatModelDisplay, formatTokens } from "./format.ts";
 
 // ── Types ───────────────────────────────────────────────────
 
@@ -57,8 +59,13 @@ const THINKING_COLORS: Record<string, ThemeColor> = {
   xhigh: "error",
 };
 
-
 // ── Segment renderers ───────────────────────────────────────
+
+/** Render the current working directory with the home directory shortened to ~. */
+export function renderDirectory(theme: Theme, cwd: string): string | null {
+  if (!cwd) return null;
+  return theme.fg("muted", formatDirectory(cwd, homedir()));
+}
 
 /**
  * Render model segment.
