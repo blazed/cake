@@ -12,6 +12,7 @@ let
   inherit (pkgs.stdenv.hostPlatform) system;
   jail = inputs.jail-nix.lib.init pkgs;
   llm = inputs.llm-agents.packages.${system};
+  piNode = import ./pi/node-package.nix { inherit pkgs inputs; };
 
   # Tools on PATH inside every jail. Deliberately excludes gcloud/kubectl/aws/ssh
   # so a runaway agent can't reach cloud or remote credentials.
@@ -177,7 +178,7 @@ let
       extra = c: [ (c.try-fwd-env "OPENAI_API_KEY") ];
     };
     pi = {
-      pkg = llm.pi; # github:numtide/llm-agents.nix
+      pkg = piNode;
       paths = [
         "~/.agents"
         "~/.pi"
@@ -191,6 +192,13 @@ let
       # Chromium is invoked by absolute path (wrapper env) via the ro /nix/store
       # mount — though launching it under bubblewrap may need extra sandbox perms.
       extra = c: [
+        # Node's os.tmpdir() respects TMPDIR. Pi keeps truncated command output
+        # there for later inspection, so use the disk-backed ~/.pi mount instead
+        # of the host's small tmpfs root. The Pi profile ages these files out.
+        (c.add-runtime ''
+          ${cu}/install -d -m 0700 "$HOME/.pi/tmp"
+          RUNTIME_ARGS+=(--setenv TMPDIR "$HOME/.pi/tmp")
+        '')
         (c.add-runtime ''RUNTIME_ARGS+=(--setenv PATH "${llm.agent-browser}/bin:${devToolsPath}:$PATH")'')
         # pi-web-access's web_search uses Exa. The jail can't read /run/agenix, but
         # this wrapper runs on the HOST before bwrap — so read the exa-api-key
