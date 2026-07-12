@@ -45,6 +45,7 @@ in
     ignores = [
       ".aider*"
       ".nvimlog" # TODO(blazed): find out why this is needed?
+      ".pi/remote-pi/"
       ".pi/workflows/"
       "pi-session*.html" # agent-browser session dumps (see users/profiles/pi)
     ];

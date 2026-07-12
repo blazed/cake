@@ -11,6 +11,7 @@ in
     # keep-sorted start
     ./aider.nix
     ./alacritty.nix
+    ./backlog-md.nix
     ./bat.nix
     ./chromium.nix
     ./claude.nix

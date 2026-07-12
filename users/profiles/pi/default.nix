@@ -12,6 +12,8 @@
 #                   dirs stay writable and coexist with third-party auto-installs.
 #   auth.json     - UNMANAGED: written 0600 by `pi /login`, persisted via
 #                   impermanence (profiles/state.nix). Never touched here.
+#   tmp/          - Pi/Node temporary files, kept off the tmpfs root and cleaned
+#                   after seven days by the user tmpfiles timer.
 {
   pkgs,
   inputs,
@@ -22,22 +24,37 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
   llm = inputs.llm-agents.packages.${system};
-  inherit (llm) pi;
+  piNode = import ./node-package.nix { inherit pkgs inputs; };
+
   # Browser-automation CLI for agents (Vercel Labs). The llm-agents build bundles
   # a Nix Chromium, so it works on NixOS with no Chrome download / nix-ld.
   inherit (llm) agent-browser;
 
   # ---- Declarative extensibility knobs --------------------------------------
-  # THIRD-PARTY extensions Pi auto-installs (settings.packages):
-  thirdPartyPackages = [
-    "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
-    "npm:@blazed/plannotator-pi-extension@0.20.3-blazed.3"
-    "npm:@juicesharp/rpiv-ask-user-question@1.20.0"
-    "npm:@juicesharp/rpiv-todo@1.20.0"
-    "npm:pi-hashline-readmap@0.11.1"
-    "npm:pi-web-access@0.13.0"
-    "npm:remote-pi@0.5.4"
-  ];
+  # THIRD-PARTY packages Pi auto-installs (settings.packages):
+  thirdPartyPackages =
+    # remote-pi imports @napi-rs/keyring during extension loading. Install its
+    # platform binding directly so npm's optional-dependency bug cannot omit it
+    # during an incremental remote-pi update. Keep this version aligned with
+    # the @napi-rs/keyring version required by remote-pi.
+    lib.optionals (system == "x86_64-linux") [
+      {
+        source = "npm:@napi-rs/keyring-linux-x64-gnu@1.3.0";
+        extensions = [ ];
+        skills = [ ];
+        prompts = [ ];
+        themes = [ ];
+      }
+    ]
+    ++ [
+      "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
+      "npm:@juicesharp/rpiv-ask-user-question@1.20.0"
+      "npm:@juicesharp/rpiv-todo@1.20.0"
+      "npm:@plannotator/pi-extension@0.23.1"
+      "npm:pi-hashline-readmap@0.11.1"
+      "npm:pi-web-access@0.13.0"
+      "npm:remote-pi@0.5.4"
+    ];
 
   # Extra SKILL dirs beyond the auto-discovered ~/.pi/agent/skills + ~/.agents/skills:
   extraSkillDirs = [
@@ -168,10 +185,11 @@ let
 
   piWithExa = pkgs.symlinkJoin {
     name = "pi-with-exa";
-    paths = [ pi ];
+    paths = [ piNode ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \
+        --run 'export TMPDIR="$HOME/.pi/tmp"; ${pkgs.coreutils}/bin/install -d -m 0700 "$TMPDIR"' \
         --run 'if [ -z "''${EXA_API_KEY:-}" ] && [ -r /run/agenix/exa-api-key ]; then export EXA_API_KEY="$(< /run/agenix/exa-api-key)"; fi'
     '';
   };
@@ -180,6 +198,13 @@ in
   home.packages = [
     piWithExa
     agent-browser
+  ];
+
+  # Pi preserves truncated command output in TMPDIR so it can show the full-output
+  # path in the transcript. Keep it on the persistent disk rather than the 16 GiB
+  # tmpfs root, then age it out automatically.
+  systemd.user.tmpfiles.rules = [
+    "d %h/.pi/tmp 0700 - - 7d"
   ];
 
   # Self-authored skills & extensions (per-file symlinks; parent dirs writable).
