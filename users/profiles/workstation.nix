@@ -12,6 +12,7 @@ in
   ]
   ++ [
     ./chromium.nix
+    ./faugus.nix
     ./lutris.nix
     ./noctalia.nix
     ./obs.nix
