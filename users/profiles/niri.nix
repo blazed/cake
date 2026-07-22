@@ -22,20 +22,6 @@ let
   settings = call "${inputs.niri}/settings.nix";
 
   xcursor_theme = config.gtk.cursorTheme.name;
-  noctalia = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
-  noctaliaIPC = "${noctalia}/bin/noctalia msg";
-
-  noctaliaInit = pkgs.writeShellApplication {
-    name = "noctalia-init";
-    text = ''
-      while ! [ -S "''${XDG_RUNTIME_DIR}/noctalia-''${WAYLAND_DISPLAY:-wayland-0}.sock" ]; do
-        sleep 0.1
-      done
-      ${noctaliaIPC} wallpaper-random
-      sleep 0.1
-      ${noctaliaIPC} session lock
-    '';
-  };
 
   screenshot = pkgs.writeShellApplication {
     name = "screenshot";
@@ -119,10 +105,6 @@ in
           scale = 1.5;
         };
       };
-
-      spawn-at-startup = [
-        { sh = "${noctaliaInit}/bin/noctalia-init"; }
-      ];
 
       hotkey-overlay.skip-at-startup = true;
 
@@ -214,8 +196,6 @@ in
           "start"
           "--always-new-process"
         ];
-        "Mod+D".action.spawn-sh = "${noctaliaIPC} panel-toggle launcher";
-        "Mod+Shift+X".action.spawn-sh = "${noctaliaIPC} session lock";
 
         "XF86AudioRaiseVolume" = {
           allow-when-locked = true;

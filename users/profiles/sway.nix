@@ -1,26 +1,11 @@
 {
   pkgs,
   config,
-  inputs,
   lib,
   ...
 }:
 let
   inherit (config) gtk;
-  noctalia = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
-  noctaliaIPC = "${noctalia}/bin/noctalia msg";
-
-  noctaliaInit = pkgs.writeShellApplication {
-    name = "noctalia-init";
-    text = ''
-      while ! [ -S "''${XDG_RUNTIME_DIR}/noctalia-''${WAYLAND_DISPLAY:-wayland-0}.sock" ]; do
-        sleep 0.1
-      done
-      ${noctaliaIPC} wallpaper-random
-      sleep 0.1
-      ${noctaliaIPC} session lock
-    '';
-  };
 
   swayservice = Description: ExecStart: {
     Unit = {
@@ -36,54 +21,6 @@ let
     };
 
     Install.WantedBy = [ "sway-session.target" ];
-  };
-
-  swaylockTimeout = "300";
-  swaylockSleepTimeout = "310";
-
-  swaylockEffects = pkgs.writeShellApplication {
-    name = "swaylock-effects";
-    runtimeInputs = [ pkgs.swaylock-effects ];
-    text = ''
-      exec swaylock \
-       --screenshots \
-       --indicator-radius 100 \
-       --indicator-thickness 7 \
-       --effect-blur 15x3 \
-       --effect-greyscale \
-       --ring-color ffffff \
-       --ring-clear-color baffba \
-       --ring-ver-color bababa \
-       --ring-wrong-color ffbaba \
-       --key-hl-color bababa \
-       --line-color ffffffaa \
-       --inside-color ffffffaa \
-       --inside-ver-color bababaaa \
-       --line-ver-color bababaaa \
-       --inside-clear-color baffbaaa \
-       --line-clear-color baffbaaa \
-       --inside-wrong-color ffbabaaa \
-       --line-wrong-color ffbabaaa \
-       --separator-color 00000000 \
-       --grace 2 \
-       --fade-in 0.2
-    '';
-  };
-
-  swayidleCommand = pkgs.writeShellApplication {
-    name = "swayidle";
-    runtimeInputs = [
-      pkgs.sway
-      pkgs.bash
-      swaylockEffects
-      pkgs.swayidle
-    ];
-    text = ''
-      swayidle -d -w timeout ${swaylockTimeout} swaylock-dope \
-                     timeout ${swaylockSleepTimeout} 'swaymsg "output * dpms off"' \
-                     resume 'sway "output * dpms on"' \
-                     before-sleep swaylock-dope
-    '';
   };
 
   screenshot = pkgs.writeShellApplication {
@@ -332,8 +269,6 @@ in
         "${modifier}+x" = ''mode "disabled keybindings"'';
         "${modifier}+r" = ''mode "resize"'';
 
-        "${modifier}+Shift+x" = "exec ${noctaliaIPC} session lock";
-
         "${modifier}+i" = "exec ${pkgs.sway}/bin/swaymsg inhibit_idle open";
         "${modifier}+Shift+i" = "exec ${pkgs.sway}/bin/swaymsg inhibit_idle none";
 
@@ -342,8 +277,6 @@ in
         "${modifier}+Shift+a" = "scratchpad show";
 
         "${modifier}+Return" = "exec ${terminal-bin}";
-        "${modifier}+d" = "exec ${noctaliaIPC} panel-toggle launcher";
-
         XF86AudioRaiseVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ +5%";
         XF86AudioLowerVolume = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-volume @DEFAULT_SINK@ -5%";
         XF86AudioMute = "exec ${pkgs.pulseaudio}/bin/pactl set-sink-mute @DEFAULT_SINK@ toggle";
@@ -389,9 +322,6 @@ in
           command = "${pkgs.polkit_gnome.out}/libexec/polkit-gnome-authentication-agent-1";
         }
         {
-          command = "${noctaliaInit}/bin/noctalia-init";
-        }
-        {
           command = "${swayOnReload}/bin/sway-on-reload";
           always = true;
         }
@@ -420,8 +350,5 @@ in
     '';
   };
 
-  systemd.user.services = {
-    persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway daemon -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d stack_main";
-    swayidle = swayservice "Sway Idle Service" "${swayidleCommand}/bin/swayidle";
-  };
+  systemd.user.services.persway = swayservice "Small Sway IPC Daemon" "${pkgs.persway}/bin/persway daemon -e '[tiling] opacity 1' -f '[tiling] opacity 0.95; opacity 1' -l 'mark --add _prev' -d stack_main";
 }
