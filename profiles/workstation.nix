@@ -1,6 +1,5 @@
 {
   adminUser,
-  config,
   pkgs,
   inputs,
   ...

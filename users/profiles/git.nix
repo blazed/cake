@@ -43,7 +43,6 @@ in
     };
 
     ignores = [
-      ".aider*"
       ".nvimlog" # TODO(blazed): find out why this is needed?
       ".pi/remote-pi/"
       ".pi/workflows/"

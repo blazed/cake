@@ -1,7 +1,6 @@
 {
   adminUser,
   config,
-  inputs,
   ...
 }:
 {
@@ -46,10 +45,6 @@
     };
     anthropic-api-key = {
       file = ../../secrets/anthropic-api-key.age;
-      owner = "${toString adminUser.uid}";
-    };
-    copilot-api-key = {
-      file = ../../secrets/copilot-api-key.age;
       owner = "${toString adminUser.uid}";
     };
     exa-api-key = {
