@@ -51,12 +51,6 @@
           codex = inputs.llm-agents.packages.${system}.codex;
           dms-greeter = inputs.dank-greeter.packages.${system}.default;
           dms = inputs.dms.packages.${system}.default;
-
-          inherit (inputs.hyprland.packages.${system})
-            hyprland
-            hyprland-unwrapped
-            xdg-desktop-portal-hyprland
-            ;
         };
     };
 }

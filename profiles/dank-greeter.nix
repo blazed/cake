@@ -74,15 +74,6 @@ let
     cmd = "${pkgs.sway}/bin/sway";
   };
 
-  runHyprland = runViaShell {
-    env = {
-      XDG_SESSION_TYPE = "wayland";
-      XDG_CURRENT_DESKTOP = "Hyprland";
-      XDG_SESSION_DESKTOP = "Hyprland";
-    };
-    name = "Hyprland";
-    cmd = "${pkgs.hyprland}/bin/Hyprland";
-  };
 
   runNiri = runViaShell {
     env = {
@@ -108,7 +99,6 @@ let
       {
         passthru.providedSessions = [
           "sway"
-          "Hyprland"
           "niri"
           "nushell"
           "bash"
@@ -117,7 +107,6 @@ let
       ''
         mkdir -p "$out/share/wayland-sessions"
         ln -s ${desktopSession "sway" "${runSway}/bin/sway"} "$out/share/wayland-sessions/sway.desktop"
-        ln -s ${desktopSession "Hyprland" "${runHyprland}/bin/Hyprland"} "$out/share/wayland-sessions/Hyprland.desktop"
         ln -s ${desktopSession "niri" "${runNiri}/bin/niri"} "$out/share/wayland-sessions/niri.desktop"
         ln -s ${desktopSession "nushell" "${pkgs.nushell}/bin/nu"} "$out/share/wayland-sessions/nushell.desktop"
         ln -s ${desktopSession "bash" "${pkgs.bashInteractive}/bin/bash"} "$out/share/wayland-sessions/bash.desktop"
@@ -126,7 +115,6 @@ let
   greeterCompositor =
     {
       sway = "sway";
-      Hyprland = "hyprland";
       niri = "niri";
     }
     .${config.greeter.defaultSession};
@@ -155,13 +143,6 @@ let
         pos 5120 0
       }
     '';
-    hyprland = ''
-      input {
-        kb_layout = us
-        kb_variant = dvp
-        kb_options = compose:ralt,caps:escape
-      }
-    '';
     niri = ''
       input {
         keyboard {
@@ -181,7 +162,6 @@ in
   options.greeter.defaultSession = lib.mkOption {
     type = lib.types.enum [
       "sway"
-      "Hyprland"
       "niri"
     ];
     default = "sway";
