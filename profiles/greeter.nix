@@ -74,7 +74,6 @@ let
     cmd = "${pkgs.sway}/bin/sway";
   };
 
-
   runNiri = runViaShell {
     env = {
       XDG_SESSION_TYPE = "wayland";
@@ -165,7 +164,7 @@ in
       "niri"
     ];
     default = "sway";
-    description = "Default desktop session and compositor used to render DankGreeter.";
+    description = "Default desktop session and compositor used to render DMS Greeter.";
   };
 
   config = {
