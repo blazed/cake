@@ -48,8 +48,6 @@
       auth include login
     '';
   };
-  security.pam.services.hyprlock = { };
-  security.pam.services.hyprland.enableGnomeKeyring = true;
 
   powerManagement.enable = true;
   powerManagement.powertop.enable = true;
