@@ -60,9 +60,6 @@ in
 
   environment.systemPackages = [
     pkgs.binutils
-    pkgs.blueman
-    pkgs.bmon
-    pkgs.bottom
     pkgs.bridge-utils
     pkgs.btop
     pkgs.cacert
@@ -72,7 +69,6 @@ in
     pkgs.fish
     pkgs.git
     pkgs.gnupg
-    pkgs.htop
     pkgs.hyperfine
     pkgs.iftop
     pkgs.iptables
@@ -82,7 +78,6 @@ in
     pkgs.mkpasswd
     pkgs.nmap
     pkgs.openssl
-    pkgs.pavucontrol
     pkgs.pciutils
     pkgs.powertop
     pkgs.procs
@@ -90,7 +85,6 @@ in
     pkgs.ripgrep
     pkgs.sd
     pkgs.socat
-    pkgs.tmux
     pkgs.tree
     pkgs.unzip
     pkgs.usbutils

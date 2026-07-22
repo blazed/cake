@@ -23,12 +23,9 @@ in
   home.packages = with pkgs; [
     beekeeper-studio
     bruno
-    discord
     nautilus
     neovide
-    nordic
     persway
-    scrot
     shotcut
     signal-desktop
     slack
@@ -36,7 +33,6 @@ in
     telegram-desktop
     vulkan-loader
     wl-clipboard
-    wl-clipboard-x11
     xdg-utils
   ];
 
