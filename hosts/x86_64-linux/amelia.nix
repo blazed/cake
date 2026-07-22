@@ -11,7 +11,7 @@
     ../../profiles/admin-user/home-manager.nix
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
-    ../../profiles/greetd.nix
+    ../../profiles/dank-greeter.nix
     ../../profiles/hardware/usbcore.nix
     ../../profiles/hardware/framework-13-amd.nix
     ../../profiles/home-manager.nix

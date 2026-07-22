@@ -14,7 +14,7 @@
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
     ../../profiles/desktop.nix
-    ../../profiles/greetd.nix
+    ../../profiles/dank-greeter.nix
     ../../profiles/home-manager.nix
     ../../profiles/restic-backup.nix
     ../../profiles/state.nix
