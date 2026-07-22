@@ -41,6 +41,8 @@
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-code.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
+    dank-greeter.url = "github:AvengeMedia/dank-greeter";
+    dank-greeter.inputs.nixpkgs.follows = "nixpkgs";
     devenv.inputs.flake-compat.follows = "flake-compat";
     devenv.inputs.nixpkgs.follows = "nixpkgs";
     devenv.inputs.cachix.follows = "cachix";
