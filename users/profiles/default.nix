@@ -9,14 +9,11 @@ in
 {
   imports = [
     # keep-sorted start
-    ./aider.nix
-    ./alacritty.nix
     ./backlog-md.nix
     ./bat.nix
     ./chromium.nix
     ./claude.nix
     ./codex.nix
-    ./dunst.nix
     ./firefox.nix
     ./git.nix
     ./gitui.nix
@@ -28,7 +25,6 @@ in
     ./nushell/default.nix
     ./pi/default.nix
     ./protonpass.nix
-    ./rbw.nix
     ./ssh.nix
     ./starship.nix
     ./wezterm/default.nix
@@ -62,7 +58,6 @@ in
     lmstudio
     nix-index
     nodejs
-    pueue
     pwgen
     ruby
     scripts

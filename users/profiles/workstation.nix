@@ -17,14 +17,10 @@ in
     ./lutris.nix
     ./niri.nix
     ./obs.nix
-    ./pueue.nix
-    ./rofi.nix
     ./sway.nix
-    ./waybar.nix
   ];
 
   home.packages = with pkgs; [
-    # kanshi
     beekeeper-studio
     bruno
     discord

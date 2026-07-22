@@ -12,14 +12,12 @@ let
     types
     ;
   cfg = config.base16-theme;
-  cnotation = builtins.replaceStrings [ "#" ] [ "0x" ];
   color =
     default:
     mkOption {
       inherit default;
       type = types.str;
     };
-  alpha = clr: a: "${clr}${a}";
 in
 {
   options.base16-theme = {
@@ -72,31 +70,6 @@ in
         };
       };
 
-      programs.alacritty.settings.colors = {
-        primary.background = "0x1d2021";
-        primary.foreground = "0xd5c4a1";
-
-        cursor.text = cnotation cfg.base00;
-        cursor.cursor = cnotation cfg.base05;
-
-        normal.black = cnotation cfg.base01;
-        normal.red = cnotation cfg.base08;
-        normal.green = cnotation cfg.base0B;
-        normal.yellow = cnotation cfg.base0A;
-        normal.blue = cnotation cfg.base0D;
-        normal.magenta = cnotation cfg.base0E;
-        normal.cyan = cnotation cfg.base0C;
-        normal.white = cnotation cfg.base05;
-
-        bright.black = cnotation cfg.base03;
-        bright.red = cnotation cfg.base08;
-        bright.green = cnotation cfg.base0B;
-        bright.yellow = cnotation cfg.base0A;
-        bright.blue = cnotation cfg.base0D;
-        bright.magenta = cnotation cfg.base0E;
-        bright.cyan = cnotation cfg.base0C;
-        bright.white = cnotation cfg.base07;
-      };
     }
   ]);
 }

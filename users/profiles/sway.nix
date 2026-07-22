@@ -50,10 +50,6 @@ let
             swaymsg output eDP-1 disable
         fi
       fi
-
-      ${lib.optionalString config.services.kanshi.enable ''
-        systemctl restart --user kanshi.service
-      ''}
     '';
   };
 
@@ -309,9 +305,6 @@ in
       };
 
       startup = [
-        {
-          command = "${pkgs.xrdb}/bin/xrdb -merge ~/.Xresources";
-        }
         {
           command = "${pkgs.gnome-settings-daemon}/libexec/gsd-xsettings";
         }
