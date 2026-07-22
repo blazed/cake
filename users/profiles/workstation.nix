@@ -32,6 +32,7 @@ in
     slack
     spotify
     telegram-desktop
+    vesktop
     vulkan-loader
     wl-clipboard
     xdg-utils

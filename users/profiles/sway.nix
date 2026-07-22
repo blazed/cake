@@ -227,7 +227,7 @@ in
           { app_id = "telegramdesktop"; }
           { class = "Signal"; }
         ];
-        "6" = [ { class = "^discord$"; } ];
+        "6" = [ { app_id = "vesktop"; } ];
         "7" = [ { class = "^Spotify$"; } ];
       };
 

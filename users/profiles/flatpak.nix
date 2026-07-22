@@ -2,7 +2,6 @@
   services.flatpak = {
     enable = true;
     packages = [
-      "com.discordapp.Discord"
       "com.github.tchx84.Flatseal"
       "com.usebottles.bottles"
     ];
