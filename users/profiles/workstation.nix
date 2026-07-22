@@ -14,6 +14,7 @@ in
     ./chromium.nix
     ./dank-material-shell.nix
     ./faugus.nix
+    ./flatpak.nix
     ./lutris.nix
     ./niri.nix
     ./obs.nix

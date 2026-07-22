@@ -65,6 +65,7 @@
   services.gnome.gcr-ssh-agent.enable = false;
 
   services.pcscd.enable = true;
+  services.flatpak.enable = true;
 
   programs.dconf.enable = true;
 

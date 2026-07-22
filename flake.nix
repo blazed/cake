@@ -73,6 +73,7 @@
     # pinned nixpkgs so its Cachix (nix-amd-ai.cachix.org) substitutes; following
     # our nixpkgs would re-hash every backend and force a from-source rebuild.
     nix-amd-ai.url = "github:noamsto/nix-amd-ai";
+    nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=v0.7.0";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-hardware.url = "github:nixos/nixos-hardware";
