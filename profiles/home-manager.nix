@@ -10,6 +10,7 @@
     ../users/modules/theme.nix
     ../users/modules/userinfo.nix
     inputs.dms.homeModules.dank-material-shell
+    inputs.nix-flatpak.homeManagerModules.nix-flatpak
     inputs.niri.homeModules.niri
   ];
 }

@@ -71,7 +71,6 @@
   };
 
   programs.steam.enable = true;
-  services.flatpak.enable = true;
 
   services.input-remapper.enable = true;
 
