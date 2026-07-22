@@ -11,7 +11,7 @@
     ../../profiles/admin-user/home-manager.nix
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
-    ../../profiles/dank-greeter.nix
+    ../../profiles/greeter.nix
     ../../profiles/hardware/xps9300.nix
     ../../profiles/home-manager.nix
     ../../profiles/laptop.nix
