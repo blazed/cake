@@ -47,6 +47,8 @@
     devenv.url = "github:cachix/devenv";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
+    dms.url = "github:AvengeMedia/DankMaterialShell/stable";
+    dms.inputs.nixpkgs.follows = "nixpkgs";
     fenix.inputs.nixpkgs.follows = "nixpkgs";
     fenix.url = "github:nix-community/fenix";
     flake-compat.flake = false;
@@ -78,8 +80,6 @@
     # Newer nixpkgs currently breaks input-remapper and avante.nvim builds;
     # keep the last known-good revision until those regressions are fixed.
     nixpkgs.url = "github:NixOS/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
-    noctalia.url = "github:noctalia-dev/noctalia-shell";
-    noctalia.inputs.nixpkgs.follows = "nixpkgs";
     nur.url = "github:nix-community/NUR";
     persway.inputs.crane.follows = "crane";
     persway.inputs.devenv.follows = "devenv";

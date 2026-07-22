@@ -12,10 +12,10 @@ in
   ]
   ++ [
     ./chromium.nix
+    ./dank-material-shell.nix
     ./faugus.nix
     ./lutris.nix
     ./niri.nix
-    ./noctalia.nix
     ./obs.nix
     ./pueue.nix
     ./rofi.nix
