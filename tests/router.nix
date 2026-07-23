@@ -74,6 +74,7 @@ pkgs.testers.runNixOSTest {
               port = 9443;
               target = "10.0.10.5:80";
               hairpin = false;
+              rateLimitNew = "10/minute burst 20 packets";
             }
           ];
           dnsMasqSettings = {
@@ -368,6 +369,15 @@ pkgs.testers.runNixOSTest {
         # listener), it does NOT succeed against the backend.
         trusted.fail("curl -sf --max-time 3 http://10.0.10.1:8443/")
 
+    with subtest("portForward rateLimitNew: burst of new connections gets throttled"):
+        # port 9443 allows 20 new connections of burst then 10/minute; 25
+        # rapid requests must therefore see at least one dropped (curl times
+        # out on the swallowed SYN). Runs last among the 9443 tests so the
+        # exhausted bucket can't interfere with earlier assertions.
+        wan.fail(
+            "for i in $(seq 1 25); do curl -sf --max-time 2 http://198.51.100.1:9443/ >/dev/null || exit 1; done"
+        )
+
     with subtest("nftables ruleset structure"):
         router.succeed("nft list table ip nat | grep -q 'masquerade'")
         router.succeed("nft list table ip nat | grep -q 'hook prerouting priority dstnat'")
@@ -389,6 +399,8 @@ pkgs.testers.runNixOSTest {
         router.succeed("nft list table ip6 filter | grep -q 'iifname \"lo\" accept'")
         # forceDns: plain-DNS redirect + DoT/DoQ block
         router.succeed("nft list table ip nat | grep -q 'Force VLAN DNS to router'")
+        # per-forward rate limiting
+        router.succeed("nft list table inet filter | grep -q 'Rate limit new connections'")
         router.succeed("nft list table inet filter | grep -q 'Block DoT from forceDns VLANs'")
         router.succeed("nft list table inet filter | grep -q 'Block DoQ from forceDns VLANs'")
 

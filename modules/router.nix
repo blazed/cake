@@ -103,6 +103,8 @@ let
   hairpinForwards = builtins.filter (f: f.hairpin) cfg.portForwards;
   hasHairpin = hairpinForwards != [ ];
 
+  rateLimitedForwards = builtins.filter (f: f.rateLimitNew != null) cfg.portForwards;
+
   useStubby = cfg.dotUpstreams != [ ];
   stubbyPort = 5453;
   stubbyAddress = "127.0.0.1#${toString stubbyPort}";
@@ -309,6 +311,18 @@ in
               <router>` from the LAN keeps reaching local SSHD), but you
               should still avoid enabling hairpin on ports the router
               binds locally on the WAN interface.
+            '';
+          };
+          rateLimitNew = mkOption {
+            type = nullOr str;
+            default = null;
+            example = "10/minute burst 20 packets";
+            description = ''
+              Optional nft `limit rate over` expression applied to NEW
+              connections arriving from WAN for this forward; traffic above
+              the rate is dropped before the DNAT accept. Established
+              connections are unaffected. Useful to keep WAN-exposed ports
+              (e.g. forwarded SSH) from collecting brute-force noise.
             '';
           };
         };
@@ -625,6 +639,14 @@ in
               ''}
               iifname { ${concatStringsSep "," allInternalNames} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
               iifname { "${cfg.externalInterface}" } oifname { ${concatStringsSep "," allInternalNames} } ct state { established, related } counter accept comment "Allow established back to LANs"
+
+              # Throttle NEW connections to rate-limited forwards before the
+              # blanket dnat accept below matches them. `ct original
+              # proto-dst` is the pre-DNAT WAN port, so the budget stays
+              # per-forward even when forwards share a target.
+              ${optionalString (rateLimitedForwards != [ ]) (concatMapStringsSep "\n              " (
+                f: ''iifname "${cfg.externalInterface}" meta l4proto ${f.protocol} ct status dnat ct state new ct original proto-dst ${toString f.port} limit rate over ${f.rateLimitNew} counter drop comment "Rate limit new connections to forward ${toString f.port}"''
+              ) rateLimitedForwards)}
 
               # DNAT'd WAN ingress: prerouting rewrites destination, here we
               # accept the resulting forward. `ct status dnat` is set by nftables
