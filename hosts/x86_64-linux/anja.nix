@@ -45,10 +45,9 @@
     enable = true;
     externalInterface = "enp4s0";
     internalInterface = "enp3s0";
-    trustedInterfaces = [
-      "lan"
-      "tailscale0"
-    ];
+    # non-VLAN runtime interfaces only; the lan VLAN is trusted via its
+    # own `trusted = true` below.
+    trustedInterfaces = [ "tailscale0" ];
     vlans = {
       lan = {
         id = 10;
@@ -151,6 +150,10 @@
     args.ssh = true;
     args.accept-routes = false;
     args.accept-dns = false;
+    # NOTE: exit-node advertising always includes ::/0 (tailscale has no
+    # v4-only flag), but this router intentionally forwards no IPv6 — v6
+    # from exit-node clients is blackholed and they fall back to v4 via
+    # happy eyeballs; v6-only destinations won't work through this exit.
     args.advertise-exit-node = true;
     args.auth-key = "file:/var/run/agenix/ts";
   };
