@@ -38,6 +38,9 @@ in
       ];
       extraFlags = [
         "--collector.textfile.directory=/var/lib/node_exporter/textfile"
+        "--collector.systemd.enable-restarts-metrics"
+        "--collector.systemd.enable-start-time-metrics"
+        "--collector.systemd.enable-task-metrics"
       ];
     };
 
@@ -49,6 +52,7 @@ in
     services.prometheus.exporters.dnsmasq = lib.mkIf config.services.dnsmasq.enable {
       enable = true;
       port = 9153;
+      dnsmasqListenAddress = "127.0.0.1:53";
       leasesPath = "/var/lib/dnsmasq/dnsmasq.leases";
     };
 
@@ -56,6 +60,7 @@ in
     # push URL is configured — this profile is otherwise metrics-only.
     services.alloy = lib.mkIf (cfg.lokiURL != null) {
       enable = true;
+      extraFlags = [ "--disable-reporting" ];
       configPath = pkgs.writeText "config.alloy" ''
         loki.write "default" {
           endpoint {
@@ -64,7 +69,7 @@ in
         }
 
         loki.relabel "journal" {
-          forward_to = [loki.write.default.receiver]
+          forward_to = []
           rule {
             source_labels = ["__journal__systemd_unit"]
             target_label  = "unit"
@@ -76,7 +81,8 @@ in
         }
 
         loki.source.journal "default" {
-          forward_to    = [loki.relabel.journal.receiver]
+          forward_to    = [loki.write.default.receiver]
+          relabel_rules = loki.relabel.journal.rules
           max_age       = "12h"
           labels        = {
             job  = "systemd-journal",
