@@ -80,7 +80,6 @@ let
     address = ip;
     base = ipBase ip;
     network = "${base}.0";
-    broadcast = "${base}.255";
     netmask = cidrToNetmask prefix;
     rangeStart = "${base}.21";
     rangeEnd = "${base}.254";
@@ -606,14 +605,22 @@ in
               ip option ssrr exists counter drop comment "Drop strict source-routed packets"
 
               # WAN ingress bogons: nothing arriving from the internet should
-              # claim a private/loopback/link-local source. rp_filter=1
-              # covers most of this; the explicit rule documents intent.
+              # claim a private/loopback/link-local/reserved source.
+              # rp_filter=1 covers most of this; the explicit rule documents
+              # intent. Deliberately absent: 100.64.0.0/10 (a CGNAT ISP
+              # legitimately sources gateway traffic from it) and the
+              # TEST-NET ranges (near-zero abuse value, and the integration
+              # test stages its WAN segment on TEST-NET-2).
               iifname "${cfg.externalInterface}" ip saddr {
+                0.0.0.0/8,
                 10.0.0.0/8,
-                172.16.0.0/12,
-                192.168.0.0/16,
                 127.0.0.0/8,
                 169.254.0.0/16,
+                172.16.0.0/12,
+                192.168.0.0/16,
+                198.18.0.0/15,
+                224.0.0.0/4,
+                240.0.0.0/4,
               } counter drop comment "Drop WAN ingress with bogon source"
 
               # Internal segments must source from their own subnet (placed
