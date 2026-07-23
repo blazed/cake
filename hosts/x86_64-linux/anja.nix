@@ -123,6 +123,7 @@
         port = 22;
         target = "10.0.10.15:22";
         hairpin = true;
+        rateLimitNew = "10/minute burst 20 packets";
       }
     ];
     dotUpstreams = [
