@@ -177,6 +177,17 @@ in
         `dotUpstreams` — those handle everything else.
       '';
     };
+    rebindOkDomains = mkOption {
+      type = listOf str;
+      default = [ ];
+      example = [ "internal.example.com" ];
+      description = ''
+        Extra domains exempted from DNS rebind protection
+        (`stop-dns-rebind`) — for public names that legitimately resolve
+        to private/CGNAT space upstream (split-horizon DNS, tailnet
+        rewrites, …). Domains in `dnsForwarders` are always exempt.
+      '';
+    };
     dotUpstreams = mkOption {
       type = listOf str;
       default = [ ];
@@ -401,6 +412,9 @@ in
         "interface"
         "bind-dynamic"
         "bind-interfaces"
+        # Derived from dnsForwarders + rebindOkDomains; extra rebind
+        # exemptions belong in those options.
+        "rebind-domain-ok"
       ];
       shadowed = builtins.filter (k: cfg.dnsMasqSettings ? ${k}) reservedDnsmasqKeys;
     in
@@ -527,6 +541,20 @@ in
         # interfaces appearing/disappearing at runtime — needed for
         # interfaces like tailscale0 that don't exist at boot.
         bind-dynamic = true;
+        # DNS rebind protection: strip upstream answers that resolve public
+        # names into private space (a hostile domain could otherwise pivot
+        # a LAN browser at internal services). Local data (localDomain,
+        # `address=` overrides, DHCP names) is not subject to the check,
+        # and filtering upstreams that answer 0.0.0.0 for blocked names
+        # simply yield empty answers instead — same effect. Deliberately
+        # overridable via dnsMasqSettings as an escape hatch.
+        stop-dns-rebind = true;
+        # dnsForwarders exist precisely to return tailnet/CGNAT-range
+        # answers (e.g. MagicDNS 100.x), so they are exempted automatically;
+        # rebindOkDomains covers other legitimate private-space answers.
+        rebind-domain-ok = map (domain: "/${domain}/") (
+          attrNames cfg.dnsForwarders ++ cfg.rebindOkDomains
+        );
         dhcp-authoritative = true;
         expand-hosts = true;
         dhcp-range = mapAttrsToList (
