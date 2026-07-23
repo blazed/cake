@@ -50,6 +50,7 @@ pkgs.testers.runNixOSTest {
               interface = "eth2";
               address = "10.0.20.1";
               trusted = false;
+              forceDns = true;
             };
           };
           staticHosts = [
@@ -113,8 +114,10 @@ pkgs.testers.runNixOSTest {
 
     # tagged client on VLAN 10 — should be treated as trusted by the router.
     trusted =
-      { lib, ... }:
+      { lib, pkgs, ... }:
       {
+        # dig, for the forceDns control test
+        environment.systemPackages = [ pkgs.dnsutils ];
         virtualisation.vlans = [ 2 ];
         networking.useDHCP = lib.mkForce false;
         networking.vlans.lan10 = {
@@ -128,8 +131,10 @@ pkgs.testers.runNixOSTest {
 
     # tagged client on VLAN 20 — should be treated as untrusted by the router.
     iot =
-      { lib, ... }:
+      { lib, pkgs, ... }:
       {
+        # dig, for the forceDns redirect test
+        environment.systemPackages = [ pkgs.dnsutils ];
         virtualisation.vlans = [ 2 ];
         networking.useDHCP = lib.mkForce false;
         networking.vlans.iot20 = {
@@ -307,6 +312,22 @@ pkgs.testers.runNixOSTest {
     with subtest("untrusted client can DNS to router (input chain allows)"):
         iot.succeed("getent hosts fixed.lan.darkstar.se | grep -q 10.0.0.42")
 
+    with subtest("forceDns: untrusted client's direct-to-upstream DNS is hijacked"):
+        # iot has forceDns; a query aimed straight at the WAN host must be
+        # transparently redirected to the router's dnsmasq, which answers
+        # test.lan.darkstar.se locally (192.0.2.123) — the wan node's
+        # catch-all would have said 192.0.2.250.
+        iot.succeed(
+            "dig +short +time=3 +tries=1 @198.51.100.2 test.lan.darkstar.se | grep -qx 192.0.2.123"
+        )
+
+    with subtest("forceDns off: trusted client's direct-to-upstream DNS is untouched"):
+        # trustedvl has no forceDns, so the same query really reaches the
+        # wan node and gets its catch-all answer.
+        trusted.succeed(
+            "dig +short +time=3 +tries=1 @198.51.100.2 test.lan.darkstar.se | grep -qx 192.0.2.250"
+        )
+
     with subtest("untrusted client cannot reach router services beyond DNS/DHCP"):
         # nginx on 8080 is only reachable from trusted; untrusted is dropped.
         trusted.succeed("curl -sf --max-time 5 http://10.0.10.1:8080/ | grep -q 'router internal'")
@@ -366,6 +387,10 @@ pkgs.testers.runNixOSTest {
         router.succeed("nft list table inet filter | grep -q 'private-destined egress'")
         router.succeed("nft list table inet filter | grep -q 'router-drop'")
         router.succeed("nft list table ip6 filter | grep -q 'iifname \"lo\" accept'")
+        # forceDns: plain-DNS redirect + DoT/DoQ block
+        router.succeed("nft list table ip nat | grep -q 'Force VLAN DNS to router'")
+        router.succeed("nft list table inet filter | grep -q 'Block DoT from forceDns VLANs'")
+        router.succeed("nft list table inet filter | grep -q 'Block DoQ from forceDns VLANs'")
 
     with subtest("conntrack does not adopt mid-stream TCP"):
         router.succeed("sysctl -n net.netfilter.nf_conntrack_tcp_loose | grep -qx 0")
