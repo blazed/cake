@@ -360,6 +360,11 @@ pkgs.testers.runNixOSTest {
         # 9443 and the connection should be refused or time out.
         native.fail("curl -sf --max-time 3 http://198.51.100.1:9443/")
 
+    with subtest("portForward hairpin is trusted-side only: untrusted client gets nothing"):
+        # iot is excluded from the hairpin DNAT set, so its traffic to the
+        # WAN IP dead-ends at the router's input chain.
+        iot.fail("curl -sf --max-time 3 http://198.51.100.1:8443/")
+
     with subtest("portForward hairpin: traffic to router's own LAN IP isn't hijacked"):
         # The hairpin rule excludes destinations matching internal-interface
         # addresses; 10.0.10.1 is one of them, so a LAN-side request to the

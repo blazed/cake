@@ -293,11 +293,15 @@ in
             type = bool;
             default = false;
             description = ''
-              Enable NAT reflection (hairpin). When true, LAN-side traffic
-              destined for any of anja's IPs other than the configured
-              internal-interface addresses (typically the WAN IP) on this
-              port is also DNAT'd to `target`, with a postrouting masquerade
-              so the reply comes back through the router.
+              Enable NAT reflection (hairpin). When true, trusted-side
+              traffic (the parent interface, trusted VLANs and
+              `trustedInterfaces`) destined for any of anja's IPs other
+              than the configured internal-interface addresses (typically
+              the WAN IP) on this port is also DNAT'd to `target`, with a
+              postrouting masquerade so the reply comes back through the
+              router. Untrusted VLANs never hairpin: the forward chain
+              would drop their DNAT'd flows anyway, so they are excluded
+              from the DNAT and hit a clean input-chain drop instead.
 
               Note that hairpin necessarily SNATs the LAN client to the
               router's IP — the application backend will see the router as
@@ -680,12 +684,16 @@ in
                 f: ''iifname "${cfg.externalInterface}" ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
               ) cfg.portForwards}
               ${optionalString hasHairpin (concatMapStringsSep "\n              " (
-                # Hairpin DNAT: LAN-arriving traffic for any local IP that
+                # Hairpin DNAT: trusted-side traffic for any local IP that
                 # isn't an internal-interface address (i.e. the WAN IP) on
                 # this port also gets DNAT'd to `target`. The `ip daddr !=`
-                # set keeps `LAN-client → router-LAN-IP:<port>` reaching the
+                # set keeps `client → router-LAN-IP:<port>` reaching the
                 # router's own services rather than being hijacked.
-                f: ''iifname { ${concatStringsSep "," allInternalNames} } ip daddr != { ${concatStringsSep "," internalInterfaceAddresses} } fib daddr type local ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
+                # Untrusted VLANs are deliberately excluded: forward would
+                # drop their DNAT'd flows anyway (untrusted→trusted needs
+                # established), so skipping the DNAT gives them a clean
+                # input-chain drop instead of half-applied NAT.
+                f: ''iifname { ${concatStringsSep "," trustedAll} } ip daddr != { ${concatStringsSep "," internalInterfaceAddresses} } fib daddr type local ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
               ) hairpinForwards)}
             }
 
@@ -700,7 +708,7 @@ in
                 # stack would reject the reply as coming from the wrong
                 # address. Masquerading sources the connection from the
                 # router so replies traverse it on the way back.
-                ct status dnat iifname { ${concatStringsSep "," allInternalNames} } oifname { ${concatStringsSep "," allInternalNames} } counter masquerade comment "Hairpin NAT reflection"
+                ct status dnat iifname { ${concatStringsSep "," trustedAll} } oifname { ${concatStringsSep "," allInternalNames} } counter masquerade comment "Hairpin NAT reflection"
               ''}
             }
           }
