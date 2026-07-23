@@ -26,6 +26,36 @@
     lokiURL = "http://loki.tailef5cf.ts.net:3100/loki/api/v1/push";
   };
 
+  services.prometheus.exporters = {
+    blackbox = {
+      enable = true;
+      listenAddress = "0.0.0.0";
+      configFile = pkgs.writeText "blackbox-exporter.yml" ''
+        modules:
+          dns_udp:
+            prober: dns
+            timeout: 5s
+            dns:
+              transport_protocol: udp
+              preferred_ip_protocol: ip4
+              query_name: example.com
+              query_type: A
+      '';
+    };
+    smartctl = {
+      enable = true;
+      listenAddress = "0.0.0.0";
+    };
+    smokeping = {
+      enable = true;
+      listenAddress = "0.0.0.0";
+      hosts = [
+        "1.1.1.1"
+        "9.9.9.9"
+      ];
+    };
+  };
+
   disk.dosLabel = true;
 
   virtualisation.docker.enable = lib.mkForce false;
