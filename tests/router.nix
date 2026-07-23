@@ -77,6 +77,11 @@ pkgs.testers.runNixOSTest {
               rateLimitNew = "10/minute burst 20 packets";
             }
           ];
+          # newer dnsmasq's stop-dns-rebind also covers the TEST-NET
+          # documentation ranges this test uses as upstream sentinels, so
+          # exempt the sentinel domain — which conveniently also exercises
+          # the rebindOkDomains plumbing.
+          rebindOkDomains = [ "example" ];
           dnsMasqSettings = {
             # local answer so the DNS test doesn't depend on an upstream chain
             address = [ "/test.lan.darkstar.se/192.0.2.123" ];
@@ -206,7 +211,11 @@ pkgs.testers.runNixOSTest {
           bind-interfaces = true;
           interface = "eth1";
           no-resolv = true;
-          address = [ "/#/192.0.2.250" ];
+          address = [
+            "/#/192.0.2.250"
+            # private-space answer for the rebind-protection subtest
+            "/rebind.test/10.66.66.66"
+          ];
         };
 
         services.nginx = {
@@ -259,6 +268,13 @@ pkgs.testers.runNixOSTest {
 
     with subtest("DNS: router forwards unknown queries to upstream"):
         native.succeed("getent hosts something.example | grep -q 192.0.2.250")
+
+    with subtest("DNS rebind protection strips private answers from upstream"):
+        # wan's dnsmasq maps rebind.test to 10.66.66.66; the router must
+        # refuse to relay a public name resolving into private space.
+        # (something.example above only resolves because the `example`
+        # domain is exempted via rebindOkDomains.)
+        native.fail("getent hosts rebind.test | grep -q 10.66.66.66")
 
     with subtest("WAN cannot initiate connections to LAN"):
         # target the actual reservation IP so the failure is unambiguously
