@@ -163,6 +163,13 @@
     dnsForwarders = {
       "tailef5cf.ts.net" = "100.100.100.100";
     };
+    # Public DNS carries split-horizon exsules.com records pointing into
+    # private space (e.g. vault.prd.exsules.com -> a k3s ClusterIP), which
+    # stop-dns-rebind would otherwise strip — that broke cert-manager's
+    # Vault issuer and with it Istio workload-cert renewal. Exempting our
+    # own domain is safe: rebind protection only matters for domains an
+    # attacker can answer for.
+    rebindOkDomains = [ "exsules.com" ];
     dnsMasqSettings = {
       no-resolv = true;
       bogus-priv = true;
