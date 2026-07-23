@@ -97,6 +97,9 @@ let
   trustedVlanNames = attrNames (filterAttrs (_: v: v.trusted) cfg.vlans);
   untrustedVlanNames = attrNames (filterAttrs (_: v: !v.trusted) cfg.vlans);
 
+  forceDnsVlanNames = attrNames (filterAttrs (_: v: v.forceDns) cfg.vlans);
+  hasForceDns = forceDnsVlanNames != [ ];
+
   hairpinForwards = builtins.filter (f: f.hairpin) cfg.portForwards;
   hasHairpin = hairpinForwards != [ ];
 
@@ -342,6 +345,19 @@ in
                 - on forward, trusted interfaces may initiate to it, but it
                   can only reach trusted interfaces via established/related
                   state (IoT-style isolation).
+            '';
+          };
+          forceDns = mkOption {
+            type = bool;
+            default = false;
+            description = ''
+              When true, all plain-DNS traffic (TCP/UDP port 53) from this
+              VLAN is transparently redirected to the router's dnsmasq, and
+              DoT/DoQ egress (port 853) is blocked so clients fall back to
+              plain 53. This stops devices with hardcoded resolvers
+              (8.8.8.8 etc. — common on IoT) from bypassing the router's
+              DNS filtering. DoH rides on 443 and is indistinguishable from
+              HTTPS, so it cannot be caught here; accepted limitation.
             '';
           };
         };
@@ -600,6 +616,13 @@ in
                 169.254.0.0/16,
               } counter reject with icmp type admin-prohibited comment "Reject private-destined egress to WAN"
 
+              ${optionalString hasForceDns ''
+                # forceDns VLANs: no DoT/DoQ egress — reject TCP fast so
+                # clients fall back to plain 53 (redirected in prerouting),
+                # drop the QUIC variant.
+                iifname { ${concatStringsSep "," forceDnsVlanNames} } tcp dport 853 counter reject with tcp reset comment "Block DoT from forceDns VLANs"
+                iifname { ${concatStringsSep "," forceDnsVlanNames} } udp dport 853 counter drop comment "Block DoQ from forceDns VLANs"
+              ''}
               iifname { ${concatStringsSep "," allInternalNames} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
               iifname { "${cfg.externalInterface}" } oifname { ${concatStringsSep "," allInternalNames} } ct state { established, related } counter accept comment "Allow established back to LANs"
 
@@ -624,6 +647,13 @@ in
           table ip nat {
             chain prerouting {
               type nat hook prerouting priority dstnat; policy accept;
+              ${optionalString hasForceDns ''
+                # forceDns VLANs: hijack any plain-DNS query to the router's
+                # own dnsmasq. `redirect` DNATs to the address of the
+                # interface the packet arrived on, which dnsmasq listens on,
+                # and the input chain already accepts 53 from internal.
+                iifname { ${concatStringsSep "," forceDnsVlanNames} } meta l4proto { tcp, udp } th dport 53 counter redirect comment "Force VLAN DNS to router"
+              ''}
               ${concatMapStringsSep "\n              " (
                 f: ''iifname "${cfg.externalInterface}" ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
               ) cfg.portForwards}

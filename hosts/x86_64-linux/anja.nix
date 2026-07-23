@@ -61,12 +61,14 @@
         interface = "enp3s0";
         address = "10.0.20.1";
         trusted = false;
+        forceDns = true;
       };
       guest = {
         id = 30;
         interface = "enp3s0";
         address = "10.0.30.1";
         trusted = false;
+        forceDns = true;
       };
     };
     staticHosts = [
