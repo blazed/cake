@@ -131,6 +131,17 @@ let
   # own management LAN; tagged untrusted VLANs ride on top of it).
   trustedAll = unique ([ cfg.internalInterface ] ++ trustedVlanNames ++ cfg.trustedInterfaces);
   allInternalNames = unique (internalInterfaceNames ++ cfg.trustedInterfaces);
+
+  # rp_filter=1 already drops cross-interface spoofing at the routing layer;
+  # these explicit per-interface source checks keep the trust boundaries
+  # enforced inside the ruleset itself even if that sysctl is ever loosened.
+  # 0.0.0.0 stays allowed so DHCP DISCOVER/REQUEST broadcasts reach dnsmasq.
+  antiSpoofRules = concatStringsSep "\n              " (
+    mapAttrsToList (
+      name: net:
+      ''iifname "${name}" ip saddr != { ${net.network}/${toString net.prefix}, 0.0.0.0 } counter drop comment "Drop spoofed source on ${name}"''
+    ) internalInterfaces
+  );
 in
 {
   options.services.router = with lib.types; {
@@ -302,44 +313,39 @@ in
     };
     vlans = mkOption {
       default = { };
-      type = attrsOf (
-        submodule (
-          { name, ... }:
-          {
-            options = {
-              id = mkOption {
-                type = int;
-                description = "vlan tag";
-              };
-              interface = mkOption {
-                type = str;
-                description = "interface to tag";
-              };
-              address = mkOption {
-                type = str;
-                description = "IP Address of vlan";
-              };
-              prefixLength = mkOption {
-                type = ints.between 0 32;
-                description = "prefixLength for the address";
-                default = 24;
-              };
-              trusted = mkOption {
-                type = bool;
-                default = true;
-                description = ''
-                  When false, this VLAN is treated as untrusted:
-                    - on input, only DNS+DHCP to the router are allowed (no ssh,
-                      web UI, etc.);
-                    - on forward, trusted interfaces may initiate to it, but it
-                      can only reach trusted interfaces via established/related
-                      state (IoT-style isolation).
-                '';
-              };
-            };
-          }
-        )
-      );
+      type = attrsOf (submodule {
+        options = {
+          id = mkOption {
+            type = int;
+            description = "vlan tag";
+          };
+          interface = mkOption {
+            type = str;
+            description = "interface to tag";
+          };
+          address = mkOption {
+            type = str;
+            description = "IP Address of vlan";
+          };
+          prefixLength = mkOption {
+            type = ints.between 0 32;
+            description = "prefixLength for the address";
+            default = 24;
+          };
+          trusted = mkOption {
+            type = bool;
+            default = true;
+            description = ''
+              When false, this VLAN is treated as untrusted:
+                - on input, only DNS+DHCP to the router are allowed (no ssh,
+                  web UI, etc.);
+                - on forward, trusted interfaces may initiate to it, but it
+                  can only reach trusted interfaces via established/related
+                  state (IoT-style isolation).
+            '';
+          };
+        };
+      });
     };
   };
 
@@ -520,6 +526,10 @@ in
               # Standard hygiene: kill malformed/out-of-window packets and
               # source-routed packets before any later accept rule sees them.
               ct state invalid counter drop comment "Drop invalid conntrack state"
+              # With nf_conntrack_tcp_loose=0 mid-stream pickups already
+              # classify as invalid; this is the explicit backstop against a
+              # new connection whose first packet isn't a SYN (ACK scans).
+              tcp flags & (fin|syn|rst|ack) != syn ct state new counter drop comment "Drop new TCP without SYN"
               ip option lsrr exists counter drop comment "Drop loose source-routed packets"
               ip option ssrr exists counter drop comment "Drop strict source-routed packets"
 
@@ -534,6 +544,10 @@ in
                 169.254.0.0/16,
               } counter drop comment "Drop WAN ingress with bogon source"
 
+              # Internal segments must source from their own subnet (placed
+              # before any accept so spoofed DNS/DHCP is caught too).
+              ${antiSpoofRules}
+
               # DNS + DHCP must work on every internal segment, including
               # untrusted VLANs (router is their only resolver / DHCP server).
               iifname { ${concatStringsSep "," allInternalNames} } udp dport { 53, 67 } counter accept comment "Allow DNS+DHCP from internal"
@@ -547,7 +561,12 @@ in
               # ct state new because broadcasts don't always match the original
               # tuple. Allow it explicitly so WAN DHCP can complete.
               iifname "${cfg.externalInterface}" udp sport 67 udp dport 68 counter accept comment "Allow DHCP client traffic from wan"
+              # Rate-limited visibility into what the terminal drops eat;
+              # journald picks these up and the observability stack ships
+              # them, so scans and misbehaving clients become detectable.
+              iifname "${cfg.externalInterface}" limit rate 5/minute burst 10 packets log prefix "router-drop wan-in: "
               iifname "${cfg.externalInterface}" counter drop comment "Drop all other unsolicited from wan"
+              limit rate 5/minute burst 10 packets log prefix "router-drop input: "
             }
 
             chain output {
@@ -559,11 +578,27 @@ in
 
               # Standard hygiene, mirrored from `input`.
               ct state invalid counter drop comment "Drop invalid conntrack state"
+              tcp flags & (fin|syn|rst|ack) != syn ct state new counter drop comment "Drop new TCP without SYN"
               ip option lsrr exists counter drop comment "Drop loose source-routed packets"
               ip option ssrr exists counter drop comment "Drop strict source-routed packets"
 
+              # Internal segments must source from their own subnet.
+              ${antiSpoofRules}
+
               # enable flow offloading for better throughput
               ip protocol { tcp, udp } flow offload @f
+
+              # BCP38-style egress hygiene: traffic for private ranges must
+              # never leave via the default route (it would leak internal
+              # destinations to the ISP whenever an internal route is
+              # missing). Reject rather than drop so misconfigured clients
+              # fail fast instead of hanging.
+              oifname "${cfg.externalInterface}" ip daddr {
+                10.0.0.0/8,
+                172.16.0.0/12,
+                192.168.0.0/16,
+                169.254.0.0/16,
+              } counter reject with icmp type admin-prohibited comment "Reject private-destined egress to WAN"
 
               iifname { ${concatStringsSep "," allInternalNames} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
               iifname { "${cfg.externalInterface}" } oifname { ${concatStringsSep "," allInternalNames} } ct state { established, related } counter accept comment "Allow established back to LANs"
@@ -582,6 +617,7 @@ in
                 iifname { ${concatStringsSep "," trustedAll} } oifname { ${concatStringsSep "," untrustedVlanNames} } counter accept comment "Allow trusted to untrusted VLANs"
                 iifname { ${concatStringsSep "," untrustedVlanNames} } oifname { ${concatStringsSep "," trustedAll} } ct state { established, related } counter accept comment "Allow established back from untrusted VLANs"
               ''}
+              limit rate 5/minute burst 10 packets log prefix "router-drop forward: "
             }
           }
 
@@ -622,6 +658,12 @@ in
           table ip6 filter {
             chain input {
               type filter hook input priority 0; policy drop;
+
+              # Interfaces still hold ::1/link-local addresses (the sysctls
+              # only stop RA/SLAAC) and glibc prefers ::1 for localhost, so
+              # without this exception connections to ::1 hang on a silent
+              # drop instead of failing fast.
+              iifname "lo" accept
             }
 
             chain forward {
@@ -633,9 +675,21 @@ in
 
 
 
+      # systemd-sysctl runs right after systemd-modules-load; without the
+      # conntrack module loaded at that point the net.netfilter.* keys don't
+      # exist yet and the tcp_loose sysctl below would be silently skipped.
+      boot.kernelModules = [ "nf_conntrack" ];
+
       boot.kernel.sysctl = {
         "net.ipv4.conf.all.forwarding" = true;
         "net.ipv6.conf.all.forwarding" = false;
+
+        # Never let conntrack adopt a TCP connection mid-stream: a bare ACK
+        # arriving on WAN would otherwise create an *established* entry and
+        # sail through the established-accept rules (ACK-scan stealth
+        # bypass). With loose pickup off such packets classify as invalid
+        # and hit the ct-invalid drop.
+        "net.netfilter.nf_conntrack_tcp_loose" = 0;
 
         # standard router hardening
         "net.ipv4.conf.all.rp_filter" = 1;

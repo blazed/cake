@@ -291,6 +291,13 @@ pkgs.testers.runNixOSTest {
         ).strip()
         trusted.succeed(f"ping -c1 -W2 {iot_ip}")
 
+    with subtest("anti-spoof: out-of-subnet source on a trusted segment is dropped"):
+        # a trusted client spoofing an iot-subnet source must not reach the
+        # router even though its interface is otherwise fully trusted.
+        trusted.succeed("ip addr add 10.0.20.99/32 dev lan10")
+        trusted.fail("ping -c1 -W2 -I 10.0.20.99 10.0.10.1")
+        trusted.succeed("ip addr del 10.0.20.99/32 dev lan10")
+
     with subtest("untrusted client cannot initiate to trusted client"):
         trusted_ip = trusted.succeed(
             "ip -4 -o addr show lan10 | awk '{print $4}' | cut -d/ -f1"
@@ -352,5 +359,15 @@ pkgs.testers.runNixOSTest {
         router.succeed("nft list table inet filter | grep -q 'ct state invalid'")
         router.succeed("nft list table inet filter | grep -q 'ip option'")
         router.succeed("nft list table inet filter | grep -q 'bogon source'")
+        # hardening rules: non-SYN new drop, per-interface anti-spoof,
+        # egress martian reject, rate-limited drop logging, ip6 loopback
+        router.succeed("nft list table inet filter | grep -q 'Drop new TCP without SYN'")
+        router.succeed("nft list table inet filter | grep -q 'Drop spoofed source on'")
+        router.succeed("nft list table inet filter | grep -q 'private-destined egress'")
+        router.succeed("nft list table inet filter | grep -q 'router-drop'")
+        router.succeed("nft list table ip6 filter | grep -q 'iifname \"lo\" accept'")
+
+    with subtest("conntrack does not adopt mid-stream TCP"):
+        router.succeed("sysctl -n net.netfilter.nf_conntrack_tcp_loose | grep -qx 0")
   '';
 }
