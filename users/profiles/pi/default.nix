@@ -80,6 +80,7 @@ let
     skills = extraSkillDirs;
     steeringMode = "all";
     followUpMode = "all";
+    showCacheMissNotices = true;
     openaiNativeCompaction = {
       enabled = true;
       debug = false;
