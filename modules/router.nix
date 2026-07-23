@@ -466,6 +466,11 @@ in
           after = [ "network.target" ];
           wantedBy = [ "multi-user.target" ];
           before = [ "dnsmasq.service" ];
+          # Stubby is the only general upstream dnsmasq has (no-resolv +
+          # dotUpstreams), so it must never stay dead: systemd's default
+          # start limit (5 in 10s) would otherwise turn a crash loop into a
+          # permanent LAN-wide DNS outage.
+          startLimitIntervalSec = 0;
           serviceConfig = {
             Type = "simple";
             User = "router-dot";
@@ -476,7 +481,8 @@ in
             # but it stays out of world-readable space.
             ExecStartPre = "+${stubbyRender}";
             ExecStart = "${pkgs.stubby}/bin/stubby -C /run/router-dot/stubby.yml";
-            Restart = "on-failure";
+            Restart = "always";
+            RestartSec = 2;
             RuntimeDirectory = "router-dot";
             RuntimeDirectoryMode = "0750";
             NoNewPrivileges = true;
@@ -486,6 +492,10 @@ in
             AmbientCapabilities = "";
           };
         };
+
+        # A manual `systemctl restart dnsmasq` should pull stubby back up
+        # if it was stopped; ordering alone (before=) doesn't start it.
+        dnsmasq.wants = mkIf useStubby [ "router-dot-resolver.service" ];
       }
       # Order each VLAN's netdev service after its parent's address
       # configuration. Without this, `<vlan>-netdev.service` can race the
