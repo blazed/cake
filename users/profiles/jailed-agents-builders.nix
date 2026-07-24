@@ -22,9 +22,11 @@ let
     curl
     diffutils
     fd
+    gcc
     findutils
     gawkInteractive
     git
+    gnumake
     gnugrep
     gnused
     gnutar
