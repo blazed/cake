@@ -18,6 +18,8 @@ pi.overrideAttrs {
     wrapProgram $out/bin/pi \
       --prefix PATH : ${
         pkgs.lib.makeBinPath [
+          pkgs.stdenv.cc
+          pkgs.gnumake
           pkgs.fd
           pkgs.ripgrep
         ]
