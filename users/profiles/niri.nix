@@ -227,17 +227,17 @@ in
         "XF86MonBrightnessUp" = {
           allow-when-locked = true;
           action.spawn = [
-            "light"
-            "-A"
-            "5"
+            "brightnessctl"
+            "set"
+            "+5%"
           ];
         };
         "XF86MonBrightnessDown" = {
           allow-when-locked = true;
           action.spawn = [
-            "light"
-            "-U"
-            "5"
+            "brightnessctl"
+            "set"
+            "5%-"
           ];
         };
 
