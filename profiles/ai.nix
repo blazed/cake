@@ -8,12 +8,12 @@
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "241";
+      version = "242";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-c7Reb90QOMtvwf0I85YpNKx/FPR0RpxBnOIA4LmzTmM=";
+        hash = "sha256-rcg5FQq5OVTNzaSsB0dx0OsGW70JT03CzuIkq8MYiko=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
