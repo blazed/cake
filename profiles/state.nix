@@ -54,6 +54,7 @@
         ".claude"
         ".codex"
         ".config/LM Studio"
+        ".config/Proton"
         ".config/Signal"
         ".config/Slack"
         ".config/WowUpCf"

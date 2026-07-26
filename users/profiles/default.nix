@@ -25,6 +25,7 @@ in
     ./nushell/default.nix
     ./pi/default.nix
     ./protonpass.nix
+    ./protonvpn.nix
     ./ssh.nix
     ./starship.nix
     ./wezterm/default.nix
