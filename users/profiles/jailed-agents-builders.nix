@@ -6,7 +6,7 @@ let
   llm = inputs.llm-agents.packages.${system};
   piNode = import ./pi/node-package.nix { inherit pkgs inputs; };
 
-  # Excludes cloud and remote-access tools to keep credentials unreachable.
+  # Curated tools; credentials remain unavailable unless explicitly injected per agent.
   devTools = with pkgs; [
     # keep-sorted start
     bashInteractive
@@ -98,6 +98,8 @@ let
       network # API calls (and local llama on :9292 if used)
       time-zone
       mount-cwd # current project dir, read-write
+      # Respect Home Manager's global Git ignore rules without exposing all Git config.
+      (try-readonly (noescape "~/.config/git/ignore"))
       no-new-session # interactive TUIs need to feed input to the terminal
       (try-fwd-env "TERM")
       (try-fwd-env "COLORTERM")
@@ -159,6 +161,19 @@ let
         (c.add-runtime ''
           if [ -r /run/agenix/exa-api-key ]; then
             RUNTIME_ARGS+=(--setenv EXA_API_KEY "$(${cu}/cat /run/agenix/exa-api-key)")
+          fi
+        '')
+        # Give Pass an isolated, ephemeral session without exposing the host keyring or
+        # the host's Proton Pass session. The PAT is injected only into jailed Pi.
+        (c.add-runtime ''
+          RUNTIME_ARGS+=(
+            --setenv PROTON_PASS_KEY_PROVIDER fs
+            --setenv PROTON_PASS_SESSION_DIR /tmp/pass-agent-pi
+          )
+          if [ -r /run/agenix/proton-pass-agent-token ]; then
+            RUNTIME_ARGS+=(
+              --setenv PROTON_PASS_PERSONAL_ACCESS_TOKEN "$(${cu}/cat /run/agenix/proton-pass-agent-token)"
+            )
           fi
         '')
       ];

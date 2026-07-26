@@ -30,12 +30,23 @@ let
     echo "## paths the agent should reach"
     allowed "$HOME/.claude"
     allowed "$HOME/.claude.json"
+    allowed "$HOME/.config/git/ignore"
+    if [ "$(cat "$HOME/.config/git/ignore")" = '*.global-ignore' ]; then
+      echo "ok:   global Git ignore mounted"
+    else
+      echo "MISSING: global Git ignore content"; rc=1
+    fi
+    if echo MUTATION >> "$HOME/.config/git/ignore" 2>/dev/null; then
+      echo "LEAK: global Git ignore is writable"; rc=1
+    else
+      echo "ok:   global Git ignore is read-only"
+    fi
     if [ -e ./LEAK_MARKER.txt ]; then echo "ok:   CWD mounted"; else echo "MISSING: cwd marker"; rc=1; fi
 
     echo "## environment: secret-looking vars stripped, benign project vars forwarded"
     # DATABASE_URL embeds user:pass@ in its value, so it must be stripped by value
     # even though its name matches no deny pattern.
-    for v in AWS_SECRET_ACCESS_KEY GITHUB_TOKEN DB_PASSWORD MYSQL_PWD DATABASE_URL MY_API_KEY SSH_AUTH_SOCK; do
+    for v in AWS_SECRET_ACCESS_KEY GITHUB_TOKEN DB_PASSWORD MYSQL_PWD DATABASE_URL MY_API_KEY PROTON_PASS_PERSONAL_ACCESS_TOKEN SSH_AUTH_SOCK; do
       if [ -n "''${!v:-}" ]; then echo "LEAK: secret env $v present"; rc=1; else echo "ok:   secret env $v stripped"; fi
     done
     if [ "''${PROJECT_SETTING:-}" = "ok" ]; then echo "ok:   benign env PROJECT_SETTING forwarded"; else echo "MISSING: PROJECT_SETTING not forwarded"; rc=1; fi
@@ -52,7 +63,24 @@ let
     exit "$rc"
   '';
 
+  passAuditScript = pkgs.writeShellScript "pass-audit" ''
+    set -eu
+    command -v pass-cli >/dev/null
+    [ "$PROTON_PASS_KEY_PROVIDER" = fs ]
+    [ "$PROTON_PASS_SESSION_DIR" = /tmp/pass-agent-pi ]
+    [ "$PROTON_PASS_PERSONAL_ACCESS_TOKEN" = TEST_AGENT_TOKEN ]
+    mkdir -p "$PROTON_PASS_SESSION_DIR"
+    [ -w "$PROTON_PASS_SESSION_DIR" ]
+    if cat /run/agenix/proton-pass-agent-token >/dev/null 2>&1; then
+      echo "LEAK: Proton Pass token file reachable" >&2
+      exit 1
+    fi
+    echo "RESULT: PASS CLI ISOLATED"
+  '';
   auditJail = builders.jail "leak-audit" "${auditScript}" (builders.permsFor builders.agents.claude);
+  passAuditJail = builders.jail "pass-audit" "${passAuditScript}" (
+    builders.permsFor builders.agents.pi
+  );
 in
 pkgs.testers.runNixOSTest {
   name = "jail-leak-audit";
@@ -60,6 +88,7 @@ pkgs.testers.runNixOSTest {
   nodes.machine = {
     environment.systemPackages = [
       auditJail
+      passAuditJail
       pkgs.bubblewrap
     ];
     users.users.tester = {
@@ -71,14 +100,22 @@ pkgs.testers.runNixOSTest {
   testScript = ''
     machine.wait_for_unit("multi-user.target")
 
-    # A world-readable "secret" outside $HOME — the jail must block it even
-    # though unix perms alone wouldn't (mirrors agenix runtime secrets).
-    machine.succeed("mkdir -p /run/agenix && echo SENTINEL > /run/agenix/fake-key && chmod 644 /run/agenix/fake-key")
+    # Secrets remain outside the sandbox. Pi receives only the explicitly injected
+    # Proton Pass token value, while Claude receives neither file nor environment value.
+    machine.succeed(
+        "mkdir -p /run/agenix; "
+        "echo SENTINEL > /run/agenix/fake-key; "
+        "echo -n TEST_AGENT_TOKEN > /run/agenix/proton-pass-agent-token; "
+        "chmod 644 /run/agenix/fake-key; "
+        "chown tester:users /run/agenix/proton-pass-agent-token; "
+        "chmod 600 /run/agenix/proton-pass-agent-token"
+    )
 
     # Plant real secrets + the allowed config dirs as the tester user.
     machine.succeed(
         "su - tester -c 'umask 077; "
-        "mkdir -p ~/.ssh ~/.aws ~/.gnupg ~/.kube ~/.config/gcloud ~/.codex ~/.pi ~/code ~/.claude ~/work; "
+        "mkdir -p ~/.ssh ~/.aws ~/.gnupg ~/.kube ~/.config/gcloud ~/.config/git ~/.codex ~/.pi ~/code ~/.claude ~/work; "
+        "echo \"*.global-ignore\" > ~/.config/git/ignore; "
         "echo PRIVKEY > ~/.ssh/id_ed25519; "
         "echo CREDS > ~/.aws/credentials; "
         "echo {} > ~/.claude.json; "
@@ -94,6 +131,7 @@ pkgs.testers.runNixOSTest {
         out = machine.succeed(
             "su - tester -c 'cd ~/work && "
             "AWS_SECRET_ACCESS_KEY=should-not-leak GITHUB_TOKEN=ghp_x DB_PASSWORD=hunter2 "
+            "PROTON_PASS_PERSONAL_ACCESS_TOKEN=host-token-must-not-leak "
             "MYSQL_PWD=hunter2 DATABASE_URL=postgres://u:p@h/db SERVICE_URL=http://localhost:9292 "
             "MY_API_KEY=sk-x SSH_AUTH_SOCK=/run/user/0/keyring/ssh "
             "PROJECT_SETTING=ok TERM=xterm "
@@ -101,5 +139,10 @@ pkgs.testers.runNixOSTest {
         )
         print(out)
         assert "RESULT: NO LEAKS" in out, out
+
+    with subtest("jailed Pi receives only isolated Proton Pass configuration"):
+        out = machine.succeed("su - tester -c 'cd ~/work && TERM=xterm pass-audit'")
+        print(out)
+        assert "RESULT: PASS CLI ISOLATED" in out, out
   '';
 }
