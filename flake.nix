@@ -61,8 +61,6 @@
     jail-nix.url = "sourcehut:~alexdavid/jail.nix";
     kured.flake = false;
     kured.url = "github:kubereboot/kured";
-    # Keep llm-agents on its pinned nixpkgs: its agent-browser package currently
-    # uses pnpm 11 with a fetcher version incompatible with our newer nixpkgs.
     llm-agents.url = "github:numtide/llm-agents.nix";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     niri.url = "github:sodiboo/niri-flake";

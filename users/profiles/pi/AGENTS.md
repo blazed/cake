@@ -22,6 +22,3 @@ These rules apply to commands shown to the user, not to Pi's internal `bash` too
 ## Web access
 
 For reading or searching the web, prefer **pi-web-access** (`web_search`, `fetch_content`) — pure HTTP, works inside the jail.
-
-`agent-browser` is also installed for interactive browser automation. Its Chrome is Nix-provided, so ignore `agent-browser doctor`'s "No Chrome binary found" warning and **never run `agent-browser install`**; downloaded Chrome builds cannot run on NixOS. Browsing works unjailed, but in jailed Pi it can fail with "CDP response channel closed" — use pi-web-access there.
-
