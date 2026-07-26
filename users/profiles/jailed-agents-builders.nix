@@ -1,12 +1,4 @@
-# Pure builders for the jailed agent wrappers.
-#
-# This is the single source of truth for the bubblewrap permission set. It is
-# consumed by the home-manager profile (./jailed-agents.nix, which installs
-# `wrappers`) and by the NixOS tests under ../../tests: jail-leak-audit.nix wraps
-# an audit payload with `permsFor agents.claude`, and jail-jj-workspace.nix
-# exercises the same sandbox from inside a jj workspace. Keeping the permissions
-# here means the tests exercise the exact sandbox the agents run in — a leaky
-# bind added to `common` would make the audit fail.
+# Shared bubblewrap definitions for jailed agents and their NixOS tests.
 { pkgs, inputs }:
 let
   inherit (pkgs.stdenv.hostPlatform) system;
@@ -14,26 +6,26 @@ let
   llm = inputs.llm-agents.packages.${system};
   piNode = import ./pi/node-package.nix { inherit pkgs inputs; };
 
-  # Tools on PATH inside every jail. Deliberately excludes gcloud/kubectl/aws/ssh
-  # so a runaway agent can't reach cloud or remote credentials.
+  # Excludes cloud and remote-access tools to keep credentials unreachable.
   devTools = with pkgs; [
     # keep-sorted start
     bashInteractive
     curl
     diffutils
     fd
-    gcc
     findutils
     gawkInteractive
+    gcc
     git
-    gnumake
     gnugrep
+    gnumake
     gnused
     gnutar
     jq
     jujutsu
     nodejs
     nushell
+    proton-pass-cli
     ps
     python3
     ripgrep
@@ -45,26 +37,15 @@ let
   cu = "${pkgs.coreutils}/bin";
   jjBin = "${pkgs.jujutsu}/bin/jj";
 
-  # Make the agent usable inside a devenv/direnv-activated project: mount the
-  # whole store read-only (so devenv-provided tools resolve) and forward the
-  # caller's environment + PATH into the jail, MINUS secret-looking variables.
-  # The agent's own API key is forwarded explicitly via each agent's `extra`.
-  # Curated devTools are prepended to PATH so they're always present, with the
-  # project's (devenv) PATH after them.
+  # Preserve project environments while filtering secrets and prepending devTools.
   forwardHostEnv =
     c: with c; [
       (ro-bind "/nix/store" "/nix/store")
       (add-runtime ''
         shopt -s nocasematch
-        # Drop secret-looking vars by NAME. Case-insensitive (nocasematch).
-        # `_PWD$` catches MySQL's documented plaintext-password var MYSQL_PWD
-        # (and DB_PWD/REDIS_PWD/…) without stripping the benign PWD/OLDPWD (no
-        # underscore before PWD there).
+        # Match secret-like names while preserving benign PWD and OLDPWD.
         __deny='^(AWS_|GH_|GITHUB_|OP_)|TOKEN|SECRET|KEY|PASSWORD|PASSWD|CREDENTIAL|_PWD$|^SSH_AUTH_SOCK$|^PATH$'
-        # Also drop by VALUE: connection strings with embedded credentials
-        # (scheme://user:pass@host — DATABASE_URL/POSTGRES_URL/MONGODB_URI/…),
-        # whatever the var is named. Requires a `:password@`, so credential-free
-        # URLs (OPENAI_BASE_URL=http://host:port) and ssh://git@host remotes stay.
+        # Also reject connection strings containing embedded passwords.
         __denyval='://[^@/]*:[^@/]+@'
         while IFS= read -r -d "" __kv; do
           __name=''${__kv%%=*}
@@ -77,19 +58,8 @@ let
       '')
     ];
 
-  # Make jj usable inside the jail. We deliberately do NOT bind the user's
-  # ~/.config/jj: it commonly enables SSH commit signing, which can't work in the
-  # jail (no ssh-keygen, and the signing key lives in ~/.ssh which we block on
-  # purpose). Instead we inject just the identity via JJ_USER/JJ_EMAIL (read from
-  # the host config) — jailed commits are unsigned; you sign on review/merge.
-  # We also force JJ_EDITOR=echo so editor-driven commands (squash/split/describe)
-  # don't hang on a missing interactive editor in the jail.
-  #
-  # When $PWD is in a jj repo we also auto-bind the workspace root, the shared
-  # repo store (resolved from the .jj/repo pointer), and the colocated .git, all
-  # rw at their real paths. This lets several agents work the same repo in
-  # separate jj workspaces; each jail sees only its own workspace's working tree
-  # plus the shared history. No-op outside a jj repo.
+  # Inject JJ identity without mounting ~/.config/jj or SSH signing keys. Bind the
+  # current workspace and shared repository store so parallel workspaces function.
   jjWorkspace =
     c: with c; [
       (add-runtime ''
@@ -97,10 +67,7 @@ let
         __jjemail=$(${jjBin} config get user.email 2>/dev/null) || __jjemail=""
         [ -n "$__jjuser" ] && RUNTIME_ARGS+=(--setenv JJ_USER "$__jjuser")
         [ -n "$__jjemail" ] && RUNTIME_ARGS+=(--setenv JJ_EMAIL "$__jjemail")
-        # Editor-driven jj commands (squash/split/describe with no -m, etc.) would
-        # block on an interactive editor in the jail; point JJ_EDITOR at a no-op so
-        # they fall back to the existing description instead of hanging. This is
-        # appended after forwardHostEnv, so it wins over any inherited JJ_EDITOR.
+        # Avoid blocking on an unavailable interactive editor.
         RUNTIME_ARGS+=(--setenv JJ_EDITOR echo)
         __ws="$PWD"
         while [ "$__ws" != "/" ] && [ ! -e "$__ws/.jj" ]; do __ws=$(${cu}/dirname "$__ws"); done
@@ -143,9 +110,7 @@ let
     ++ forwardHostEnv c
     ++ jjWorkspace c;
 
-  # Build the permission list for an agent spec: shared baseline + the agent's
-  # own read-write config paths (~ expands at runtime) + any extra combinators
-  # (e.g. forwarded API-key env vars).
+  # Combine shared permissions with agent-specific config paths and extras.
   permsFor =
     spec: c:
     common c
@@ -155,8 +120,7 @@ let
   # name -> { pkg; paths?; extra?; }
   agents = {
     claude = {
-      # github:sadjow/claude-code-nix, defaulted to YOLO mode — safe because the
-      # jail is the boundary. User args are still passed through.
+      # The jail is the permission boundary, so Claude runs without its own prompts.
       pkg = pkgs.writeShellScriptBin "claude" ''
         exec ${
           pkgs.lib.getExe inputs.claude-code.packages.${system}.default
@@ -169,7 +133,7 @@ let
       extra = c: [ (c.try-fwd-env "ANTHROPIC_API_KEY") ];
     };
     codex = {
-      # github:numtide/llm-agents.nix, defaulted to YOLO mode (jail is the boundary).
+      # The jail is the permission boundary, so Codex bypasses its sandbox.
       pkg = pkgs.writeShellScriptBin "codex" ''
         exec ${pkgs.lib.getExe llm.codex} --dangerously-bypass-approvals-and-sandbox "$@"
       '';
@@ -185,27 +149,13 @@ let
         "~/.agents"
         "~/.pi"
       ];
-      # agent-browser is installed unjailed via the pi profile, but it lives on the
-      # host's home-manager PATH (e.g. /etc/profiles/per-user/.../bin) which isn't
-      # bound in the jail, so `agent-browser` isn't found inside jailed-pi. Re-add
-      # its store bin to the in-jail PATH at runtime. This add-runtime is appended
-      # AFTER forwardHostEnv's PATH setenv (extra runs after common), so it wins; we
-      # re-include devToolsPath so the curated dev tools stay on PATH. The bundled
-      # Chromium is invoked by absolute path (wrapper env) via the ro /nix/store
-      # mount — though launching it under bubblewrap may need extra sandbox perms.
       extra = c: [
-        # Node's os.tmpdir() respects TMPDIR. Pi keeps truncated command output
-        # there for later inspection, so use the disk-backed ~/.pi mount instead
-        # of the host's small tmpfs root. The Pi profile ages these files out.
+        # Store Pi's inspectable temporary output on disk instead of tmpfs.
         (c.add-runtime ''
           ${cu}/install -d -m 0700 "$HOME/.pi/tmp"
           RUNTIME_ARGS+=(--setenv TMPDIR "$HOME/.pi/tmp")
         '')
-        (c.add-runtime ''RUNTIME_ARGS+=(--setenv PATH "${llm.agent-browser}/bin:${devToolsPath}:$PATH")'')
-        # pi-web-access's web_search uses Exa. The jail can't read /run/agenix, but
-        # this wrapper runs on the HOST before bwrap — so read the exa-api-key
-        # agenix secret here and inject it as EXA_API_KEY (env overrides the
-        # ~/.pi/web-search.json provider config). Best-effort: only if present.
+        # Inject the host's agenix-managed Exa key when available.
         (c.add-runtime ''
           if [ -r /run/agenix/exa-api-key ]; then
             RUNTIME_ARGS+=(--setenv EXA_API_KEY "$(${cu}/cat /run/agenix/exa-api-key)")
@@ -220,9 +170,7 @@ let
   ) agents;
   wrappers = pkgs.lib.attrValues wrappersByName;
 
-  # Derive the launcher's `new <agent>` dispatch from wrappersByName so adding an
-  # agent to `agents` above auto-extends the launcher — no hardcoded claude|codex|
-  # pi arms to drift out of sync. agentNames feeds the usage/error messages.
+  # Generate launcher dispatch from the configured agents.
   agentNames = pkgs.lib.concatStringsSep "|" (builtins.attrNames agents);
   agentArms = pkgs.lib.concatStringsSep "\n" (
     pkgs.lib.mapAttrsToList (
@@ -230,16 +178,7 @@ let
     ) wrappersByName
   );
 
-  # Manage per-feature jj workspaces for jailed agents. Subcommands:
-  #   jailed-agent-ws new <agent> <feature> [agent args...]   (agent ∈ agents)
-  #       create (or reuse) a sibling workspace <repo>-<feature>, activate its
-  #       own devenv via direnv (built on the host), then launch the jailed agent
-  #   jailed-agent-ws rm <feature> [--force]
-  #       forget the workspace and delete its dir. Refuses if the workspace head
-  #       isn't reachable from a bookmark or a remote bookmark (i.e. unsaved
-  #       work), unless --force. Commits stay in the op log regardless.
-  #   jailed-agent-ws ls
-  #       list workspaces and their on-disk dirs
+  # Create, list, and safely remove per-feature JJ workspaces for jailed agents.
   launcher = pkgs.writeShellApplication {
     name = "jailed-agent-ws";
     runtimeInputs = with pkgs; [
@@ -249,8 +188,7 @@ let
       gnugrep
     ];
     text = ''
-            # Resolve the MAIN repo root so subcommands work from any workspace (a
-            # workspace's .jj/repo is a pointer file to <main>/.jj/repo).
+            # Resolve the main repository from any workspace.
             mainroot() {
               local root ptr store
               root=$(jj workspace root 2>/dev/null) || return 1
@@ -284,8 +222,7 @@ let
                   jj workspace add --name "$name" "$ws"
                 fi
                 cd "$ws" || exit 1
-                # Activate the workspace's own devenv (builds on the host, where nix
-                # works) then jail; the agent forwards the resulting env minus secrets.
+                # Activate devenv on the host before entering the jail.
                 if [ -f .envrc ]; then
                   direnv allow . || true
                   exec direnv exec "$PWD" "$bin" "$@"
@@ -322,10 +259,7 @@ let
                   exit 1
                 fi
                 if [ "$force" -ne 1 ]; then
-                  # commits unique to this workspace's head that aren't reachable from
-                  # any (local or remote) bookmark — i.e. work that only lives here.
-                  # Fail CLOSED: if jj log errors (locked repo, bad head, …) we must not
-                  # fall through to rm -rf and lose the working copy. --force overrides.
+                  # Fail closed if unique, unbookmarked commits cannot be checked.
                   if ! unsaved=$(jj log --no-graph --ignore-working-copy \
                     -r "(::$name@ ~ ::(bookmarks() | remote_bookmarks())) ~ empty()" \
                     -T '"x"' 2>/dev/null); then
