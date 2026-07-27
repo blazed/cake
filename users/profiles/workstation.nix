@@ -19,6 +19,7 @@ in
     ./niri.nix
     ./obs.nix
     ./sway.nix
+    ./vesktop.nix
   ];
 
   home.packages = with pkgs; [

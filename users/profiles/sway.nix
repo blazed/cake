@@ -28,10 +28,16 @@ let
     runtimeInputs = [
       pkgs.slurp
       pkgs.grim
+      pkgs.wl-clipboard
     ];
     text = ''
-      mkdir -p ~/Pictures/screenshots
-      slurp | grim -g - ~/Pictures/screenshots/"$(date +'%Y-%m-%dT%H%M%S.png')"
+      selection="$(slurp)"
+      if [ "$#" -gt 0 ] && [ "$1" = "--clipboard" ]; then
+        grim -g "$selection" - | wl-copy --type image/png
+      else
+        mkdir -p "$HOME/Pictures/screenshots"
+        grim -g "$selection" "$HOME/Pictures/screenshots/$(date +'%Y-%m-%dT%H%M%S.png')"
+      fi
     '';
   };
 
