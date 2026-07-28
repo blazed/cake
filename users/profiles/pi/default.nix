@@ -36,7 +36,13 @@ let
 
   extraSkillDirs = [ ];
 
-  localExtensionPaths = [ ];
+  extraExtensionPaths = [ ];
+
+  disabledLocalExtensions = [
+    "dynamic-workflows/index.ts"
+  ];
+  localExtensionPaths =
+    extraExtensionPaths ++ map (path: "-extensions/${path}") disabledLocalExtensions;
 
   themeName = "catppuccin-frappe";
   settings = {
@@ -72,6 +78,11 @@ let
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
 
   claudeBridge = {
+    askClaude = {
+      enabled = true;
+      allowFullMode = false;
+      defaultMode = "read";
+    };
     provider = {
       plan = "max";
       pathToClaudeCodeExecutable = lib.getExe inputs.claude-code.packages.${system}.default;
