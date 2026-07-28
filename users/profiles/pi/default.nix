@@ -10,6 +10,7 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
   piNode = import ./node-package.nix { inherit pkgs inputs; };
+  piPackageDir = "${piNode}/lib/node_modules/@earendil-works/pi-coding-agent";
 
   # Packages installed by Pi through settings.packages.
   thirdPartyPackages =
@@ -150,6 +151,51 @@ let
     workflow = "none";
   };
 
+  subagentsExtension = pkgs.buildNpmPackage {
+    pname = "pi-subagents-extension";
+    version = "0-unstable";
+    src = ./extensions/subagents;
+    npmDepsHash = "sha256-X0fJ3rmZUPuXjzrHjfAML4xph/IoHH1svavMJ7YCgVI=";
+
+    buildPhase = ''
+      runHook preBuild
+
+      test -d ${piPackageDir}/node_modules/@earendil-works/pi-ai
+      test -d ${piPackageDir}/node_modules/@earendil-works/pi-tui
+      test -d ${piPackageDir}/node_modules/typebox
+      mkdir -p node_modules/@earendil-works
+      ln -s ${piPackageDir} node_modules/@earendil-works/pi-coding-agent
+      ln -s ${piPackageDir}/node_modules/@earendil-works/pi-ai \
+        node_modules/@earendil-works/pi-ai
+      ln -s ${piPackageDir}/node_modules/@earendil-works/pi-tui \
+        node_modules/@earendil-works/pi-tui
+      ln -s ${piPackageDir}/node_modules/typebox node_modules/typebox
+
+      npm run check
+      npm test
+
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+
+      npm prune --omit=dev --ignore-scripts --offline
+      rm -rf \
+        node_modules/@earendil-works \
+        node_modules/typebox \
+        docs \
+        *.test.ts \
+        package-lock.json \
+        tsconfig.json \
+        src/backends/stub.ts
+      mkdir -p $out
+      cp -r index.ts package.json src node_modules $out/
+
+      runHook postInstall
+    '';
+  };
+
   acornVendor =
     let
       src = pkgs.fetchurl {
@@ -166,6 +212,7 @@ let
   piExtensions = pkgs.runCommand "pi-extensions" { } ''
     cp -r ${./extensions}/. $out
     chmod -R u+w $out
+    rm -rf $out/subagents
     install -Dm444 ${acornVendor}/acorn.mjs $out/dynamic-workflows/vendor/acorn.mjs
     install -Dm444 ${acornVendor}/ACORN-LICENSE $out/dynamic-workflows/vendor/ACORN-LICENSE
   '';
@@ -199,6 +246,10 @@ in
     source = piExtensions;
     recursive = true;
   };
+
+  # Keep the dependency-heavy extension as one directory symlink instead of
+  # asking Home Manager to create a link for every file in node_modules.
+  home.file.".pi/agent/extensions/subagents".source = subagentsExtension;
 
   # Read-only Nix-managed configuration.
   home.file.".pi/agent/AGENTS.md".source = ./AGENTS.md;

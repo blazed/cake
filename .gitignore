@@ -12,3 +12,4 @@ yubikey-identity.txt
 !/secrets/**/*.age
 !/secrets/**/*.pub
 !/secrets/allowed_signers
+node_modules/
