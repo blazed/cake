@@ -28,6 +28,7 @@ let
       "npm:@juicesharp/rpiv-ask-user-question@2.1.0"
       "npm:@juicesharp/rpiv-todo@2.1.0"
       "npm:@plannotator/pi-extension@0.24.2"
+      "npm:pi-claude-bridge@0.6.3"
       "npm:pi-hashline-edit@0.8.3"
       "npm:pi-web-access@0.14.0"
       "npm:remote-pi@0.5.5"
@@ -69,6 +70,13 @@ let
     theme = themeName;
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
+
+  claudeBridge = {
+    provider = {
+      plan = "max";
+      pathToClaudeCodeExecutable = lib.getExe inputs.claude-code.packages.${system}.default;
+    };
+  };
 
   # MCP servers (settings.mcpServers schema). Empty = no servers.
   mcp = {
@@ -183,6 +191,7 @@ in
 
   # Read-only Nix-managed configuration.
   home.file.".pi/agent/AGENTS.md".source = ./AGENTS.md;
+  home.file.".pi/agent/claude-bridge.json".text = builtins.toJSON claudeBridge;
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
   home.file.".pi/web-search.json".text = builtins.toJSON webSearch;
