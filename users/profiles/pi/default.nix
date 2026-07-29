@@ -27,7 +27,6 @@ let
     ++ [
       "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
       "npm:@juicesharp/rpiv-ask-user-question@2.1.0"
-      "npm:@juicesharp/rpiv-todo@2.1.0"
       "npm:@plannotator/pi-extension@0.24.2"
       "npm:pi-claude-bridge@0.6.3"
       "npm:pi-hashline-edit@0.8.3"
@@ -80,7 +79,7 @@ let
 
   claudeBridge = {
     askClaude = {
-      enabled = true;
+      enabled = false;
       allowFullMode = false;
       defaultMode = "read";
     };
