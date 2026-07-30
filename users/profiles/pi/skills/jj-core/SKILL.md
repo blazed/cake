@@ -1,264 +1,145 @@
 ---
 name: jj-core
-description: Expert guidance for using JJ (Jujutsu) version control system. MUST be used before any `jj` or `git` command or version-control operation in JJ-backed repositories, including status/log/diff/fetch/push/bookmark/branch/history inspection. Covers JJ operations, revsets, templates, evolog, recovery, `jj fix`, and Git interop boundaries.
+description: "Guides safe JJ (Jujutsu) version-control work. MUST be used before any jj or git command or history operation in a JJ-backed repository, including status, diff, log, fetch, push, bookmarks, rebases, recovery, and Git interop."
 metadata:
   keywords: ["jj", "jujutsu", "git", "revsets", "bookmarks", "history", "fix", "formatting"]
   related: [jj-todo, conventional-commits]
-  version_target: "0.42.x"
+  version_target: "0.43.x"
 ---
 
-# JJ (Jujutsu) Version Control Helper
+# JJ (Jujutsu) Version Control
 
-Git-compatible VCS with a different data model: no staging area; the working copy is an editable commit (`@`) that is normally auto-snapshotted before JJ commands. Untracked files can still exist.
+JJ has no staging area: the working copy is an editable commit (`@`) that is normally snapshotted before each command. Change IDs remain stable across rewrites; commit IDs change with content.
 
-> ⚠️ **Avoid `git` mutations in a JJ repo** — they bypass JJ's operation log and can confuse colocated state. Prefer `jj` for mutating operations. Read-only Git commands like `git log`, `git diff`, `git show`, `git blame`, and `git grep` are fine.
+Tested against `jj 0.43.0`. Prefer canonical command names and short, stable flags in durable instructions.
 
-Tested against `jj 0.42.0`. Prefer current canonical command names in examples;
-short aliases are often configured by default but can be disabled or confusing in
-`jj help` output.
+## Mandatory Boundaries
 
-## Core Principles
+- Prefer `jj` for all version-control operations in JJ-backed repositories.
+- Never use mutating `git` commands in a colocated JJ repository; they bypass JJ's operation model. Read-only Git inspection is acceptable when a tool requires it.
+- Do not discard, restore, abandon, rebase, squash, split, or publish changes until the intended revisions and affected files are understood.
+- Preserve unrelated user changes. Stop and report unexpected conflicts or repository state instead of guessing.
+- Quote revsets and filesets in shell commands.
 
-- **Change IDs** (stable identity of a change) vs **Commit IDs** (content-based hashes that change on edit)
-- **Operation log**: repository history changes are recorded and can be undone (`jj undo`) or restored (`jj op restore <op-id>`)
-- **No staging area**: the working copy is a commit (`@`) and is normally auto-snapshotted before commands
-- **Conflicts don't block**: conflicts can exist in commits and be resolved later
-- **Commits are lightweight**: edit, split, squash, rebase, and abandon freely
-- **Colocated by default**: Git-backed repos typically have both `.jj` and `.git` (since v0.34)
-- **Three DSLs**:
-  - _revsets_: select revisions/commits (`@`, `@-`, `mine()`, `description(...)`)
-  - _filesets_: select files (`src`, `glob:"**/*.ts"`, `~Cargo.lock`)
-  - _templates_: select output fields (`change_id.shortest(8)`, `description.first_line()`)
+## Core Model
 
-## Essential Commands
+- `@` is the working-copy commit; `@-` is its parent and `@+` its child set.
+- Revisions may be rewritten freely while mutable; descendants are rebased automatically.
+- Conflicts can exist in commits and do not block most JJ operations.
+- Every repository mutation is recorded in the operation log and can usually be inspected or recovered.
+- Revsets select revisions, filesets select paths, and templates format output.
 
-```bash
-jj status                             # Working-copy status
-jj log -r <revset> [-p]               # View history (--patch/-p: include diffs, --count: just count)
-jj log -r <revset> -G                 # -G is short for --no-graph
-jj show <rev>                         # Show revision details (description + diff)
-jj evolog -r <rev> [-p]               # View a revision's evolution
+## Inspect Before Acting
 
-jj new [-A] <base>                    # Create revision and edit it (-A: insert after <base>)
-jj new --no-edit <base>               # Create without switching @
-jj edit <rev>                         # Switch to editing revision
-jj describe <rev> -m "text"           # Set description (canonical name; default alias: desc)
-jj describe <rev> --stdin             # Set description from stdin, useful in scripts
-jj metaedit <rev> -m "text"           # Modify metadata (author, timestamps, description)
+Use `jj_context` for compact routine inspection when available:
 
-jj diff                               # Changes in @
-jj diff -r <revset>                   # Changes in revset (must be contiguous)
-jj diff -f <rev1> -t <rev2>           # Differences between two states
-jj file show -r <rev> <fileset>       # Show file contents at revision (without switching)
-jj file show -r <rev> **/*.md -T '"=== " ++ path ++ " ===\n"'  # Multiple files with path headers
-jj restore <fileset>                  # Discard changes to files in @
-jj restore --from <rev> <fileset>     # Restore files from another revision
+- `summary`: current change, parent, bookmarks, files, conflicts, and recovery operation
+- `changes`: status, diffstat, changed files, and conflicts
+- `log`: compact log for a focused revset
+- `recovery`: current and recent operation IDs
 
-jj split -r <rev> <paths> -m "text"   # Split selected paths into another revision
-jj absorb                             # Auto-squash changes into ancestor commits
-jj fix [filesets]                    # Run configured fix tools (default source: revsets.fix or reachable(@, mutable()))
-jj fix -s <revset> [filesets]        # Limit source revisions and paths/filesets to fix
-jj rebase -s <src> -o <dest>          # Rebase source and descendants onto dest
-jj rebase -r <rev> -o <dest>          # Rebase only selected revision(s)
-
-jj file annotate <path>               # Blame: who changed each line
-jj bisect run -- <cmd>                # Binary search for bug-introducing commit
-```
-
-## Additional Commands
+Let it snapshot the working copy when current state matters. Use the JJ CLI for full diffs, precise graph queries, and all mutations.
 
 ```bash
-jj undo                               # Undo last operation (repeat to go further back)
-jj redo                               # Redo undone operation
-jj sign -r <rev>                      # Cryptographically sign commit
-jj unsign -r <rev>                    # Remove signature
-jj revert -r <rev> -o <dest>          # Create commit that reverts changes
-jj bookmark set <name> -r <rev>       # Create/update bookmark (Git branch analogue)
-jj bookmark move <name> --to <rev>    # Move existing bookmark
-jj bookmark delete <name>             # Delete bookmark and propagate on next push
-jj git fetch                          # Fetch from Git remote(s)
-jj git push --bookmark <name>         # Push a specific bookmark
-jj git push --change <rev>            # Push change under generated bookmark name
-jj tag set <name> -r <rev>            # Create/update local tag
-jj tag delete <name>                  # Delete local tag
-jj git colocation enable              # Convert to colocated repo
-jj git colocation disable             # Convert to non-colocated
+jj status
+jj log -r '<revset>'
+jj show <rev>
+jj evolog -r <rev>
+jj diff
+jj diff -r <revset>
+jj diff -f <from> -t <to>
+jj file show -r <rev> <fileset>
 ```
 
-## Formatting/Fixing with `jj fix`
-
-Use `jj fix` when configured formatters or content transformers should be applied
-through JJ history rather than directly editing the working tree.
+## Routine Mutations
 
 ```bash
-jj fix                         # Fix changed files in revsets.fix, else reachable(@, mutable())
-jj fix -s @                    # Fix @ and its descendants
-jj fix 'glob:**/*.nix'         # Limit to matching paths/filesets
-jj fix --include-unchanged-files <fileset>  # Also process unchanged matching files
-jj fix --all-lines             # Ignore line-range config and format whole modified files
+jj new <parent>                         # create and edit a child
+jj new --no-edit <parent>               # create without moving @
+jj edit <rev>                           # switch the working copy
+jj describe <rev> -m "message"         # set description
+jj describe <rev> --stdin               # read description from stdin
+jj bookmark set <name> -r <rev>
+jj rebase -r <rev> -o <destination>
 ```
 
-By default, `jj fix` rewrites files changed in the source revisions and updates
-descendants for the same paths so fixes are not lost. Path arguments are JJ
-filesets. Review the operation with `jj op show -p`; recover with `jj undo` (or
-`jj op restore <op>` from `jj op log`).
+Use `--no-edit` whenever creating sibling or future task revisions. In scripts, use canonical `describe`, not the optional `desc` alias. Prefer `-r` for revision selection and `-o`/`--onto` over legacy `-d`/`--destination`.
 
-Configure tools in JJ config under `fix.tools.<name>` with a `command` array and
-`patterns` filesets. Optional keys include `enabled`, `line-range-arg`, and
-`run-tool-if-zero-line-ranges`. Tool commands read stdin and write fixed content
-to stdout; use `$path` for the repo-relative file path and `$root` for the
-workspace root. See [command syntax](references/command-syntax.md#jj-fix-config-patterns) for expanded examples.
+For risky local graph mutations, `--no-integrate-operation` can create an operation without integrating it immediately. It does **not** prevent external side effects such as pushes.
 
-## Quick Revset Reference
+After a mutation, inspect the affected revision or graph before continuing.
+
+## Revsets and Filesets
 
 ```bash
-@, @-, @--                            # Working copy, parent(s), grandparent(s)
-::@                                   # Ancestors of @
-@::                                   # Descendants of @
-@+                                    # Children of @
-mine()                                # Your changes
-conflicts()                           # Revisions with conflicts
-visible()                             # Visible revisions (built-in alias)
-hidden()                              # Hidden revisions (built-in alias)
-description(substring-i:"text")       # Match description (partial, case-insensitive)
-subject(substring:"text")             # Match first line only
-signed()                              # Cryptographically signed commits
-A | B, A & B, A ~ B                   # Union, intersection, difference
-change_id(prefix)                     # Explicit change ID prefix lookup
-commit_id(prefix)                     # Explicit commit ID prefix lookup
-bookmarks(pattern)                    # Bookmark-name pattern lookup
-parents(x, 2)                         # Parents with depth
-exactly(x, 3)                         # Assert exactly N revisions
+::@                                      # ancestors of @
+@::                                      # descendants of @
+mine()                                   # your revisions
+conflicts()                              # revisions with conflicts
+description(substring:"text")          # description match
+subject(substring:"text")              # first-line match
+change_id(prefix)                        # explicit change ID
+commit_id(prefix)                        # explicit commit ID
+A | B, A & B, A ~ B                     # union, intersection, difference
+
+jj diff src                              # prefix path
+jj diff 'glob:"src/*.rs"'              # shell-style glob
+jj diff 'file:"src/*"'                 # literal path containing metacharacters
 ```
 
-For the comprehensive list, run `jj help -k revsets`.
+A bare symbol must resolve unambiguously. Prefer explicit lookup functions when an ID may collide with a bookmark or tag. Run `jj help -k revsets` or `jj help -k filesets` for the complete grammar.
 
-## Common Pitfalls
+## Formatting with `jj fix`
 
-### 1. Prefer short `-r`; long revset flag names vary
-
-`-r` is the safest spelling in snippets and scripts. Long forms are inconsistent
-across commands and even help prose: many commands use `--revision`, some prose
-mentions `--revisions`, and several commands accept the revset positionally.
+Use `jj fix` when configured repository formatters should rewrite files through JJ history. Without `-s`, JJ may use `revsets.fix` or a broad mutable-revision default; always choose the source revset deliberately.
 
 ```bash
-jj log -r xyz              # ✅ idiomatic
-jj show xyz                # ✅ positional; `-r xyz` is also accepted as alias
-jj describe xyz -m "msg"   # ✅ canonical command name, positional revision
-jj rebase -r xyz -o main   # ✅ avoid relying on long-form spelling
+jj fix -s @
+jj fix -s @ 'glob:**/*.nix'
+jj fix -s @ --include-unchanged-files <fileset>
+jj fix -s @ --all-lines
 ```
 
-### 2. Use canonical `describe`, not `desc`, in scripts
+Review rewritten revisions and descendants with `jj op show -p` before continuing. See [command syntax](references/command-syntax.md#jj-fix-config-patterns) for tool configuration.
 
-`jj desc` is a default alias for `jj describe`, but `jj help desc` may not resolve
-aliases in some environments. Use `jj describe` in durable docs/scripts.
+## Git Interop and Publishing
 
 ```bash
-jj describe @ -m "Update docs"        # ✅
-printf '%s\n' "Update docs" | jj describe @ --stdin
+jj git fetch
+jj git push --bookmark <name>
+jj git push --change <rev>
+jj bookmark delete <name>
 ```
 
-### 3. Use `--no-edit` for parallel branches
+Fetch is routine; pushing, deleting remote-tracked bookmarks, signing, and other externally visible operations require an explicit user request or a clearly established release workflow.
 
-```bash
-jj new parent -m "A"; jj new -m "B"                             # ❌ B is child of A!
-jj new --no-edit parent -m "A"; jj new --no-edit parent -m "B"  # ✅ Both children of parent
-```
+## Helper Scripts
 
-### 4. Quote revsets and filesets in shell
+Scripts are under `scripts/` and use Nushell:
 
-```bash
-jj log -r 'description(substring:"[task:todo]")'    # ✅
-jj diff 'glob:"**/*.ts"'                            # ✅
-```
+| Script | Purpose |
+| --- | --- |
+| `jj-show-desc [REV]` | Print the full description only |
+| `jj-desc-transform <REV> <CMD...>` | Transform one description |
+| `jj-batch-desc <SED_FILE> <REV...>` | Transform several descriptions |
+| `jj-checkpoint [NAME]` | Record an operation ID before risky work |
 
-### 5. Use `-o`/`--onto` instead of `-d`/`--destination`
-
-```bash
-jj rebase -s xyz -o main   # ✅ Current syntax
-jj rebase -s xyz -d main   # ⚠️ Accepted alias; avoid in new scripts
-```
-
-The same guidance applies to `jj split` and `jj revert`: use `-o`/`--onto`, not
-legacy `-d`/`--destination`.
-
-### 6. Symbol expressions are strict
-
-A bare symbol must resolve unambiguously. In scripts, prefer explicit lookup
-functions when a name may collide with bookmarks/tags/IDs.
-
-```bash
-jj log -r abc              # ❌ Error if ambiguous
-jj log -r 'change_id(abc)' # ✅ Explicit change ID prefix
-jj log -r 'commit_id(abc)' # ✅ Explicit commit ID prefix
-jj log -r 'bookmarks(abc)' # ✅ Bookmark name pattern
-```
-
-### 7. Filesets use prefix-glob paths by default (v0.36+)
-
-```bash
-jj diff src                # Matches src recursively / path prefix
-jj diff 'glob:"src/*.rs"'  # Shell-style glob in current directory
-jj diff 'file:"src/*"'     # Literal cwd-relative file path with special chars
-```
-
-### 8. Read-only inspection can use `--ignore-working-copy`
-
-For status/diff during active work, let JJ snapshot normally. For prompt/footer
-scripts that only need already-snapshotted state and must avoid side effects,
-use `--ignore-working-copy`.
-
-```bash
-jj log --ignore-working-copy -r @ -G -T 'change_id.shortest(8) ++ " " ++ description.first_line()'
-```
-
-## Scripts
-
-Helper scripts live in `scripts/`. They are Nushell scripts (`#!/usr/bin/env nu`);
-add them to PATH or invoke them directly from the skill directory.
-
-| Script                             | Purpose                          |
-| ---------------------------------- | -------------------------------- |
-| `jj-show-desc [REV]`               | Print full description only      |
-| `jj-desc-transform <REV> <CMD...>` | Pipe description through command |
-| `jj-batch-desc <SED_FILE> <REV...>`| Batch transform descriptions     |
-| `jj-checkpoint [NAME]`             | Record op ID before risky ops    |
-
-## Pi Tool
-
-Use the `jj_context` Pi tool for quick read-only repository orientation: current
-change, parent, dirty-file summary, conflicts, nearby bookmarks, and recovery op.
-It returns structured JSON/text for:
-
-- `mode: "summary"` (default): version, root, current change, nearest bookmarks,
-  changed-file/diffstat/conflict summary, recovery operation ID, and a short log
-- `mode: "log"`: compact flat log for a revset
-- `mode: "changes"`: status/diffstat/changed-file summary
-- `mode: "recovery"`: current operation ID and recent operation log
-
-Prefer `jj_context` over several verbose `bash` calls to `jj status`, `jj log`,
-`jj diff --stat`, and `jj op log` when a compact overview is enough. Use the
-`jj` CLI via `bash` for precise revset inspection, full diffs, unusual commands,
-and all mutating operations. Avoid generic `jj_run` wrappers; JJ's CLI is already
-expressive and broad wrappers add risk without much token benefit.
+Invoke them with an absolute path or from the skill directory; do not assume they are on `PATH`.
 
 ## Recovery
 
 ```bash
-jj op log              # Find operation before problem
-jj op show <op-id>     # Inspect what an operation changed
-jj op restore <op-id>  # Restore the WHOLE repository (history included) to that state
-jj undo                # Undo most recent operation
-jj redo                # Redo an undone operation
+jj op log                 # find a known-good operation
+jj op show <op-id>        # inspect what an operation changed
+jj op restore <op-id>     # restore the whole repository to that operation
+jj undo                   # undo the latest operation
+jj redo                   # redo an undone operation
 ```
+
+`jj op restore` changes repository history and working-copy state. Confirm the operation ID and user intent before running it.
 
 ## References
 
-- The `jj` executable is self-documenting:
-  - `jj help -k bookmarks` - JJ bookmarks, how they relate to Git branches and how to push/fetch them
-  - `jj help -k revsets` - Revset DSL syntax and patterns
-  - `jj help -k filesets` - Filepath selection DSL
-  - `jj help -k templates` - Template language and custom output
-  - All jj subcommands have detailed `--help` pages
-- `references/command-syntax.md` - Command flag details
-- `references/batch-operations.md` - Complex batch transformations on revision descriptions
+- [Command syntax](references/command-syntax.md) — flags, command patterns, revsets, filesets, quoting, and `jj fix` configuration
+- [Batch operations](references/batch-operations.md) — safe multi-revision description transformations
+- Built-in help: `jj help -k revsets`, `jj help -k filesets`, `jj help -k templates`, and each subcommand's `--help`

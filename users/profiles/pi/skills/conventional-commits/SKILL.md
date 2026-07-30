@@ -1,6 +1,6 @@
 ---
 name: conventional-commits
-description: "Write Conventional Commits messages (v1.0.0) — type(scope): subject format for changelogs and semver. Use when drafting commit messages, PR titles, or release notes."
+description: "Drafts Conventional Commits v1.0.0 messages and compatible PR titles. Use when the user or repository explicitly requires Conventional Commits, semantic-release, or commit headers for automated changelogs."
 metadata:
   topic: Conventional Commits
   keywords: ["commit", "message", "conventional", "changelog", "version", "release", "git"]
@@ -88,6 +88,8 @@ BREAKING CHANGE: /v1/* endpoints are removed; migrate to /v2/*.
 - Use `BREAKING CHANGE:` footer for breaking changes
 - Map types to semver: fix→patch, feat→minor, breaking→major
 
-## When Asked to Write a Commit Message
+## When Conventional Commits Are Required
 
-Collect what changed, the scope/module, whether it's user-facing, and any issue IDs. Then produce a conventional header with optional body and footers.
+First confirm that the user or repository requires this convention. Do not apply it to JJ TODO descriptions using `[task:*]` flags unless explicitly requested.
+
+Collect what changed, the scope/module, whether it is user-facing, and any issue IDs. Then produce a conventional header with optional body and footers.

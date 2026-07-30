@@ -10,28 +10,34 @@ metadata:
 
 Cleaner interface for Nix operations — builds, switches, and garbage collection with readable output.
 
+## Before Running nh
+
+- Read the repository's `AGENTS.md`, `Justfile`, or equivalent source of truth first; prefer its recipes when they differ from this generic reference.
+- Run state-changing commands (`switch`, `test`, `boot`, `--update`, rollback, or cleanup) only when the user explicitly requests that operation.
+- For validation, prefer `build` or `--dry` over activation. Unless lock changes were also requested, pass `--no-write-lock-file` to every flake-based nh command. Never use `--ask` in a headless run.
+
 ## Switching Configuration
 
 Build and activate a configuration:
 
 ```bash
-nh os switch path:.           # NixOS — build and activate
-nh os test path:.             # Build and activate temporarily; not boot default
-nh os build path:.            # Build only, don't activate
-nh os boot path:.             # Make it the boot default without activating
+nh os switch --no-write-lock-file path:.  # Build, activate, and set boot default
+nh os test --no-write-lock-file path:.    # Activate temporarily
+nh os build --no-write-lock-file path:.   # Build only
+nh os boot --no-write-lock-file path:.    # Set boot default without activating
 ```
 
 Home Manager:
 
 ```bash
-nh home switch path:.         # Build and activate Home Manager config
-nh home build path:.          # Build only
+nh home switch --no-write-lock-file path:.  # Build and activate Home Manager
+nh home build --no-write-lock-file path:.   # Build only
 ```
 
 macOS with nix-darwin:
 
 ```bash
-nh darwin switch path:.       # Build and activate darwin config
+nh darwin switch --no-write-lock-file path:.  # Build and activate nix-darwin
 ```
 
 Path inference works — `nh os switch` uses the local `flake.nix` in the current directory. Prefix local flake paths with `path:` to include untracked files.

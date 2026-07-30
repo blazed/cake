@@ -1,214 +1,122 @@
 # Parallel Agents with JJ Workspaces
 
-> ⚠️ **Experimental** — this flow is not battle-tested. Only use it when the
-> user has explicitly opted in.
+Target: `jj 0.43.x` and Pi's `subagent_spawn` tool.
 
-**TL;DR**: Use JJ workspaces to run multiple agents in parallel on different tasks. Each workspace gets its own working copy (`@`), preventing conflicts.
+> **Experimental:** use this workflow only after the user explicitly approves parallel execution and the additional workspace cleanup.
 
-## The Problem
+## When Parallelism Is Justified
 
-Running multiple agents concurrently on the same repo causes chaos:
-- All agents compete for the same working copy (`@`)
-- They do `jj restore` and `jj squash` to move changes around
-- Files end up in wrong revisions
-- Total mess
+Use isolated workspaces only when:
 
-## The Solution: Workspaces
+- At least three tasks are genuinely independent.
+- Workers will not modify the same files or generated artifacts.
+- The time saved exceeds workspace and review overhead.
+- Each task has a complete `[task:todo]` specification.
+- The user accepts the conflict and cleanup risks.
 
-JJ workspaces are like git worktrees - isolated working copies of the same repo:
-- Each workspace has its own `@`
-- Changes made in one workspace don't affect others
-- All workspaces share the same underlying revisions
-- Perfect for parallel agent work
+Otherwise, keep one workspace and implement tasks sequentially.
 
-## When to Use This
+## Why Isolation Is Mandatory
 
-✅ **Use workspaces when:**
-- You have 3+ independent parallel tasks (e.g., Feature A, B, C from same parent)
-- Tasks are truly independent (no shared files)
-- Time savings justify the setup overhead
-- Human user explicitly approves the complexity
+Agents sharing a workspace compete for the same working-copy revision (`@`). Even unrelated edits can be snapshotted into the wrong task. A JJ workspace gives each worker its own `@` while sharing repository history.
 
-❌ **Don't use workspaces when:**
-- Tasks are sequential (just work through them linearly)
-- Only 1-2 tasks (not worth the overhead)
-- Tasks likely to conflict (same files)
-- User hasn't agreed to the complexity
+A workspace prevents working-copy collisions; it does not prevent merge conflicts between tasks that touch overlapping content.
 
-## Setup Workflow
+## 1. Plan the DAG First
 
-### 1. Plan the Task DAG
+Create the common foundation, independent task revisions, and any integration task before spawning workers. Use `jj_todo create` for ordinary task revisions. Use the CLI helper fallback when constructing a multi-parent merge task; see [CLI workflow](cli-workflow.md).
 
-First, create your TODO graph as usual:
+Verify that every worker task is `todo`, has only completed task ancestors, and has precise acceptance criteria.
+
+## 2. Create Named Workspaces
+
+Create sibling directories, never subdirectories of the main working tree:
 
 ```bash
-# Create parallel branches
-jj-todo-create @ "Core setup"
-jj-parallel-todos <core-id> "Feature A" "Feature B" "Feature C"
-
-# Create merge point
-jj new --no-edit <A-id> <B-id> <C-id> -m "[task:todo] Integration"
-```
-
-### 2. Create Workspaces for Parallel Tasks
-
-Create a workspace for each parallel task branch:
-
-```bash
-# From the main workspace, create named workspaces
-jj workspace add ../workspace-feature-a --name feature-a
-jj workspace add ../workspace-feature-b --name feature-b
-jj workspace add ../workspace-feature-c --name feature-c
-
-# List to verify
+jj workspace add /absolute/path/workspace-feature-a --name feature-a
+jj workspace add /absolute/path/workspace-feature-b --name feature-b
+jj workspace add /absolute/path/workspace-feature-c --name feature-c
 jj workspace list
 ```
 
-**Note:** Workspace directories should be siblings of the main repo, not subdirectories.
+Record each absolute workspace path, workspace name, and task change ID. In each workspace, run `jj edit <task-id>` before starting its worker.
 
-### 3. Launch Agents in Their Workspaces
+Before spawning, ensure Pi's persisted project-trust store covers every alternate `working_dir` or a containing directory. Use Pi's normal interactive `/trust` flow and restart as instructed; do not hand-edit `trust.json`. Without persisted trust, subagents fail closed and omit trust-gated project settings, extensions, and resources. Proceed in that degraded mode only when it is intentional and sufficient for the task.
 
-Launch each agent with instructions to work in its dedicated workspace:
+## 3. Spawn One Worker per Workspace
 
-**Agent A:**
+Call `subagent_spawn` separately for each worker. Pi permits at most four concurrent children, so never create more active workers than that limit.
+
+Each call needs:
+
+- a unique short `name`
+- a deliberate `harness` (`pi` or `claude`)
+- `working_dir` set to the workspace's absolute path
+- a self-contained prompt containing the exact task change ID and specification
+- explicit instructions to inspect the current task, update it to `wip`, implement only that task, validate it, and report completion or blockage
+- a reminder that the child cannot ask the user or orchestrate more agents
+
+Example payload shape:
+
+```json
+{
+  "name": "feature-a",
+  "harness": "pi",
+  "working_dir": "/absolute/path/workspace-feature-a",
+  "prompt": "Implement JJ task <change-id>. Read its full description, confirm this workspace edits that revision, mark it wip, satisfy every acceptance criterion, validate, and report changed files and checks. Stop on ambiguity or conflicts."
+}
 ```
-You are working on Feature A in workspace-feature-a using JJ.
 
-Working directory: /path/to/workspace-feature-a
-JJ change-id for this task: <feature-a-id>
+Do not tell workers to `cd`; `working_dir` establishes their process directory. Do not let the parent or another worker mutate a worker's workspace while it is running.
 
-Workflow:
-1. cd /path/to/workspace-feature-a
-2. jj edit <feature-a-id>
-3. jj log -r @ --no-graph -T description  # To read the specs of the task
-4. /path/to/scripts/jj-flag-update @ wip
-5. Implement Feature A
-6. /path/to/scripts/jj-flag-update @ done # If task fully complete
-7. Report completion or blockage
+## 4. Monitor Without Competing
 
-IMPORTANT: All commands must run in /path/to/workspace-feature-a
-```
+After spawning, continue only with work that cannot affect worker workspaces or shared task history. Results arrive asynchronously; use `subagent_wait` only when progress genuinely depends on all selected workers settling.
 
-**Agent B, C:** Similar instructions with their respective workspace paths.
-
-### 4. Monitor Progress
-
-Check status across all workspaces:
+From the main workspace, use read-only inspection:
 
 ```bash
-# From main workspace, see all task statuses
-jj-find-flagged wip
-jj-find-flagged done
-
-# Or check specific workspace
-cd ../workspace-feature-a && jj status
+jj workspace list
+jj log -r 'description(substring:"[task:")'
+jj status
 ```
 
-### 5. Cleanup After Completion
+The `jj_todo list` and `check` actions can summarize shared task state. Treat a child's claim of completion as a report, not proof; inspect its revision and validation output.
 
-Once all parallel tasks are done:
+## 5. Integrate and Clean Up
+
+After every worker has settled:
+
+1. Verify each task revision contains only its intended changes.
+2. Confirm flags and validation; correct status only with the normal dry-run workflow.
+3. Inspect the multi-parent integration revision for conflicts.
+4. Resolve conflicts in the integration task, not by rewriting completed worker tasks without review.
+5. Forget workspaces only after their revisions are safely visible from the main repository.
 
 ```bash
-# Verify all tasks complete
-jj-find-flagged | grep -E "Feature A|Feature B|Feature C"
-
-# Remove workspaces (changes stay in revisions!)
-jj workspace forget feature-a
-jj workspace forget feature-b
-jj workspace forget feature-c
-
-# Delete workspace directories
-rm -rf ../workspace-feature-a
-rm -rf ../workspace-feature-b
-rm -rf ../workspace-feature-c
+jj workspace forget feature-a feature-b feature-c
 ```
 
-## Complete Example
+Deleting the workspace directories is a separate filesystem operation. Reconfirm their paths and user intent before removal; never use a broad glob or an unverified `rm -rf`.
 
-```bash
-# 1. Setup TODO graph
-db_id=$(jj-todo-create @ "Setup database schema")
+## Failure Handling
 
-jj-parallel-todos $db_id \
-  "Implement user service" \
-  "Implement product service" \
-  "Implement order service"
-# Read IDs from the output of jj-parallel-todos
+- **Worker edited the wrong task:** stop that worker and report; do not silently move its changes.
+- **Two tasks touched the same file:** expect an integration conflict and review both intents.
+- **Worker is blocked:** leave an accurate `blocked`, `standby`, `untested`, or `review` flag and report why.
+- **Workspace disappeared:** inspect `jj workspace list` and repository operations before recreating anything.
+- **Agent did not reply:** delivery and subagent completion are separate; inspect its status rather than spawning a duplicate worker immediately.
 
-# 2. Create workspaces
-jj workspace add ../ws-user --name user-service
-jj workspace add ../ws-product --name product-service
-jj workspace add ../ws-order --name order-service
+## Safety Rules
 
-# 3. Launch agents (in parallel, single message with multiple Task tool calls)
-# Agent 1: Work in ../ws-user on $user_id
-# Agent 2: Work in ../ws-product on $product_id
-# Agent 3: Work in ../ws-order on $order_id
-
-# 4. After all complete, cleanup
-jj workspace forget user-service
-jj workspace forget product-service
-jj workspace forget order-service
-
-rm -rf ../ws-{user,product,order}
-```
-
-## Important Notes
-
-### Workspace Paths
-
-- **Absolute paths recommended**: `/tmp/project/workspace-a` vs `../workspace-a`
-- **Scripts need full paths**: Helper scripts won't be in workspace PATH
-- **Tell agents the workspace path**: They need to `cd` there for every command
-
-### Agent Instructions Template
-
-```
-Working in isolated workspace for parallel execution.
-
-Workspace: /absolute/path/to/workspace-name
-Task: <task-id> - <task description>
-Scripts: /absolute/path/to/.pi/agent/skills/jj-todo/scripts
-
-Commands must use absolute paths and workspace directory:
-  cd /absolute/path/to/workspace-name && jj edit <task-id>
-  cd /absolute/path/to/workspace-name && /absolute/path/to/scripts/jj-flag-update @ wip
-  cd /absolute/path/to/workspace-name && jj status
-
-Complete the task following the specs in the revision description.
-```
-
-### Conflict Risk
-
-Even with workspaces, conflicts can occur if:
-- Multiple tasks modify the same files (python cache files, config, etc.)
-- Tasks aren't truly independent
-- Merge task will show conflicts when combining branches
-
-**Mitigation:**
-- Ensure `.gitignore` excludes generated files (`__pycache__/`, etc.)
-- Design tasks to work on different files
-- Review conflicts at merge time (expected and normal)
-
-### When Agents Finish
-
-- Changes stay in their task revisions (good!)
-- Workspace `@` can be anywhere (doesn't matter)
-- Forgetting workspace doesn't lose work
-- Main workspace sees all completed revisions
-
-## Troubleshooting
-
-**"Workspace not found"**: Agent didn't `cd` to workspace directory first
-
-**"Can't find scripts"**: Use absolute paths to helper scripts
-
-**"Conflict on merge"**: Expected! Review and resolve at integration task
-
-**"Changes in wrong revision"**: Agent worked in wrong workspace - check paths
+- Never run parallel workers in the same workspace.
+- Never assign a `draft` task.
+- Never let workers publish, push, or perform broad recovery operations.
+- Never clean workspaces until workers have settled and revisions are verified.
+- Prefer sequential work whenever independence is uncertain.
 
 ## References
 
-- JJ workspace docs: `jj help workspace`
-- Git worktree equivalent: `git worktree add`
-- Working-with-jj skill: For general JJ operations
+- `jj help workspace`
+- [CLI workflow](cli-workflow.md)
+- The `jj-core` skill for graph inspection and recovery

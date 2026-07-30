@@ -20,6 +20,8 @@ nix flake init                    # Basic flake in current directory
 nix flake new hello -t templates#hello  # From template
 ```
 
+Do not create or modify `flake.lock` unless the user explicitly requests a lock operation or dependency update. Use Nix commands rather than editing the lock file by hand.
+
 Manage dependencies:
 
 ```bash
@@ -30,14 +32,14 @@ nix flake lock                    # Lock missing entries without updating
 
 ## Building & Running
 
-Always prefix local paths with `path:` to include untracked files:
+Always prefix local paths with `path:` to include untracked files. Unless a lock change was explicitly requested, add `--no-write-lock-file`:
 
 ```bash
-nix build path:.                  # Build default package
-nix build path:.#packageName      # Build a specific output
-nix run path:.                    # Run the default app
-nix run path:.#appName            # Run a specific app
-nix run github:numtide/treefmt    # Run from a remote flake
+nix build --no-write-lock-file path:.                  # Build default package
+nix build --no-write-lock-file path:.#packageName      # Build a specific output
+nix run --no-write-lock-file path:.                    # Run the default app
+nix run --no-write-lock-file path:.#appName            # Run a specific app
+nix run --no-write-lock-file github:numtide/treefmt    # Run from a remote flake
 ```
 
 ## Development Environments
@@ -45,8 +47,8 @@ nix run github:numtide/treefmt    # Run from a remote flake
 Run commands inside a devShell:
 
 ```bash
-nix develop path:. --command make build
-nix develop path:. --command env  # Check the environment
+nix develop --no-write-lock-file path:. --command make build
+nix develop --no-write-lock-file path:. --command env  # Check the environment
 ```
 
 The `--command` flag is required in headless environments to avoid interactive mode.
@@ -54,9 +56,9 @@ The `--command` flag is required in headless environments to avoid interactive m
 ## Inspecting Flakes
 
 ```bash
-nix flake show path:.             # List all outputs
-nix flake metadata path:.         # See inputs and revisions
-nix eval path:.#packages.x86_64-linux.default.name  # Evaluate a specific output
+nix flake show --no-write-lock-file path:.
+nix flake metadata --no-write-lock-file path:.
+nix eval --no-write-lock-file path:.#packages.x86_64-linux.default.name
 ```
 
 ## Basic Flake Structure
@@ -87,3 +89,4 @@ nix eval path:.#packages.x86_64-linux.default.name  # Evaluate a specific output
 - Always commit `flake.lock` for reproducibility
 - Use `path:` prefix when building local flakes to include untracked files
 - Always use `--command` with `nix develop` in scripts and headless environments
+- Prefer the repository's documented build/check recipes over these generic examples

@@ -38,7 +38,7 @@ nu script.nu --help
 
 ```nu
 ^cmd arg1 arg2
-let out = (^cmd arg out+err>| complete)
+let out = (^cmd arg | complete)
 if $out.exit_code != 0 {
   print -e ($out.stderr | str trim)
   exit $out.exit_code
