@@ -1,448 +1,150 @@
 ---
 name: jj-todo
-description: Structured TODO commit workflow using JJ (Jujutsu). MUST be used at the start of any implementation task likely to involve more than one commit/revision, multi-step feature work, larger bug fixes, refactors, task DAGs, or structured progress tracking. Plans work as empty commits with [task:*] flags and dependency checks. **Requires the jj-core skill**
+description: "Runs the structured JJ TODO-commit workflow. MUST be used before multi-step features, larger fixes, refactors, task DAGs, or any implementation likely to need more than one revision. Requires the jj-core skill."
 metadata:
   keywords: ["jj", "todo", "task", "planning", "commits", "workflow"]
   related: [jj-core, conventional-commits]
-  version_target: "0.41.x"
+  version_target: "0.43.x"
 ---
 
 # JJ TODO Workflow
 
-The core idea is to use a DAG of empty revisions as TODO markers, representing tasks to be done,
-and then come back later to edit these revisions to actually do the tasks. This enables structured development with clear milestones.
-Revision descriptions (i.e. commit messages) act as specifications for what to implement.
-JJ makes it easy to create such a structure, and then to fill each revision afterwards.
+Represent work as empty JJ revisions whose descriptions are executable specifications. Fill each revision only when its dependencies are complete. Read and follow `jj-core` before using JJ directly.
 
-**For more information on JJ basics, see the `jj-core` skill. We reuse scripts from that skill here.**
+Use the `jj_todo` tool for routine task mechanics. Planning quality, dependency judgment, implementation, and completion decisions remain the agent's responsibility.
 
-This skill talks about two roles: **Planners** (who lay out the empty revisions and their specs) and **Workers** (who implement them).
-Depending on the situation, you may be acting as just Planner, just Worker, or both.
-It is better to have a good idea of the whole process, but section titles make it explicit which role is most concerned by each section.
+## Status Flags
 
-## Quick Start (Planners & Workers)
+These are the only valid task prefixes:
 
-Here's a complete cycle from planning to completion (**full paths to helper scripts not written**):
+| Flag | Meaning |
+| --- | --- |
+| `[task:draft]` | Placeholder; specification is incomplete |
+| `[task:todo]` | Fully specified, empty, and ready when dependencies permit |
+| `[task:wip]` | Currently being implemented |
+| `[task:blocked]` | Cannot proceed because of an external dependency |
+| `[task:standby]` | Paused pending a decision or because usefulness is uncertain |
+| `[task:untested]` | Implemented but not sufficiently validated |
+| `[task:review]` | Requires review or a design decision |
+| `[task:done]` | Fully implemented and validated |
 
-```bash
-# 1. Plan: Create a simple TODO chain
-jj-todo-create @ "Add user validation" "Check email format and password strength"
-# Created: abc123 (stays on current @)
+Use `draft` only while planning. Before work begins, turn every actionable task into a self-contained `todo`. Do not use Conventional Commit headers for these revisions; the `[task:*]` prefix is the workflow contract.
 
-jj-todo-create abc123 "Add validation tests" "Test valid/invalid emails and passwords"
-# Created: def456 (@ still hasn't moved)
+## Write Executable Task Specifications
 
-# 2. Start working on first TODO
-jj edit abc123
-jj-flag-update @ wip   # Now [task:wip]
+A ready task description should contain:
 
-# ... implement validation ...
-
-# 3. Verify ALL acceptance criteria met
-make test  # Or equivalent in your project
-
-# 4. Ask to move to next task
-jj-todo-next
-### ... review current specs (to ensure compliance) and next possible TODOs ...
-
-# 5. Once we're sure everything is properly done, move to next TODO
-jj-todo-next --mark-as done def456   # Marks abc123 as [task:done], starts def456 as [task:wip]
-```
-
-**That's it!** Empty commits as specs, edit to work on them, `jj-todo-next --mark-as done <next-step>` when FULLY complete.
-
-## Status Flags (Planners & Workers)
-
-We use description prefixes to track status at a glance. The `[task:*]` namespace makes them greppable and avoids conflicts with other conventions.
-
-Here are the ONLY allowed status flags:
-
-| Flag              | Meaning                                                                              |
-| ----------------- | ------------------------------------------------------------------------------------ |
-| `[task:draft]`    | Placeholder created, needs full specification                                        |
-| `[task:todo]`     | Not started, empty revision with complete specs                                      |
-| `[task:wip]`      | Work in progress                                                                     |
-| `[task:blocked]`  | Waiting on external dependency                                                       |
-| `[task:standby]`  | Awaits some decision (broken and hard to fix, usefulness called into question, etc.) |
-| `[task:untested]` | Implementation done, but not tested enough to be validated                           |
-| `[task:review]`   | Needs review (tricky code, design choice)                                            |
-| `[task:done]`     | Complete, all acceptance criteria met                                                |
-
-This order is **indicative**: not every task has to go through all these steps, and not necessarily in the order above.
-
-NOTE: In previous versions of this Skill, `standby` was called "broken". It got renamed to make this status more broadly applicable.
-
-### When to Use `draft` vs `todo` (Planners)
-
-**Use `[task:draft]`** when:
-
-- Creating placeholder tasks to establish the DAG structure
-- The task title/concept is clear but details aren't worked out yet
-- You want to defer writing full acceptance criteria
-- Planning at a high level before diving into specifics
-
-**Use `[task:todo]`** when:
-
-- The task has complete specifications (context, requirements, acceptance criteria)
-- A Worker could pick it up and implement it without clarification
-- All dependencies and approach are clearly documented
-
-### Updating Flags (Workers & Planners)
-
-```bash
-jj-flag-update @ draft     # Mark as needing specification (Planners)
-jj-flag-update @ todo      # Mark as ready to work on (Planners)
-jj-flag-update @ wip       # Start work (Workers)
-jj-flag-update @ untested  # Implementation done, tests missing (Workers)
-jj-flag-update @ done      # Complete (Workers)
-```
-
-### Finding Flagged Revisions (Planners & Workers)
-
-```bash
-jj-find-flagged                     # All tasks
-jj-find-flagged draft               # Only [task:draft]
-jj-find-flagged todo                # Only [task:todo]
-jj-find-flagged wip                 # Only [task:wip]
-jj-find-flagged done                # Only [task:done]
-
-# Manual - all tasks
-jj log -r 'description(substring:"[task:")'
-
-# Incomplete tasks only (excludes done)
-jj log -r 'description(substring:"[task:") & ~description(substring:"[task:done]")'
-```
-
-## Basic Workflow (Planners & Workers)
-
-### 1. Plan: Create TODO Chain (Planners)
-
-```bash
-# Create linear chain of tasks
-jj-todo-create @ "Task 1: Setup data model" "...details..."
-jj-todo-create <T1-id> "Task 2: Implement core logic" "..."
-jj-todo-create <T2-id> "Task 3: Add API endpoints" "..."
-jj-todo-create <T3-id> "Task 4: Write tests" "..."
-```
-
-### 2. Work: Edit Each TODO (Workers)
-
-```bash
-# Read the specs
-jj-show-desc <task-id>    # BEWARE: Script from the `jj-core` skill
- 
-# Start working on it
-jj edit <task-id>
-jj-flag-update @ wip
-
-# ... implement ...
-
-# Mark progress
-jj-flag-update @ untested
-```
-
-### 3. Complete and Move to Next (Workers)
-
-`jj-todo-next` script is there to smooth out the "transition to next task" process.
-
-#### Without args
-
-- Print out current task's description so you can review and make sure everything is implemented as planned
-- Print out next possible task(s)
-
-```bash
-# Review current specs and see what's next
-jj-todo-next
-# Shows:
-#   📋 Current task specs for review:
-#   ─────────────────────
-#   ...
-#   ─────────────────────
-#
-#   Current task status: [task:wip]
-#   Mark as [task:done] only if FULLY COMPLIANT with specs above.
-#
-#   ✅ Available next tasks:
-#     abc123  [task:todo] Feature B
-#     def456  [task:todo] Feature C
-#
-#   ⚠️ Child tasks with unmet dependencies:
-#     xyz789  [task:todo] Integration
-#             Blocked by: abc123
-```
-
-#### With args
-
-- Update the flag of current task
-- Move (`jj edit`) to the next task
-- Update new task's flag to `[task:wip]`
-
-```bash
-# Actually mark current done and start editing next:
-jj-todo-next --mark-as done abc123
-# Does the `jj edit abc123` and shows its description
-```
-
-## Planning Parallel Tasks (DAG) (Planners)
-
-Create branches that can be worked independently. Example:
-
-```bash
-# Linear foundation
-jj-todo-create @ "Task 1: Core infrastructure"
-jj-todo-create <T1-id> "Task 2: Base components"
-
-# Parallel branches from Task 2
-jj-parallel-todos <T2-id> "Widget A" "Widget B" "Widget C"
-
-# ... edit their descriptions to add more details ...
-
-# Merge point (all three parents must complete first)
-jj-merge-todo "Integration of widgets" <A-id> <B-id> <C-id>
-# Or, with a longer body:
-jj-merge-todo --desc "Wires A/B/C together; see spec.md #integration" \
-              "Integration of widgets" <A-id> <B-id> <C-id>
-```
-
-**Result:**
-
-```
-          Integration
-       /      |        \
-   Widget A  Widget B  Widget C
-       \      |        /
-          Task 2: Base
-              |
-          Task 1: Core
-```
-
-No rebasing needed - parents specified directly!
-
-## Writing Good TODO Descriptions (Planners)
-
-### Structure
-
-```
-Short title (< 50 chars)
+```markdown
+Short title
 
 ## Context
-Why this task exists, what problem it solves.
+Why this task exists and what problem it solves.
 
 ## Requirements
-- Specific requirement 1
-- Specific requirement 2
+- Concrete behavior or change
+- Constraints and safety boundaries
 
 ## Implementation notes
-Any hints, constraints, or approaches to consider.
+Stable pointers to source files, APIs, or decisions when useful.
 
 ## Acceptance criteria
-How to know when this is FULLY DONE (not just "good enough"):
-- Criterion 1
-- Criterion 2
+- Specific, testable completion condition
+- Required validation
 ```
 
-**Important:** Acceptance criteria define when you can mark as `[task:done]`. Be specific and testable.
+Keep each task small enough for one focused revision. Prefer stable section, symbol, or file references over line numbers. A worker should not need to make an unstated product or architecture decision.
 
-**The description should overall be as self-sufficient as possible**.
-It should provide an agent with little context to have every information needed to start working without having to take last-minute decisions that should have been specified before.
+## Primary Tool Workflow
 
-Avoid redundancy by linking whenever possible to:
+### 1. Inspect Existing State
 
-- pre-existing spec documents
-- relevant examples in the codebase
+Start with `jj_todo` `action: "check"` and, when tasks already exist, `action: "list"`. Resolve conflicts, suspicious multiple-WIP state, or incomplete ancestor tasks before creating or starting more work.
 
-When including such links, **avoid unstable references like line numbers** which can become invalid with simple reformattings.
-Prefer e.g. section names, or label refs if linking to a spec in a format that supports them (like Markdown `#stuff`, LaTeX `\ref{stuff}` or Typst `@stuff`), or function/class names when referring to code.
+### 2. Create the Task Chain or DAG
 
-### Example
+For each task:
 
-```
-Implement user authentication
+1. Preview `action: "create"` with `dryRun: true`, the intended `parent`, title, body, and `todo` or `draft` flag.
+2. Review the exact command, parent, and resulting description.
+3. Repeat with `dryRun: false` only when correct.
+4. Use the returned change ID as the parent of the next sequential task. Use a shared parent only for genuinely independent tasks.
 
-## Context
-Users need to log in to access their data. Using JWT tokens
-for stateless auth.
+Creation must not move the current working copy. The tool uses `jj new --no-edit`; retain that property in any fallback workflow.
 
-## Requirements
-- POST /auth/login accepts email + password
-- Returns JWT token valid for 24h
-- POST /auth/refresh extends token
-- Invalid credentials return 401
+### 3. Start One Ready Task
 
-## Implementation notes
-- Use bcrypt for password hashing (see src/auth/admin.py::AdminLogin::hash_passwd which already uses it)
-- Store refresh tokens in Redis
-- See auth.md (#about-tokens) for token format spec
+1. Use `action: "next"` on the current task or intended parent to discover candidate children and reported blockers.
+2. Treat its `ready` classification as advisory: independently confirm the candidate itself is `todo` and every task-flagged parent or ancestor, including the selected current revision when applicable, is `done`. The tool's built-in blocker set is narrower than this workflow.
+3. Run `jj edit <task-id>` to enter the selected revision.
+4. Preview `action: "update"`, `flag: "wip"`, `dryRun: true`.
+5. Apply the update only after confirming the working copy is the intended task.
 
-## Acceptance criteria
-- All auth endpoints return correct status codes
-- Tokens expire correctly
-- Rate limiting prevents brute force
-```
+Only one task may be WIP in a workspace.
 
-## AI-Assisted TODO Workflow
+### 4. Implement Against the Specification
 
-TODOs work great with AI sub-agents:
+Read the full task description before editing. Keep changes inside the task's scope, preserve unrelated work, and run the narrowest meaningful validation as implementation proceeds.
 
-- Supervisor Agent does the initial planning and creates the graph of TODO revisions
-- Supervisor Agent ensures all `[task:draft]` tasks are filled in and marked as `[task:todo]` before workers start
-- Sub-agent(s) just "run" through the graph, following the structure and requirements, implementing each revision **sequentially**
-- Sub-agents should only work on `[task:todo]` tasks (with complete specs), never on `[task:draft]` tasks
-- Supervisor Agent can review the diffs and notes, and switch back tasks to e.g. `[task:wip]` or `[task:draft]` when necessary
+If implementation must differ from the specification, record a `## Post-Implementation notes` section explaining the deviation and why it was necessary.
 
-**IMPORTANT: Sub-agents MUST work sequentially through tasks, not in parallel.**
-Running multiple agents concurrently on the same repository causes conflicts as they fight over the working copy (`@`).
+### 5. Validate and Complete
 
-**IF** parallel work is truly needed, you must use JJ workspaces (equivalent to git worktrees) to isolate each agent.
+Before marking a task `done`:
 
-> ⚠️ **Experimental.** The workspace-based parallel-agent flow described in
-> `references/parallel-agents.md` is not battle-tested. Only use it when the
-> user has explicitly agreed to the added complexity and is prepared to babysit
-> the result.
+- Every requirement is implemented.
+- Every acceptance criterion passes.
+- Relevant tests, checks, or builds pass.
+- No known issue remains and no workaround is being deferred.
+- The revision contains the intended files and no unrelated changes.
 
-Whatever the case, you will have to choose between giving ONE TODO to an agent, or a SEQUENCE of TODOs. When assigning just ONE todo
-to a sub-agent, it is better to abstract JJ away from them, so they do not have to load this skill.
-Prepare the scene for them by `jj edit`-ing into the correct revision, and deal with general JJ bookkeeping yourself.
-This way they can truly focus on the task they are given, and not be distracted by JJ specifics.
+Then:
 
-## When to Stop and Report (Workers)
+1. Run `action: "next"` to review the current specification and discover possible children; independently verify readiness before selecting one.
+2. Preview `action: "update"`, `flag: "done"`, `dryRun: true`.
+3. Apply the update only when all completion conditions hold.
+4. If continuing, `jj edit` exactly one ready child and preview/apply its transition to `wip`.
 
-**Follow the prescribed workflow only.**
-If you encounter any issues, STOP and report to the user, notably if:
+Use `untested`, `review`, `blocked`, or `standby` instead of `done` whenever their conditions apply.
 
-- Made changes in wrong revision
-- Notice that previous work needs fixes and should be amended
-- Uncertain about how to proceed
-- Dependencies or requirements unclear
+## Tool Actions
 
-**DO NOT attempt to fix issues using any JJ operation not explicitly present in this workflow.**
-Let the user handle recovery operations. Your job is to follow the process or report when you can't.
+| Action | Use |
+| --- | --- |
+| `list` | List flagged task revisions, optionally by flag |
+| `next` | Review the current task and classify children with the tool's built-in blocker heuristic; verify readiness independently |
+| `create` | Create a `todo` or `draft` revision without moving `@` |
+| `update` | Change one task flag while preserving its description |
+| `check` | Count task states and detect conflicts or suspicious WIP state |
 
-## Documenting Implementation Deviations (Workers)
+Always use `dryRun: true` before mutating `create` or `update`. Dry-run previews normally use `fresh: false`; request a fresh snapshot only intentionally. The tool does not replace `jj edit`, full graph inspection, rebases, splits, or merge construction.
 
-When implementation differs from specs, whatever the reason DOCUMENT IT and JUSTIFY IT:
+## Dependency and Concurrency Rules
 
-```bash
-# After implementing, add notes
-tmp=$(mktemp)
-jj-show-desc @ > "$tmp"
-cat >> "$tmp" <<'EOF'
+- Task ancestors are dependencies, not merely history.
+- Never start a task while any task ancestor is not `done`, regardless of whether `next` reports the child as ready.
+- Implement tasks sequentially in a shared workspace.
+- Do not run multiple agents against the same JJ workspace; they compete for `@` and can place changes in the wrong revision.
+- A background subagent may work on one task only if the parent stops mutating that workspace until it settles.
+- Parallel agents require separate JJ workspaces and explicit user approval; see [parallel agents](references/parallel-agents.md).
 
-## Post-Implementation notes
-- Used argon2 instead of bcrypt. That's because contrary to admin case, here we also needed to comply with...
-- Added /auth/logout endpoint. Not in original spec but necessary because...
-- Set Rate limit to 5 attempts per minute. Was unspecified, had to make a choice.
-EOF
-jj describe @ --stdin < "$tmp"
-rm "$tmp"
-```
+## Stop and Report
 
-REMINDER: `jj-show-desc` is from the `jj-core` skill.
+Stop rather than improvising when:
 
-This creates an audit trail of decisions.
+- Changes were made in the wrong revision.
+- An earlier task needs amendment.
+- Dependencies or requirements are unclear.
+- The requested recovery needs a JJ operation not covered by the planned workflow.
+- Unexpected conflicts or unrelated modifications appear.
 
-## Tips
+Explain the state and wait for direction. Do not silently rebase, restore, squash, abandon, or rewrite other task revisions.
 
-### Keep TODOs Small (Planners)
+## CLI Fallback
 
-Each TODO should be completable in one focused session. If it's too big, split into multiple TODOs.
-
-### Use `--no-edit` Religiously (Planners & Workers)
-
-When creating TODOs, always use `jj-todo-create` or `jj new --no-edit`.
-**Otherwise @ moves and you lose your place.**
-
-### Completion Discipline: No "Good Enough" (Workers)
-
-**Do NOT mark a task as done unless ALL acceptance criteria are met.**
-
-✅ **Mark as done when:**
-
-- Every requirement implemented
-- All acceptance criteria pass
-- Tests pass (if applicable)
-- No known issues remain
-
-❌ **Never mark as done when:**
-
-- "Good enough" or "mostly works"
-- Tests failing
-- Partial implementation
-- Workarounds instead of proper fixes
-- Planning to "come back to it later"
-
-**If incomplete:**
-
-- Use `--mark-as review` if needs feedback
-- Use `--mark-as blocked` if waiting on external dependency
-- Use `--mark-as untested` if some parts could not be tested for some reason
-- Use `--mark-as standby` for any other reason
-- Stay on `[task:wip]` and keep working
-
-```bash
-# FIRST: Verify the work
-make check        # or: cargo build, pnpm tsc, uv run pytest
-
-# ONLY if all checks pass:
-jj-todo-next --mark-as done <next-id>
-```
-
-### Check Dependencies Before Starting (Workers)
-
-If working with parallel branches or complex DAGs, when starting on a new TODO:
-
-```bash
-# Check what a task depends on (its immediate ancestors)
-jj log -r 'ancestors(<rev-id>,2)'  # 2 for parents, 3 for parents + grandparents, etc.
-
-# Check what depends on a task (its immediate descendants)
-jj log -r 'descendants(<rev-id>,2)'  # 2 for children, 3 for children + grandchildren, etc.
-```
-
-If any dependency (ancestor) has a `[task:*]` flag which is still `draft`, `todo`, `wip` or `blocked`: STOP AND WARN THE USER. Wait for their approval before continuing.
-
-**Note:** `jj-todo-next` checks dependencies automatically to indicate which children tasks aren't ready, but it's just here to smooth things out, not to abstract from `jj`. Inspect the graph yourself with `jj log` whenever needed.
-
-## Pi Tool (Planners & Workers)
-
-Use the `jj_todo` Pi tool for routine mechanical operations when it is available:
-
-- `action: "list"` — list `[task:*]` revisions, optionally filtered by flag
-- `action: "next"` — summarize child tasks that are ready, draft, blocked, or done
-- `action: "create"` — create a `[task:todo]` or `[task:draft]` revision without switching `@`
-- `action: "update"` — safely change a revision's `[task:*]` flag
-- `action: "check"` — summarize task counts, conflicts, and suspicious state like multiple WIP tasks
-
-For `action: "create"` and `action: "update"`, pass `dryRun: true` to preview the exact `jj` command and resulting task metadata without mutating JJ history. Dry-run previews default to `fresh: false` / `--ignore-working-copy`; set `fresh: true` only when you intentionally want JJ to snapshot before the preview. Plan mode permits only these `dryRun: true` create/update previews, not real mutations.
-
-The tool is for compact, structured TODO mechanics only. Keep planning, task DAG design,
-dependency judgment, and done/not-done decisions in this skill's workflow. Use `jj` via
-`bash` for full graph inspection, rebases, splits, merges, and unusual mutations.
-
-## Helper Scripts (Planners & Workers)
-
-Helper scripts in `scripts/` are Nushell scripts (`#!/usr/bin/env nu`). They remain useful as CLI fallbacks or for manual shell workflows. Invoke with full path to avoid PATH setup.
-
-| Script                                                            | Purpose                                                                 |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| `jj-todo-create [--draft] <PARENT> <TITLE> [DESC]`                | Create TODO (stays on @). Prints new change_id on stdout.               |
-| `jj-parallel-todos [--draft] <PARENT> <T1> <T2>...`               | Create parallel TODOs. Prints each new change_id on stdout (one/line).  |
-| `jj-merge-todo [--draft] [--desc BODY] <TITLE> <P1> <P2> [P...]`  | Create merge revision joining multiple branches. Prints new change_id.  |
-| `jj-todo-next [--mark-as STATUS] [REV]`                           | Review specs, check dependencies, mark & optionally move.               |
-| `jj-flag-update <REV> <TO_FLAG>`                                  | Update status flag (auto-detects current; warns on no-op or done→wip).  |
-| `jj-find-flagged [FLAG]`                                          | Find flagged revisions.                                                 |
-
-The canonical list of `[task:*]` flags lives in `scripts/_flags.nu` as a reference
-for Nushell users; keep script-local copies in sync if you ever add a new status.
-
-**Additional useful scripts from the `jj-core` skill:**
-
-| Script               | Purpose                         |
-| -------------------- | ------------------------------- |
-| `jj-show-desc [REV]` | Print description of a revision |
+When `jj_todo` is unavailable, use the Nushell helper scripts documented in [CLI workflow](references/cli-workflow.md). Invoke scripts by absolute path; do not assume they are on `PATH`. The helpers remain secondary to the Pi tool.
 
 ## References
 
-Advanced topics and detailed guides:
-
-- `references/parallel-agents.md` - Using JJ workspaces for parallel agent execution (Planners)
+- [CLI workflow](references/cli-workflow.md) — helper scripts, linear transitions, and DAG construction
+- [Parallel agents](references/parallel-agents.md) — experimental workspace-isolated subagents, explicit opt-in only
+- `jj-core` — JJ graph inspection, syntax, recovery, and Git interop

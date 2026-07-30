@@ -23,7 +23,7 @@ Assets go in `assets/` for templates and files the agent uses in outputs. Script
 
 ## Frontmatter
 
-Pi currently requires only `name` and `description`. Put custom conventions under `metadata`; Pi ignores them, but they remain useful human-readable metadata.
+The Agent Skills format declares `name` and `description`. Pi 0.82 requires a non-empty description but can fall back to the directory name when `name` is missing; this repository requires both for portability. Put local conventions under `metadata`, which Pi ignores at runtime.
 
 ### Required Fields
 
@@ -36,21 +36,24 @@ metadata:
 ---
 ```
 
-- `name`: lowercase letters, numbers, hyphens only. No leading/trailing hyphens.
-- `description`: quoted string. First sentence starts with a verb. Second starts with "Use when".
-- `metadata.keywords`: optional human convention; Pi does not score or match on it.
+- `name`: Agent Skills and this repository require lowercase letters, numbers, and hyphens with no leading/trailing or consecutive hyphens; Pi is lenient and may warn or fall back to the directory name.
+- `description`: Pi requires a non-empty value. This repository convention quotes it, starts with a verb, and states concrete trigger conditions in a second sentence such as "Use when...".
+- `metadata.keywords`: optional repository convention; Pi does not score or match on it.
 
-### Optional Conventions
+### Optional Fields and Conventions
 
 ```yaml
+license: MIT # Agent Skills field; ignored by Pi 0.82 at runtime
+compatibility: "Requires Nushell and JJ" # Agent Skills field, max 500 chars; ignored by Pi 0.82
+allowed-tools: read bash # experimental Agent Skills field; ignored by Pi 0.82
+disable-model-invocation: true # Pi-supported: hide from automatic prompt; use /skill:name
 metadata:
   topic: Conventional Commits # human display/grouping hint
   related: [other-skill] # related skills to consider manually
-  requires_tools: [read, bash] # tool dependency note
-disable-model-invocation: true # Pi-supported: hide from automatic prompt; use /skill:name
+  requires_tools: [read, bash] # convention-only dependency note
 ```
 
-Pi currently only acts on `disable-model-invocation`; `metadata.*` fields are convention-only.
+Pi 0.82 acts on `disable-model-invocation`. It does not enforce `allowed-tools` or use `license` or `compatibility` at runtime; never treat `allowed-tools` as a security boundary. Other `metadata.*` fields are convention-only.
 
 ## Body Structure (aim for ~120 lines)
 
@@ -71,12 +74,12 @@ Common variations, edge cases, or tricky parts specific to this domain.
 
 Rules, gotchas, and things the agent must do (or not do).
 
-See [deep reference](references/DEEP.md) for API specs and advanced usage.
+If deeper material is needed, link to a real file under `references/`, such as `references/API.md`.
 ```
 
 - **Workflow/Commands**: numbered steps with concrete inline examples — command, code snippet, or config.
 - **Details**: short context for variations on the main use cases.
-- Link to `references/` for anything deep. One level of linking only.
+- Link to real files under `references/` for deep material. Keep the link graph shallow when practical; this is a maintainability preference, not a Pi schema rule.
 
 ## Examples from Existing Skills
 
@@ -97,9 +100,10 @@ description: "Transcribes audio files to text using whisper-cpp. Use when conver
 ## Validation Checklist
 
 - [ ] `name` is kebab-case (matching directory name is recommended for portability)
-- [ ] `description` is a quoted string with verb-first sentence + "Use when..." clause
+- [ ] `description` is non-empty and, by repository convention, quoted with clear trigger conditions
 - [ ] `metadata.keywords`, if present, are useful human hints
 - [ ] `metadata.topic`, `metadata.related`, and `metadata.requires_tools` are convention-only
+- [ ] Optional standard fields are valid, and only `disable-model-invocation` is relied on for Pi 0.82 behavior
 - [ ] Body aims for ~120 lines (move excess to `references/`)
 - [ ] At least one concrete inline example per key concept
 - [ ] No duplicated content between SKILL.md and references
@@ -107,8 +111,8 @@ description: "Transcribes audio files to text using whisper-cpp. Use when conver
 
 ## Common Mistakes
 
-- Description uses `>` chevron instead of `"quoted"` — convert to quoted string
-- Missing "Use when..." clause — add trigger conditions
+- Description is vague or omits when the skill should load — add specific trigger conditions
+- YAML style differs from the repository's quoted-description convention — normalize it when editing local skills
 - Duplicate content between SKILL.md and references — keep detail only in references
 - Long explanations of concepts the agent already knows — delete them
 - Extra files the agent never reads (README, changelog) — remove them

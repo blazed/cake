@@ -11,7 +11,7 @@ in
 # @napi-rs/keyring in particular), even when the .node package is installed.
 # Reuse the same fetched npm source/dependency closure but retain Pi's normal
 # Node entry point instead of compiling and deleting it.
-pi.overrideAttrs {
+pi.overrideAttrs (_: {
   postUnpack = "";
   preInstall = "";
   postInstall = ''
@@ -28,4 +28,4 @@ pi.overrideAttrs {
       --set PI_SKIP_VERSION_CHECK 1 \
       --set PI_TELEMETRY 0
   '';
-}
+})

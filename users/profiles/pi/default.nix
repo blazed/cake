@@ -48,7 +48,7 @@ let
   settings = {
     defaultProvider = "openai-codex";
     defaultModel = "gpt-5.6-sol";
-    defaultThinkingLevel = "medium";
+    defaultThinkingLevel = "high";
     enableInstallTelemetry = false;
     enableSkillCommands = true;
     extensions = localExtensionPaths;
