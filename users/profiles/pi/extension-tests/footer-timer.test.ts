@@ -153,7 +153,7 @@ test("extension statuses are sorted, sanitized, and width-bounded", () => {
   assert.equal(visibleWidth(renderExtensionStatuses(statuses, 10, "...") ?? ""), 10);
 });
 
-test("JJ footer snapshots filesystem edits and diffs the displayed revision", async () => {
+test("JJ footer snapshots filesystem edits but reports only working-copy changes", async () => {
   const cwd = await mkdtemp(join(tmpdir(), "footer-jj-test-"));
   try {
     await runJj(cwd, ["git", "init"]);
@@ -167,7 +167,8 @@ test("JJ footer snapshots filesystem edits and diffs the displayed revision", as
     await runJj(cwd, ["new", "-m", "child"]);
     const parent = await readJjInfo(cwd);
     assert.equal(parent?.revset, "@-");
-    assert.equal(parent?.added, 1);
+    assert.equal(parent?.added, 0);
+    assert.equal(parent?.deleted, 0);
   } finally {
     await rm(cwd, { recursive: true, force: true });
   }

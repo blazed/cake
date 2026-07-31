@@ -176,8 +176,9 @@ export async function readJjInfo(cwd: string): Promise<VcsInfo | null> {
   ]);
   const hasConflict = conflictText.trim().length > 0;
 
-  // Get diff stat
-  const diff = parseDiffStat(await runJj(["diff", "-r", revset, "--stat"]));
+  // Diff stats always describe the working copy. The displayed revision may be
+  // @- when @ is empty, but diffing @- would show the parent's committed patch.
+  const diff = parseDiffStat(await runJj(["diff", "-r", "@", "--stat"]));
 
   const bookmarks = bookmarkLine.trim().split(/\s+/).filter(Boolean);
   const branch = bookmarks.length > 0 ? bookmarks[0] : changeId.slice(0, 8);
