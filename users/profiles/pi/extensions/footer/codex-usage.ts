@@ -3,26 +3,14 @@
  */
 
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import {
+  createQuotaTracker,
+  type QuotaSnapshot,
+  type QuotaTracker,
+  type QuotaWindowSnapshot,
+} from "./quota-tracker.ts";
 
-export interface QuotaWindowSnapshot {
-  usedPercent: number;
-  windowDurationMins: number | null;
-  resetsAt: number | null;
-}
-
-export interface QuotaSnapshot {
-  limitId: string | null;
-  limitName: string | null;
-  primary: QuotaWindowSnapshot | null;
-  secondary: QuotaWindowSnapshot | null;
-  tertiary?: QuotaWindowSnapshot | null;
-}
-
-export interface QuotaTracker {
-  setEnabled: (enabled: boolean) => void;
-  getSnapshot: () => QuotaSnapshot | null;
-  dispose: () => void;
-}
+export type { QuotaSnapshot, QuotaTracker, QuotaWindowSnapshot } from "./quota-tracker.ts";
 
 interface ChatGptUsageWindow {
   used_percent?: unknown;
@@ -41,7 +29,6 @@ const CHATGPT_BASE_URL = (
   process.env.CHATGPT_BASE_URL || "https://chatgpt.com/backend-api"
 ).replace(/\/+$/, "");
 const OPENAI_AUTH_CLAIM = "https://api.openai.com/auth";
-const REFRESH_INTERVAL_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 15_000;
 
 function decodeJwtPayload(token: string): Record<string, unknown> {
@@ -99,16 +86,22 @@ function extractQuotaSnapshot(payload: ChatGptUsageResponse): QuotaSnapshot | nu
   };
 }
 
-function timeoutSignal(timeoutMs: number): { signal: AbortSignal; cancel: () => void } {
+function timeoutSignal(timeoutMs: number, parentSignal: AbortSignal): { signal: AbortSignal; cancel: () => void } {
   const controller = new AbortController();
+  const onParentAbort = () => controller.abort();
+  if (parentSignal.aborted) controller.abort();
+  else parentSignal.addEventListener("abort", onParentAbort, { once: true });
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   return {
     signal: controller.signal,
-    cancel: () => clearTimeout(timeout),
+    cancel: () => {
+      clearTimeout(timeout);
+      parentSignal.removeEventListener("abort", onParentAbort);
+    },
   };
 }
 
-async function readCodexQuotaSnapshot(ctx: ExtensionContext): Promise<QuotaSnapshot | null> {
+async function readCodexQuotaSnapshot(ctx: ExtensionContext, signal: AbortSignal): Promise<QuotaSnapshot | null> {
   const model = ctx.model;
   if (!model) return null;
 
@@ -125,7 +118,7 @@ async function readCodexQuotaSnapshot(ctx: ExtensionContext): Promise<QuotaSnaps
     headers.set("chatgpt-account-id", accountId);
   }
 
-  const timeout = timeoutSignal(REQUEST_TIMEOUT_MS);
+  const timeout = timeoutSignal(REQUEST_TIMEOUT_MS, signal);
   try {
     const response = await fetch(`${CHATGPT_BASE_URL}/wham/usage`, {
       headers,
@@ -141,65 +134,5 @@ async function readCodexQuotaSnapshot(ctx: ExtensionContext): Promise<QuotaSnaps
 }
 
 export function createCodexQuotaTracker(ctx: ExtensionContext, onUpdate: () => void): QuotaTracker {
-  let enabled = false;
-  let snapshot: QuotaSnapshot | null = null;
-  let lastRefreshAt = 0;
-  let refreshInFlight: Promise<void> | null = null;
-  let interval: ReturnType<typeof setInterval> | null = null;
-  let disposed = false;
-
-  const refresh = async (): Promise<void> => {
-    if (disposed || refreshInFlight) return;
-
-    refreshInFlight = (async () => {
-      const next = await readCodexQuotaSnapshot(ctx);
-      const previous = snapshot ? JSON.stringify(snapshot) : null;
-      const current = next ? JSON.stringify(next) : null;
-      snapshot = next;
-      lastRefreshAt = Date.now();
-      if (previous !== current) {
-        onUpdate();
-      }
-    })().finally(() => {
-      refreshInFlight = null;
-    });
-
-    await refreshInFlight;
-  };
-
-  const stopInterval = (): void => {
-    if (interval) {
-      clearInterval(interval);
-      interval = null;
-    }
-  };
-
-  const startInterval = (): void => {
-    if (interval) return;
-    interval = setInterval(() => {
-      void refresh();
-    }, REFRESH_INTERVAL_MS);
-  };
-
-  return {
-    setEnabled(nextEnabled: boolean): void {
-      enabled = nextEnabled;
-      if (!enabled) {
-        stopInterval();
-        return;
-      }
-
-      startInterval();
-      if (!snapshot || Date.now() - lastRefreshAt >= REFRESH_INTERVAL_MS) {
-        void refresh();
-      }
-    },
-    getSnapshot(): QuotaSnapshot | null {
-      return snapshot;
-    },
-    dispose(): void {
-      disposed = true;
-      stopInterval();
-    },
-  };
+  return createQuotaTracker((signal) => readCodexQuotaSnapshot(ctx, signal), onUpdate);
 }

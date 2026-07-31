@@ -86,6 +86,7 @@ interface MutableSnapshot {
   errorText?: string;
   meta: SubagentMeta;
   usage: { tokens?: number; contextWindow?: number };
+  accounting?: SubagentSnapshot["accounting"];
   transcript: TranscriptItem[];
   liveAssistant?: { text: string; thinking: string };
   liveTools: LiveToolState[];
@@ -434,6 +435,9 @@ const makeManager = Effect.gen(function* () {
           contextWindow: event.contextWindow ?? s.usage.contextWindow,
         };
         break;
+      case "AccountingChanged":
+        s.accounting = event.cumulative;
+        break;
       case "MetaChanged":
         s.meta = { ...s.meta, ...event.meta };
         break;
@@ -687,7 +691,6 @@ const makeManager = Effect.gen(function* () {
   const disposeAll = Effect.gen(function* () {
     disposed = true;
     const all = [...entries.values()];
-    entries.clear();
     yield* Effect.forEach(
       all,
       (entry) =>
@@ -697,6 +700,9 @@ const makeManager = Effect.gen(function* () {
         ),
       { concurrency: "unbounded" },
     );
+    // Keep final accounting snapshots visible until every backend scope has
+    // measured and emitted its terminal usage.
+    entries.clear();
     // Pruning cleanups are detached; bound them like everything else so a
     // stuck backend finalizer cannot block runtime shutdown indefinitely.
     yield* Effect.forEach(

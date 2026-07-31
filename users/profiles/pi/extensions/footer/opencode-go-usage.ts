@@ -10,7 +10,12 @@ import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
-import type { QuotaSnapshot, QuotaTracker, QuotaWindowSnapshot } from "./codex-usage.ts";
+import {
+  createQuotaTracker,
+  type QuotaSnapshot,
+  type QuotaTracker,
+  type QuotaWindowSnapshot,
+} from "./quota-tracker.ts";
 
 interface OpenCodeGoUsageWindow {
   usagePercent?: unknown;
@@ -38,7 +43,6 @@ const OPENCODE_GO_BASE_URL = (
 ).replace(/\/+$/, "");
 const DASHBOARD_URL_PREFIX = "https://opencode.ai/workspace/";
 const DASHBOARD_URL_SUFFIX = "/go";
-const REFRESH_INTERVAL_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 15_000;
 
 const ROLLING_WINDOW_MINS = 5 * 60;
@@ -65,12 +69,18 @@ const RE_MONTHLY_RESET_FIRST = new RegExp(
   String.raw`monthlyUsage:\$R\[\d+\]=\{[^}]*resetInSec:${SCRAPED_NUMBER_PATTERN}[^}]*usagePercent:${SCRAPED_NUMBER_PATTERN}[^}]*\}`,
 );
 
-function timeoutSignal(timeoutMs: number): { signal: AbortSignal; cancel: () => void } {
+function timeoutSignal(timeoutMs: number, parentSignal: AbortSignal): { signal: AbortSignal; cancel: () => void } {
   const controller = new AbortController();
+  const onParentAbort = () => controller.abort();
+  if (parentSignal.aborted) controller.abort();
+  else parentSignal.addEventListener("abort", onParentAbort, { once: true });
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   return {
     signal: controller.signal,
-    cancel: () => clearTimeout(timeout),
+    cancel: () => {
+      clearTimeout(timeout);
+      parentSignal.removeEventListener("abort", onParentAbort);
+    },
   };
 }
 
@@ -104,7 +114,7 @@ function extractQuotaSnapshot(payload: OpenCodeGoUsageResponse): QuotaSnapshot |
   };
 }
 
-async function readOfficialUsageEndpoint(ctx: ExtensionContext): Promise<QuotaSnapshot | null> {
+async function readOfficialUsageEndpoint(ctx: ExtensionContext, signal: AbortSignal): Promise<QuotaSnapshot | null> {
   const model = ctx.model;
   if (!model) return null;
 
@@ -116,7 +126,7 @@ async function readOfficialUsageEndpoint(ctx: ExtensionContext): Promise<QuotaSn
   headers.set("Accept", "application/json");
   headers.set("User-Agent", "cake-footer");
 
-  const timeout = timeoutSignal(REQUEST_TIMEOUT_MS);
+  const timeout = timeoutSignal(REQUEST_TIMEOUT_MS, signal);
   try {
     const response = await fetch(`${OPENCODE_GO_BASE_URL}/usage`, {
       headers,
@@ -185,11 +195,11 @@ function scrapedWindowToUsage(window: ScrapedWindowUsage | null): OpenCodeGoUsag
   };
 }
 
-async function readDashboardUsage(): Promise<QuotaSnapshot | null> {
+async function readDashboardUsage(signal: AbortSignal): Promise<QuotaSnapshot | null> {
   const config = await readDashboardConfig();
   if (!config) return null;
 
-  const timeout = timeoutSignal(REQUEST_TIMEOUT_MS);
+  const timeout = timeoutSignal(REQUEST_TIMEOUT_MS, signal);
   try {
     const response = await fetch(
       `${DASHBOARD_URL_PREFIX}${encodeURIComponent(config.workspaceId)}${DASHBOARD_URL_SUFFIX}`,
@@ -223,73 +233,13 @@ async function readDashboardUsage(): Promise<QuotaSnapshot | null> {
   }
 }
 
-async function readOpenCodeGoQuotaSnapshot(ctx: ExtensionContext): Promise<QuotaSnapshot | null> {
-  return (await readOfficialUsageEndpoint(ctx)) ?? (await readDashboardUsage());
+async function readOpenCodeGoQuotaSnapshot(ctx: ExtensionContext, signal: AbortSignal): Promise<QuotaSnapshot | null> {
+  return (await readOfficialUsageEndpoint(ctx, signal)) ?? (await readDashboardUsage(signal));
 }
 
 export function createOpenCodeGoQuotaTracker(
   ctx: ExtensionContext,
   onUpdate: () => void,
 ): QuotaTracker {
-  let enabled = false;
-  let snapshot: QuotaSnapshot | null = null;
-  let lastRefreshAt = 0;
-  let refreshInFlight: Promise<void> | null = null;
-  let interval: ReturnType<typeof setInterval> | null = null;
-  let disposed = false;
-
-  const refresh = async (): Promise<void> => {
-    if (disposed || refreshInFlight) return;
-
-    refreshInFlight = (async () => {
-      const next = await readOpenCodeGoQuotaSnapshot(ctx);
-      const previous = snapshot ? JSON.stringify(snapshot) : null;
-      const current = next ? JSON.stringify(next) : null;
-      snapshot = next;
-      lastRefreshAt = Date.now();
-      if (previous !== current) {
-        onUpdate();
-      }
-    })().finally(() => {
-      refreshInFlight = null;
-    });
-
-    await refreshInFlight;
-  };
-
-  const stopInterval = (): void => {
-    if (interval) {
-      clearInterval(interval);
-      interval = null;
-    }
-  };
-
-  const startInterval = (): void => {
-    if (interval) return;
-    interval = setInterval(() => {
-      void refresh();
-    }, REFRESH_INTERVAL_MS);
-  };
-
-  return {
-    setEnabled(nextEnabled: boolean): void {
-      enabled = nextEnabled;
-      if (!enabled) {
-        stopInterval();
-        return;
-      }
-
-      startInterval();
-      if (!snapshot || Date.now() - lastRefreshAt >= REFRESH_INTERVAL_MS) {
-        void refresh();
-      }
-    },
-    getSnapshot(): QuotaSnapshot | null {
-      return snapshot;
-    },
-    dispose(): void {
-      disposed = true;
-      stopInterval();
-    },
-  };
+  return createQuotaTracker((signal) => readOpenCodeGoQuotaSnapshot(ctx, signal), onUpdate);
 }

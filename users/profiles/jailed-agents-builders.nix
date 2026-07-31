@@ -150,6 +150,7 @@ let
       paths = [
         "~/.agents"
         "~/.pi"
+        "~/.config/pi"
       ];
       extra = c: [
         # Store Pi's inspectable temporary output on disk instead of tmpfs.
@@ -157,12 +158,9 @@ let
           ${cu}/install -d -m 0700 "$HOME/.pi/tmp"
           RUNTIME_ARGS+=(--setenv TMPDIR "$HOME/.pi/tmp")
         '')
-        # Inject the host's agenix-managed Exa key when available.
-        (c.add-runtime ''
-          if [ -r /run/agenix/exa-api-key ]; then
-            RUNTIME_ARGS+=(--setenv EXA_API_KEY "$(${cu}/cat /run/agenix/exa-api-key)")
-          fi
-        '')
+        # pi-web-access resolves Exa only when requested; expose the agenix file
+        # read-only instead of injecting it into every child process environment.
+        (c.try-readonly (c.noescape "/run/agenix/exa-api-key"))
         # Give Pass an isolated, ephemeral session without exposing the host keyring or
         # the host's Proton Pass session. The PAT is injected only into jailed Pi.
         (c.add-runtime ''

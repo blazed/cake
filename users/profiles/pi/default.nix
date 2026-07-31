@@ -10,7 +10,6 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
   piNode = import ./node-package.nix { inherit pkgs inputs; };
-  piPackageDir = "${piNode}/lib/node_modules/@earendil-works/pi-coding-agent";
 
   # Packages installed by Pi through settings.packages.
   thirdPartyPackages =
@@ -38,12 +37,6 @@ let
 
   extraExtensionPaths = [ ];
 
-  disabledLocalExtensions = [
-    "dynamic-workflows/index.ts"
-  ];
-  localExtensionPaths =
-    extraExtensionPaths ++ map (path: "-extensions/${path}") disabledLocalExtensions;
-
   themeName = "catppuccin-frappe";
   settings = {
     defaultProvider = "openai-codex";
@@ -51,7 +44,7 @@ let
     defaultThinkingLevel = "high";
     enableInstallTelemetry = false;
     enableSkillCommands = true;
-    extensions = localExtensionPaths;
+    extensions = extraExtensionPaths;
     packages = thirdPartyPackages;
     skills = extraSkillDirs;
     steeringMode = "all";
@@ -87,6 +80,12 @@ let
       plan = "max";
       pathToClaudeCodeExecutable = lib.getExe inputs.claude-code.packages.${system}.default;
     };
+  };
+
+  # Deliberately allow autonomous host-side implementation; users can override
+  # this with the flag, environment, or declarative policy if they need less access.
+  subagents = {
+    claude.permissions = "full";
   };
 
   # MCP servers (settings.mcpServers schema). Empty = no servers.
@@ -144,91 +143,48 @@ let
     };
   };
 
+  exaApiKeyCommand = pkgs.writeShellApplication {
+    name = "pi-exa-api-key";
+    runtimeInputs = [ pkgs.coreutils ];
+    text = ''
+      if [[ ! -r /run/agenix/exa-api-key ]]; then
+        echo "Exa credential is unavailable" >&2
+        exit 1
+      fi
+      cat /run/agenix/exa-api-key
+    '';
+  };
   webSearch = {
     provider = "exa";
+    exaApiKey = "!${lib.getExe exaApiKeyCommand}";
     allowBrowserCookies = false;
     workflow = "none";
   };
+  webSearchJson = pkgs.writeText "pi-web-search.json" (builtins.toJSON webSearch);
 
-  subagentsExtension = pkgs.buildNpmPackage {
-    pname = "pi-subagents-extension";
-    version = "0-unstable";
-    src = ./extensions/subagents;
-    npmDepsHash = "sha256-X0fJ3rmZUPuXjzrHjfAML4xph/IoHH1svavMJ7YCgVI=";
+  localExtensionsCheck = pkgs.callPackage ./extension-check.nix { inherit piNode; };
 
-    buildPhase = ''
-      runHook preBuild
-
-      test -d ${piPackageDir}/node_modules/@earendil-works/pi-ai
-      test -d ${piPackageDir}/node_modules/@earendil-works/pi-tui
-      test -d ${piPackageDir}/node_modules/typebox
-      mkdir -p node_modules/@earendil-works
-      ln -s ${piPackageDir} node_modules/@earendil-works/pi-coding-agent
-      ln -s ${piPackageDir}/node_modules/@earendil-works/pi-ai \
-        node_modules/@earendil-works/pi-ai
-      ln -s ${piPackageDir}/node_modules/@earendil-works/pi-tui \
-        node_modules/@earendil-works/pi-tui
-      ln -s ${piPackageDir}/node_modules/typebox node_modules/typebox
-
-      npm run check
-      npm test
-
-      runHook postBuild
-    '';
-
-    installPhase = ''
-      runHook preInstall
-
-      npm prune --omit=dev --ignore-scripts --offline
-      rm -rf \
-        node_modules/@earendil-works \
-        node_modules/typebox \
-        docs \
-        *.test.ts \
-        package-lock.json \
-        tsconfig.json \
-        src/backends/stub.ts
-      mkdir -p $out
-      cp -r index.ts package.json src node_modules $out/
-
-      runHook postInstall
-    '';
-  };
-
-  acornVendor =
-    let
-      src = pkgs.fetchurl {
-        url = "https://registry.npmjs.org/acorn/-/acorn-8.16.0.tgz";
-        hash = "sha256-i63KCtwCuJgHx/mlMMLNULQLqrFK3nr1O3BPGYqr4R4=";
-      };
-    in
-    pkgs.runCommand "acorn-8.16.0-vendor" { } ''
-      tar -xzf ${src} package/dist/acorn.mjs package/LICENSE
-      install -Dm444 package/dist/acorn.mjs $out/acorn.mjs
-      install -Dm444 package/LICENSE $out/ACORN-LICENSE
-    '';
+  subagentsExtension = pkgs.callPackage ./subagents-package.nix { inherit piNode; };
 
   piExtensions = pkgs.runCommand "pi-extensions" { } ''
+    test -e ${localExtensionsCheck}/result
     cp -r ${./extensions}/. $out
     chmod -R u+w $out
     rm -rf $out/subagents
-    install -Dm444 ${acornVendor}/acorn.mjs $out/dynamic-workflows/vendor/acorn.mjs
-    install -Dm444 ${acornVendor}/ACORN-LICENSE $out/dynamic-workflows/vendor/ACORN-LICENSE
   '';
 
-  piWithExa = pkgs.symlinkJoin {
-    name = "pi-with-exa";
+  piWrapped = pkgs.symlinkJoin {
+    name = "pi-wrapped";
     paths = [ piNode ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram $out/bin/pi \
-        --run 'export TMPDIR="$HOME/.pi/tmp"; ${pkgs.coreutils}/bin/install -d -m 0700 "$TMPDIR"' \
-        --run 'if [ -z "''${EXA_API_KEY:-}" ] && [ -r /run/agenix/exa-api-key ]; then export EXA_API_KEY="$(< /run/agenix/exa-api-key)"; fi'
+        --run 'export TMPDIR="$HOME/.pi/tmp"; ${pkgs.coreutils}/bin/install -d -m 0700 "$TMPDIR"'
     '';
   };
 in
 {
-  home.packages = [ piWithExa ];
+  home.packages = [ piWrapped ];
 
   # Keep Pi's inspectable temporary output off the tmpfs root and expire it.
   systemd.user.tmpfiles.rules = [
@@ -255,11 +211,40 @@ in
   home.file.".pi/agent/claude-bridge.json".text = builtins.toJSON claudeBridge;
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
-  home.file.".pi/web-search.json".text = builtins.toJSON webSearch;
+  home.file.".pi/agent/subagents.json".text = builtins.toJSON subagents;
   home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
 
   # Pi writes lastChangelogVersion, so install a writable settings copy.
   home.activation.piSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run install -D -m0644 ${settingsJson} "${config.home.homeDirectory}/.pi/agent/settings.json"
+  '';
+
+  # pi-web-access honors XDG_CONFIG_HOME and mutates this file via /curator.
+  # Merge declared values over valid runtime config while preserving extra fields.
+  home.activation.piWebSearch = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    target="${config.xdg.configHome}/pi/web-search.json"
+    if [[ -n "''${DRY_RUN:-}" ]]; then
+      echo "Would merge Pi web-search defaults into $target"
+    else
+      ${pkgs.coreutils}/bin/install -d -m0700 "$(${pkgs.coreutils}/bin/dirname "$target")"
+      temporary="$(${pkgs.coreutils}/bin/mktemp "$target.tmp.XXXXXX")"
+      trap '${pkgs.coreutils}/bin/rm -f "$temporary"' EXIT
+      if [ -f "$target" ]; then
+        if ! ${lib.getExe pkgs.jq} -n \
+          --slurpfile current "$target" \
+          --slurpfile declared ${webSearchJson} \
+          'if ($current | length) > 1 then error("multiple JSON documents") else ($current[0] // {}) * $declared[0] end' \
+          > "$temporary"; then
+          echo "warning: invalid existing Pi web-search config; preserving it as $target.invalid" >&2
+          ${pkgs.coreutils}/bin/cp "$target" "$target.invalid"
+          ${pkgs.coreutils}/bin/cp ${webSearchJson} "$temporary"
+        fi
+      else
+        ${pkgs.coreutils}/bin/cp ${webSearchJson} "$temporary"
+      fi
+      ${pkgs.coreutils}/bin/chmod 0600 "$temporary"
+      ${pkgs.coreutils}/bin/mv -f "$temporary" "$target"
+      trap - EXIT
+    fi
   '';
 }
