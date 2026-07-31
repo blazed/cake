@@ -4,6 +4,10 @@
   lib,
   ...
 }:
+let
+  port = 9292;
+  service = "svc:ai";
+in
 {
   services.llama-swap = {
     enable = true;
@@ -48,7 +52,7 @@
         };
       };
     });
-    port = 9292;
+    inherit port;
     listenAddress = "0.0.0.0";
     openFirewall = true;
     settings =
@@ -234,7 +238,7 @@
   };
 
   systemd.services.tailscale-serve-llama-swap = {
-    description = "Expose llama-swap over Tailscale HTTPS";
+    description = "Expose llama-swap as a Tailscale Service";
     after = [
       "tailscaled.service"
       "tailscale-auth.service"
@@ -248,8 +252,8 @@
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${lib.getExe config.services.tailscale.package} serve --bg --https=443 http://127.0.0.1:9292";
-      ExecStop = "${lib.getExe config.services.tailscale.package} serve --https=443 off";
+      ExecStart = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 --yes http://127.0.0.1:${toString port}";
+      ExecStop = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 off";
     };
   };
 

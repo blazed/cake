@@ -93,11 +93,11 @@ let
     mcpServers = { };
   };
 
-  # llama-swap exposes Qwen models through an OpenAI-compatible Tailscale endpoint.
+  # llama-swap exposes Qwen models through a stable OpenAI-compatible Tailscale Service.
   models = {
     providers = {
-      "margot" = {
-        baseUrl = "https://margot.tailef5cf.ts.net/v1";
+      "local-ai" = {
+        baseUrl = "https://ai.tailef5cf.ts.net/v1";
         api = "openai-responses";
         apiKey = "llama-swap";
         compat = {
