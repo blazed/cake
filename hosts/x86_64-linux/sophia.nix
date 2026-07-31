@@ -9,6 +9,7 @@
   publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBthY9m7Dxs2I5uvU/UeudSV27X52avhWaSuOaM/urpm";
 
   imports = [
+    ../../profiles/actual-budget.nix
     ../../profiles/hardware/intel.nix
     ../../profiles/admin-user/user.nix
     ../../profiles/disk/btrfs-on-luks.nix
