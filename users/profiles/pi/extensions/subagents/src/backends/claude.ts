@@ -33,6 +33,11 @@ import type {
   TranscriptPart,
 } from "../domain.ts";
 import { SendError, SpawnError } from "../domain.ts";
+import {
+  claudePermissionOptions,
+  DEFAULT_CLAUDE_PERMISSION_POLICY,
+} from "./claude-permissions.ts";
+import { usageFromClaudeModelUsage } from "../usage.ts";
 
 const CLAUDE_CONTEXT_WINDOW = 200_000;
 const INTERRUPT_TIMEOUT_MS = 2_000;
@@ -336,11 +341,9 @@ const makeClaudeSession = (
           prompt: input,
           options: {
             cwd: task.cwd,
-            // Headless children cannot answer approval prompts. The caller
-            // already chose to launch an autonomous subagent, so let it use
-            // its tools without interactive permission checks.
-            permissionMode: "bypassPermissions",
-            allowDangerouslySkipPermissions: true,
+            ...claudePermissionOptions(
+              task.claudePermissionPolicy ?? DEFAULT_CLAUDE_PERMISSION_POLICY,
+            ),
             // Keep child orchestration inside this extension's global manager
             // and concurrency cap rather than Claude Code's native subagents.
             disallowedTools: ["Agent", "Task"],
@@ -479,6 +482,13 @@ const makeClaudeSession = (
       emit({
         _tag: "UsageChanged",
         contextWindow: contextWindow ?? state.meta.contextWindow,
+      });
+      emit({
+        _tag: "AccountingChanged",
+        cumulative: usageFromClaudeModelUsage(
+          result.modelUsage,
+          result.total_cost_usd,
+        ),
       });
       if (
         contextWindow !== undefined &&

@@ -6,6 +6,7 @@
  * streams into the normalized `SubagentEvent` union.
  */
 
+import type { Usage } from "@earendil-works/pi-ai";
 import type { ModelRegistry } from "@earendil-works/pi-coding-agent";
 import { Data } from "effect";
 
@@ -30,6 +31,9 @@ export const REASONING_EFFORTS = [
   "max",
 ] as const;
 export type ReasoningEffort = (typeof REASONING_EFFORTS)[number];
+
+export const CLAUDE_PERMISSION_POLICIES = ["full", "dontAsk", "acceptEdits", "plan"] as const;
+export type ClaudePermissionPolicy = (typeof CLAUDE_PERMISSION_POLICIES)[number];
 
 export type SubagentStatus = "running" | "done" | "error";
 
@@ -57,6 +61,8 @@ export interface SpawnTask {
   readonly model?: string;
   /** Shared effort scale; each backend maps it to its native equivalent. */
   readonly reasoningEffort?: ReasoningEffort;
+  /** Explicit headless Claude permission policy; defaults to full. */
+  readonly claudePermissionPolicy?: ClaudePermissionPolicy;
   readonly parent: ParentContext;
 }
 
@@ -176,6 +182,7 @@ export type SubagentEvent =
       readonly tokens?: number;
       readonly contextWindow?: number;
     }
+  | { readonly _tag: "AccountingChanged"; readonly cumulative: Usage }
   | { readonly _tag: "MetaChanged"; readonly meta: Partial<SubagentMeta> }
   /** Non-fatal diagnostics. Fatal failures arrive as a RunSettled outcome. */
   | { readonly _tag: "BackendError"; readonly message: string };
@@ -201,6 +208,8 @@ export interface SubagentSnapshot {
   readonly errorText?: string;
   readonly meta: SubagentMeta;
   readonly usage: { readonly tokens?: number; readonly contextWindow?: number };
+  /** Cumulative billed child usage, kept separate from context occupancy. */
+  readonly accounting?: Usage;
   readonly transcript: ReadonlyArray<TranscriptItem>;
   /** Streaming assistant buffers, cleared when the finalized message lands. */
   readonly liveAssistant?: { readonly text: string; readonly thinking: string };

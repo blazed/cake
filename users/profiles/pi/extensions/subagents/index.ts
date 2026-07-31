@@ -21,7 +21,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { StringEnum } from "@earendil-works/pi-ai";
+import { StringEnum, type Usage } from "@earendil-works/pi-ai";
 import type {
   ExtensionAPI,
   ExtensionCommandContext,
@@ -33,6 +33,7 @@ import {
   DEFAULT_MAX_LINES,
   formatSize,
   getAgentDir,
+  keyHint,
   getMarkdownTheme,
   ProjectTrustStore,
   truncateHead,
@@ -74,6 +75,8 @@ import {
   type SubagentRuntime,
 } from "./src/runtime.ts";
 import { openSubagentPicker, openSubagentTakeover } from "./src/ui/takeover.ts";
+import { resolveClaudePermissionPolicy } from "./src/backends/claude-permissions.ts";
+import { addUsage, createUsageLedger } from "./src/usage.ts";
 
 const SUBAGENT_OUTPUT_MAX_BYTES = 24 * 1024;
 const WAIT_OUTPUT_MAX_BYTES = 48 * 1024;
@@ -88,6 +91,10 @@ interface BtwResultData {
   readonly prompt: string;
   readonly answer: string;
   readonly sessionFilePath?: string;
+}
+
+interface SubagentAccountingData {
+  readonly usage?: Usage;
 }
 
 function describeSubagent(snap: SubagentSnapshot) {
@@ -137,7 +144,31 @@ function resolveChildProjectTrust(options: {
   }
 }
 
+function readClaudePermissionFile(): unknown {
+  try {
+    const configPath = path.join(getAgentDir(), "subagents.json");
+    const parsed = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
+      claude?: { permissions?: unknown };
+    };
+    return parsed.claude?.permissions;
+  } catch {
+    return undefined;
+  }
+}
+
 export default function (pi: ExtensionAPI) {
+  pi.registerFlag("subagent-claude-permissions", {
+    type: "string",
+    description: "Claude child permissions: full, dontAsk, acceptEdits, or plan.",
+  });
+
+  const filePermissionPolicy = readClaudePermissionFile();
+  const permissionPolicy = () =>
+    resolveClaudePermissionPolicy({
+      flag: pi.getFlag("subagent-claude-permissions"),
+      environment: process.env.PI_SUBAGENTS_CLAUDE_PERMISSIONS,
+      file: filePermissionPolicy,
+    });
   let runtime: SubagentRuntime | undefined;
   let managerPromise: Promise<SubagentManagerShape> | undefined;
   let sessionContext: ExtensionContext | undefined;
@@ -146,8 +177,15 @@ export default function (pi: ExtensionAPI) {
   let statusTimer: ReturnType<typeof setTimeout> | undefined;
   const deliveredResults = new Map<string, number>();
   const resultDelivery = createDeferredResultDelivery<SubagentSnapshot>();
+  const usageLedger = createUsageLedger();
 
   const getRuntime = () => (runtime ??= createSubagentRuntime());
+
+  const recordAccounting = (manager: SubagentManagerShape) => {
+    for (const snap of manager.view.list()) {
+      usageLedger.recordCumulative(snap.id, snap.accounting);
+    }
+  };
 
   /** Resolve the manager service once per runtime and wire the extension hooks. */
   const getManager = () => {
@@ -155,8 +193,14 @@ export default function (pi: ExtensionAPI) {
       .runPromise(SubagentManager)
       .then((manager) => {
         manager.view.setOnSettled(onSettled);
+        recordAccounting(manager);
         unsubStatus?.();
-        unsubStatus = manager.view.subscribe(() => scheduleStatus(manager));
+        unsubStatus = manager.view.subscribe(() => {
+          // Record cumulative child usage immediately. The delayed status render
+          // must not become an accounting delay or a shutdown loss window.
+          recordAccounting(manager);
+          scheduleStatus(manager);
+        });
         updateStatus(manager);
         return manager;
       });
@@ -236,10 +280,26 @@ export default function (pi: ExtensionAPI) {
     );
   };
 
+  const attachPendingUsage = (base: Usage | undefined): Usage | undefined => {
+    const pending = usageLedger.drain();
+    return pending ? addUsage(base, pending) : undefined;
+  };
+
+  const persistPendingUsage = () => {
+    const usage = usageLedger.drain();
+    if (!usage) return;
+    pi.appendEntry<SubagentAccountingData>("subagent-accounting", { usage });
+  };
+
   const onSettled = (snap: SubagentSnapshot, consumed: boolean) => {
     // A shutdown can settle children while disposing their scopes. Never
     // append into a session whose extension runtime is already closing.
     if (!sessionContext) return;
+    usageLedger.recordCumulative(snap.id, snap.accounting);
+    // Tool-driven waits/cancels attach usage to their native result. Background
+    // and /btw settlements have no safe native sink: assistant usage would
+    // corrupt parent context occupancy, so persist their accounting separately.
+    if (!consumed) persistPendingUsage();
     if (snap.origin === "btw") {
       deliverBtwResult({ ...snap, meta: { ...snap.meta } });
       return;
@@ -259,26 +319,44 @@ export default function (pi: ExtensionAPI) {
   pi.on("session_start", (_event, ctx) => {
     sessionContext = ctx;
     if (ctx.hasUI) ui = ctx.ui;
+    const resolution = permissionPolicy();
+    if (resolution.warning && ctx.hasUI) ctx.ui.notify(resolution.warning, "warning");
   });
 
   pi.on("agent_settled", flushResults);
 
+  // Tool-driven waits/cancels use the native accounting sink. Background
+  // settlements are persisted as subagent-accounting custom entries instead.
+  pi.on("tool_result", (event) => {
+    const usage = attachPendingUsage(event.usage);
+    return usage ? { usage } : undefined;
+  });
+
   pi.on("session_shutdown", async () => {
+    // Stop delivery first, but keep the accounting subscription alive while
+    // runtime disposal settles and measures active children.
     sessionContext = undefined;
     resultDelivery.clear();
     deliveredResults.clear();
     if (statusTimer) clearTimeout(statusTimer);
     statusTimer = undefined;
-    unsubStatus?.();
-    unsubStatus = undefined;
     ui?.setStatus("subagents", undefined);
     ui = undefined;
     const closing = runtime;
+    const closingManager = managerPromise
+      ? await managerPromise.catch(() => undefined)
+      : undefined;
     runtime = undefined;
     managerPromise = undefined;
-    // Disposing the runtime runs the manager finalizer, which tears down all
-    // subagent scopes (and, later, their real child processes).
     await closing?.dispose();
+    if (closingManager) recordAccounting(closingManager);
+    // Pi has no API for adding usage to an existing message during shutdown.
+    // Persist any final unmatched delta so the footer/session audit still counts
+    // children even when no later tool result exists.
+    persistPendingUsage();
+    usageLedger.clear();
+    unsubStatus?.();
+    unsubStatus = undefined;
   });
 
   // --- Tools -------------------------------------------------------------
@@ -333,6 +411,7 @@ export default function (pi: ExtensionAPI) {
           cwd,
           model: params.model,
           reasoningEffort: params.reasoning_effort,
+          claudePermissionPolicy: permissionPolicy().policy,
           parent: {
             parentCwd: ctx.cwd,
             projectTrusted: resolveChildProjectTrust({
@@ -643,7 +722,7 @@ export default function (pi: ExtensionAPI) {
       for (const line of previewLines)
         text += `\n${theme.fg("toolOutput", line)}`;
       if (body.split("\n").length > 8)
-        text += `\n${theme.fg("dim", "... (ctrl+o to expand)")}`;
+        text += `\n${theme.fg("dim", `... (${keyHint("app.tools.expand", "to expand")})`)}`;
       return new Text(text, 0, 0);
     },
   );
@@ -688,7 +767,7 @@ export default function (pi: ExtensionAPI) {
       for (const line of lines.slice(0, 8))
         text += `\n${theme.fg("toolOutput", line)}`;
       if (lines.length > 8)
-        text += `\n${theme.fg("dim", "... (ctrl+o to expand)")}`;
+        text += `\n${theme.fg("dim", `... (${keyHint("app.tools.expand", "to expand")})`)}`;
       return new Text(text, 0, 0);
     },
   );

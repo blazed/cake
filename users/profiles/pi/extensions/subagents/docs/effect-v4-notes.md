@@ -5,8 +5,8 @@
 > `ManagedRuntime` + `runTool` boundary, when *not* to use Effect, per-extension recipes).
 > This file is the deeper Effect API reference it points back to.
 
-> **Verified against:** `effect@4.0.0-beta.98` and `@effect/platform-node@4.0.0-beta.98`
-> (npm dist-tag `beta`, checked 2026-07-13). Every snippet in this doc was type-checked
+> **Verified against:** `effect@4.0.0-beta.101` and `@effect/platform-node@4.0.0-beta.101`
+> (checked 2026-07-30). Every snippet in this doc was type-checked
 > with `tsc --strict` against these packages, and the process-spawning / runtime snippets
 > were executed with Node 24. v4 source lives in the **`Effect-TS/effect-smol`** repo
 > (not `Effect-TS/effect`); the official migration guide is
@@ -61,7 +61,7 @@ Big structural facts:
 | `UnknownException` (tryPromise default) | `Cause.UnknownError` |
 
 Removed with no replacement: `Effect.forkAll`, `Effect.forkWithErrorHandler`.
-Early v4 betas renamed `Context` → `ServiceMap`; **that was reverted** — beta.98 uses
+Early v4 betas renamed `Context` → `ServiceMap`; **that was reverted** — beta.101 uses
 `Context` again (ignore older blog posts/AI answers mentioning `ServiceMap`).
 
 ---
@@ -566,6 +566,6 @@ Tool handlers: async fns calling runtime.runPromise(Effect.gen(...))
    `runCollect` returns `Array<A>`), not `Chunk`.
 8. `tryPromise` default error is `Cause.UnknownError` (was `UnknownException`).
 9. `unstable/*` modules can break between v4 minors — pin exact versions
-   (`4.0.0-beta.98`) and keep `effect` and `@effect/platform-node` in lockstep.
+   (`4.0.0-beta.101`) and keep `effect` and `@effect/platform-node` in lockstep.
 10. Scratch workspace with all verified test files: `/tmp/effect-v4-scratch`
     (`test1-basics.ts` … `test8-runtime.ts`, `smoke.mts` executed successfully).

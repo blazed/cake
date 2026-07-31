@@ -3,8 +3,8 @@
  *
  * Each subagent is an in-process `AgentSession` (a port of v1
  * subagents/manager.ts + shared/child-session.ts):
- * - real session files visible in /resume, child resources loaded per-cwd
- *   with trust gating, and the child tool denylist;
+ * - real session files visible in /resume, extension-free child resources
+ *   loaded per-cwd with trust gating, and an explicit built-in tool allowlist;
  * - `session.subscribe()` events translated to normalized SubagentEvents;
  * - send() steers a streaming run or starts a fresh prompt() when idle;
  * - interrupt clears the queue and aborts; closing the session scope emits
@@ -35,11 +35,23 @@ import type {
 } from "../domain.ts";
 import { SendError, SpawnError } from "../domain.ts";
 import { createToolCallTimeoutGuard } from "../tool-call-timeout.ts";
+import { sumPiSessionUsage } from "../usage.ts";
 
 const CHILD_SHUTDOWN_TIMEOUT_MS = 5_000;
 
-/** Tools that headless children must not receive. Everything else stays enabled. */
-const CHILD_EXCLUDED_TOOL_NAMES = [
+/** Explicit host-capable built-ins available to autonomous Pi children. */
+export const CHILD_SAFE_TOOL_NAMES = [
+  "read",
+  "bash",
+  "edit",
+  "write",
+  "grep",
+  "find",
+  "ls",
+] as const;
+
+/** Defence-in-depth if a future SDK ever combines extension and built-in tools. */
+export const CHILD_EXCLUDED_TOOL_NAMES = [
   "subagent_spawn",
   "subagent_wait",
   "subagent_cancel",
@@ -94,13 +106,18 @@ function resolvePiModel(
 
 // --- Child session helpers (ported from v1 shared/child-session.ts) -----------
 
-/** Load normal global/package resources and trust-gated project resources. */
+/** Load context/skills/templates, but never executable extension lifecycles. */
 async function createChildResources(cwd: string, projectTrusted: boolean) {
   const agentDir = getAgentDir();
   const settingsManager = SettingsManager.create(cwd, agentDir, {
     projectTrusted,
   });
-  const loader = new DefaultResourceLoader({ cwd, agentDir, settingsManager });
+  const loader = new DefaultResourceLoader({
+    cwd,
+    agentDir,
+    settingsManager,
+    noExtensions: true,
+  });
   await loader.reload();
   return { loader, settingsManager };
 }
@@ -276,6 +293,23 @@ function boundedError(error: unknown) {
   );
 }
 
+/**
+ * A successful prompt() can mean either a completed model run or an extension
+ * hook/command consumed the input. Real runs settle before prompt() resolves.
+ */
+export function promptResolvedWithoutRun(state: {
+  serial: number;
+  currentSerial: number;
+  settled: boolean;
+  isStreaming: boolean;
+}): boolean {
+  return (
+    state.serial === state.currentSerial &&
+    !state.settled &&
+    !state.isStreaming
+  );
+}
+
 const makePiSession = (
   task: SpawnTask,
 ): Effect.Effect<SubagentSession, SpawnError, Scope.Scope> =>
@@ -309,6 +343,7 @@ const makePiSession = (
           resourceLoader: loader,
           model,
           thinkingLevel,
+          tools: [...CHILD_SAFE_TOOL_NAMES],
           excludeTools: [...CHILD_EXCLUDED_TOOL_NAMES],
         });
         // Start child extension session hooks/resources in headless mode.
@@ -386,6 +421,10 @@ const makePiSession = (
       if (serial !== state.runSerial || state.settled) return;
       state.settled = true;
       state.runStarted = false;
+      emit({
+        _tag: "AccountingChanged",
+        cumulative: sumPiSessionUsage(session.sessionManager.getEntries()),
+      });
       const runStartIndex = indexAfterMessageBoundary(
         session.messages,
         state.runBoundaryMessage,
@@ -543,11 +582,29 @@ const makePiSession = (
       // Emit eagerly because prompt preflight failures may never produce an
       // agent_start event. agent_start suppresses the duplicate.
       emit({ _tag: "RunStarted" });
-      void session.prompt(text).catch((error) => {
-        if (serial !== state.runSerial) return;
-        state.runError = boundedError(error);
-        if (!session.isStreaming) settle(serial);
-      });
+      void session.prompt(text).then(
+        () => {
+          if (
+            !promptResolvedWithoutRun({
+              serial,
+              currentSerial: state.runSerial,
+              settled: state.settled,
+              isStreaming: session.isStreaming,
+            })
+          ) {
+            return;
+          }
+          // A command/input hook can consume a prompt without any agent run.
+          // A real run emits agent_settled before prompt() resolves.
+          state.runError = "Prompt completed without starting a model run";
+          settle(serial);
+        },
+        (error) => {
+          if (serial !== state.runSerial) return;
+          state.runError = boundedError(error);
+          if (!session.isStreaming) settle(serial);
+        },
+      );
     };
 
     // Session naming is best-effort.
@@ -597,6 +654,10 @@ const makePiSession = (
         // No streaming run means no agent_settled will arrive; emit the
         // terminal event (once) so the run cannot look running forever.
         if (!state.closed && !state.settled) {
+          emit({
+            _tag: "AccountingChanged",
+            cumulative: sumPiSessionUsage(session.sessionManager.getEntries()),
+          });
           state.settled = true;
           state.runStarted = false;
           emit({ _tag: "RunSettled", outcome: { _tag: "Interrupted" } });

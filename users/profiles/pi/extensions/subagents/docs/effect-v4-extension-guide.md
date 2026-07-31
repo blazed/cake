@@ -5,8 +5,8 @@
 > **this** file is how to stand up _one pi extension_ on the same toolchain and where to
 > draw the line between "wrap in Effect" and "leave as plain TS".
 >
-> **Verified against** `effect@4.0.0-beta.98`, `@effect/platform-node@4.0.0-beta.98`,
-> `@effect/tsgo@0.19.0`, `typescript@7.0.2` (checked 2026-07-13, in `extensions/subagents`).
+> **Verified against** `effect@4.0.0-beta.101`, `@effect/platform-node@4.0.0-beta.101`,
+> `@effect/tsgo@0.24.2`, `typescript@7.0.2` (checked 2026-07-30, in `extensions/subagents`).
 > `npm run check` there passes clean — use it as the reference implementation.
 >
 > Audience: the agents migrating `firecrawl-search`, `ask-user`, `model-info`,
@@ -55,11 +55,11 @@ setup — do **not** float the versions.
     "prepare": "effect-tsgo patch", // patches the Effect LS into the tsgo binary
   },
   "dependencies": {
-    "effect": "4.0.0-beta.98", // EXACT pin, no ^
-    "@effect/platform-node": "4.0.0-beta.98", // only if you touch fs / child processes
+    "effect": "4.0.0-beta.101", // EXACT pin, no ^
+    "@effect/platform-node": "4.0.0-beta.101", // only if you touch fs / child processes
   },
   "devDependencies": {
-    "@effect/tsgo": "^0.19.0",
+    "@effect/tsgo": "^0.24.2",
     "typescript": "^7.0.2",
   },
 }
@@ -337,7 +337,7 @@ the pinned versions. If a migrated extension fails `check` with `Effect.fork`/`S
 ## 8. Don'ts (keep it lean)
 
 1. **Don't float versions.** Pin `effect` and `@effect/platform-node` to the exact same
-   `4.0.0-beta.98`; `unstable/*` can break between betas.
+   `4.0.0-beta.101`; `unstable/*` can break between betas.
 2. **Don't Effect-ify pure/UI code.** No service or layer for a clipboard write, a string
    truncation, or a popup. §0 is the test: is there a typed-error / cancellation / resource /
    retry concern? If not, leave it.

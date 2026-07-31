@@ -64,9 +64,9 @@ Start with `jj_todo` `action: "check"` and, when tasks already exist, `action: "
 
 For each task:
 
-1. Preview `action: "create"` with `dryRun: true`, the intended `parent`, title, body, and `todo` or `draft` flag.
-2. Review the exact command, parent, and resulting description.
-3. Repeat with `dryRun: false` only when correct.
+1. Call `action: "create"` with the intended single `parent`, title, body, and `todo` or `draft` flag. Mutations default to `dryRun: true`.
+2. Review the exact resolved parent, command, description, and returned `previewToken`.
+3. Apply with the same inputs, `dryRun: false`, and that one-use `previewToken`.
 4. Use the returned change ID as the parent of the next sequential task. Use a shared parent only for genuinely independent tasks.
 
 Creation must not move the current working copy. The tool uses `jj new --no-edit`; retain that property in any fallback workflow.
@@ -74,10 +74,10 @@ Creation must not move the current working copy. The tool uses `jj new --no-edit
 ### 3. Start One Ready Task
 
 1. Use `action: "next"` on the current task or intended parent to discover candidate children and reported blockers.
-2. Treat its `ready` classification as advisory: independently confirm the candidate itself is `todo` and every task-flagged parent or ancestor, including the selected current revision when applicable, is `done`. The tool's built-in blocker set is narrower than this workflow.
+2. Confirm the chosen candidate is reported `ready`; the tool requires it to be `todo` with every task-flagged ancestor `done`.
 3. Run `jj edit <task-id>` to enter the selected revision.
-4. Preview `action: "update"`, `flag: "wip"`, `dryRun: true`.
-5. Apply the update only after confirming the working copy is the intended task.
+4. Call `action: "update"`, `flag: "wip"`; review the default dry-run result and returned `previewToken`.
+5. Apply with the same inputs, `dryRun: false`, and that token after confirming the working copy is the intended task.
 
 Only one task may be WIP in a workspace.
 
@@ -99,10 +99,10 @@ Before marking a task `done`:
 
 Then:
 
-1. Run `action: "next"` to review the current specification and discover possible children; independently verify readiness before selecting one.
-2. Preview `action: "update"`, `flag: "done"`, `dryRun: true`.
-3. Apply the update only when all completion conditions hold.
-4. If continuing, `jj edit` exactly one ready child and preview/apply its transition to `wip`.
+1. Run `action: "next"` to review the current specification. Children remain blocked while the current task is not `done`.
+2. Preview `action: "update"`, `flag: "done"` and retain its `previewToken`.
+3. Apply with the same inputs, `dryRun: false`, and that token only when all completion conditions hold.
+4. Run `action: "next"` again; if continuing, `jj edit` exactly one now-ready child and preview/apply its transition to `wip`.
 
 Use `untested`, `review`, `blocked`, or `standby` instead of `done` whenever their conditions apply.
 
@@ -111,17 +111,17 @@ Use `untested`, `review`, `blocked`, or `standby` instead of `done` whenever the
 | Action | Use |
 | --- | --- |
 | `list` | List flagged task revisions, optionally by flag |
-| `next` | Review the current task and classify children with the tool's built-in blocker heuristic; verify readiness independently |
+| `next` | Review the current task; only `todo` children whose task ancestors are all `done` are ready |
 | `create` | Create a `todo` or `draft` revision without moving `@` |
 | `update` | Change one task flag while preserving its description |
 | `check` | Count task states and detect conflicts or suspicious WIP state |
 
-Always use `dryRun: true` before mutating `create` or `update`. Dry-run previews normally use `fresh: false`; request a fresh snapshot only intentionally. The tool does not replace `jj edit`, full graph inspection, rebases, splits, or merge construction.
+`create` and `update` default to `dryRun: true`. Applying requires `dryRun: false` plus the matching one-use `previewToken`; changed repository state invalidates the token. Previews default to a fresh snapshot so their exact revision and operation identity are current. The tool does not replace `jj edit`, full graph inspection, rebases, splits, or merge construction.
 
 ## Dependency and Concurrency Rules
 
 - Task ancestors are dependencies, not merely history.
-- Never start a task while any task ancestor is not `done`, regardless of whether `next` reports the child as ready.
+- Never start a task while any task ancestor is not `done`; treat unexpected readiness output as a tool defect and stop.
 - Implement tasks sequentially in a shared workspace.
 - Do not run multiple agents against the same JJ workspace; they compete for `@` and can place changes in the wrong revision.
 - A background subagent may work on one task only if the parent stops mutating that workspace until it settles.

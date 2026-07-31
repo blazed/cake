@@ -3,7 +3,7 @@
  *
  * Replaces the built-in footer with a custom layout:
  *   Left:  MODEL | think LEVEL | VCS_BRANCH +add -del
- *   Right: DIRECTORY | tok TOKENS | $COST | PROVIDER quota used/total
+ *   Right: DIRECTORY | tok TOKENS | $COST | PROVIDER quota availability
  *
  * Supports jj (Jujutsu) and git VCS backends (auto-detected).
  */
@@ -45,38 +45,64 @@ const execFileAsync = promisify(execFile);
 interface UsageTotals {
   input: number;
   output: number;
+  cacheRead: number;
+  cacheWrite: number;
   cost: number;
 }
 
-// ── Module-level cache ──────────────────────────────────────
+interface UsageLike {
+  input?: number;
+  output?: number;
+  cacheRead?: number;
+  cacheWrite?: number;
+  cost?: { total?: number };
+}
 
-let cachedVcsInfo: VcsInfo | null = null;
-let lastVcsRefresh = 0;
-let vcsRefreshInFlight = false;
+interface VcsCache {
+  cwd: string;
+  info: VcsInfo | null;
+  lastRefresh: number;
+  inFlight: boolean;
+  generation: number;
+  disposed: boolean;
+}
 
-// ── Usage collection ────────────────────────────────────────
+function createVcsCache(cwd: string): VcsCache {
+  return { cwd, info: null, lastRefresh: 0, inFlight: false, generation: 0, disposed: false };
+}
 
-/** Collect cumulative token usage and cost from session messages. */
-function collectUsage(ctx: ExtensionContext): UsageTotals {
-  const totals: UsageTotals = { input: 0, output: 0, cost: 0 };
+function invalidateVcs(cache: VcsCache | undefined): void {
+  if (!cache) return;
+  cache.lastRefresh = 0;
+  cache.generation++;
+}
+
+function addUsage(totals: UsageTotals, usage: UsageLike | undefined): void {
+  if (!usage) return;
+  totals.input += usage.input ?? 0;
+  totals.output += usage.output ?? 0;
+  totals.cacheRead += usage.cacheRead ?? 0;
+  totals.cacheWrite += usage.cacheWrite ?? 0;
+  totals.cost += usage.cost?.total ?? 0;
+}
+
+/** Collect billed usage from every persisted session entry, matching Pi's footer semantics. */
+export function collectUsage(ctx: Pick<ExtensionContext, "sessionManager">): UsageTotals {
+  const totals: UsageTotals = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, cost: 0 };
   try {
-    const branch = ctx.sessionManager.getBranch();
-    if (!branch) return totals;
-
-    for (const entry of branch) {
-      if (entry.type !== "message") continue;
-      const msg = entry.message as AgentMessage & {
-        usage?: { input?: number; output?: number; cost?: { total?: number } };
-      };
-      if (msg.role !== "assistant") continue;
-      const usage = msg.usage;
-      if (!usage) continue;
-      totals.input += usage.input ?? 0;
-      totals.output += usage.output ?? 0;
-      totals.cost += usage.cost?.total ?? 0;
+    for (const entry of ctx.sessionManager.getEntries()) {
+      if (entry.type === "message") {
+        const message = entry.message as AgentMessage & { usage?: UsageLike };
+        if (message.role === "assistant" || message.role === "toolResult") addUsage(totals, message.usage);
+      } else if ((entry.type === "branch_summary" || entry.type === "compaction") && entry.usage) {
+        addUsage(totals, entry.usage);
+      } else if (entry.type === "custom" && entry.customType === "subagent-accounting") {
+        const data = entry.data as { usage?: UsageLike } | undefined;
+        addUsage(totals, data?.usage);
+      }
     }
   } catch {
-    // Defensive – session iteration may fail mid-compaction
+    // Defensive: session iteration can fail while a session is being replaced.
   }
   return totals;
 }
@@ -89,7 +115,7 @@ interface DiffStat {
   deletions: number;
 }
 
-function parseDiffStat(raw: string): DiffStat {
+export function parseDiffStat(raw: string): DiffStat {
   const summary = raw.trim().split("\n").at(-1) ?? "";
   const files = Number(summary.match(/(\d+) files? changed/)?.[1] ?? 0);
   const insertions = Number(summary.match(/(\d+) insertions?\(\+\)/)?.[1] ?? 0);
@@ -118,18 +144,22 @@ async function isJjRepo(cwd: string): Promise<boolean> {
 }
 
 /** Read jj VCS info. Returns null when not in a jj repo. */
-async function readJjInfo(cwd: string): Promise<VcsInfo | null> {
+export async function readJjInfo(cwd: string): Promise<VcsInfo | null> {
   if (!(await isJjRepo(cwd))) return null;
-  // `--ignore-working-copy` keeps these read-only renders from snapshotting the
-  // working copy (which would create operation-log noise on every refresh).
+  // Snapshot at most once per cache refresh so filesystem edits are current;
+  // all formatting queries below remain read-only against that snapshot.
+  await runVcs("jj", ["status"], cwd, JJ_TIMEOUT_MS);
   const runJj = (args: string[]) => runVcs("jj", ["--ignore-working-copy", ...args], cwd, JJ_TIMEOUT_MS);
 
-  // Check if current commit is empty
-  const emptyText = await runJj([
-    "log", "-r", "@", "--no-graph", "-T", 'if(empty, "empty", "nonempty")',
+  // Prefer the meaningful parent for a single-parent empty working copy. An
+  // empty merge has multiple @- revisions, so keep @ to avoid mixing one
+  // displayed parent identity with aggregate multi-parent diff statistics.
+  const currentState = await runJj([
+    "log", "-r", "@", "--no-graph", "-T", 'if(empty, "empty", "nonempty") ++ "\\t" ++ parents.len()',
   ]);
-  const currentIsEmpty = emptyText.trim() === "empty";
-  const revset: "@" | "@-" = currentIsEmpty ? "@-" : "@";
+  const [emptyState = "", parentCountText = "0"] = currentState.trim().split("\t");
+  const useParent = emptyState === "empty" && Number.parseInt(parentCountText, 10) === 1;
+  const revset: "@" | "@-" = useParent ? "@-" : "@";
 
   // Get revision info
   const logOutput = await runJj([
@@ -147,7 +177,7 @@ async function readJjInfo(cwd: string): Promise<VcsInfo | null> {
   const hasConflict = conflictText.trim().length > 0;
 
   // Get diff stat
-  const diff = parseDiffStat(await runJj(["diff", "--stat"]));
+  const diff = parseDiffStat(await runJj(["diff", "-r", revset, "--stat"]));
 
   const bookmarks = bookmarkLine.trim().split(/\s+/).filter(Boolean);
   const branch = bookmarks.length > 0 ? bookmarks[0] : changeId.slice(0, 8);
@@ -163,7 +193,7 @@ async function readJjInfo(cwd: string): Promise<VcsInfo | null> {
   };
 }
 
-function parseNumstat(output: string): { added: number; deleted: number } {
+export function parseNumstat(output: string): { added: number; deleted: number } {
   let added = 0;
   let deleted = 0;
   for (const line of output.split("\n")) {
@@ -194,24 +224,29 @@ async function readGitInfo(cwd: string, footerData: ReadonlyFooterDataProvider):
   return { type: "git", branch, added, deleted };
 }
 
-/**
- * Non-blocking VCS refresh. render() always reads the cached value synchronously;
- * when the cache is stale we kick off ONE background refresh (async child
- * processes — never spawnSync, which froze the TUI event loop ~65ms every
- * VCS_CACHE_TTL_MS) and requestRender() once the fresh value lands.
- */
-function refreshVcs(cwd: string, footerData: ReadonlyFooterDataProvider, requestRender: () => void): void {
-  if (Date.now() - lastVcsRefresh < VCS_CACHE_TTL_MS) return;
-  if (vcsRefreshInFlight) return;
-  vcsRefreshInFlight = true;
+/** Refresh a component-scoped VCS cache without blocking render(). */
+function refreshVcs(
+  cache: VcsCache,
+  cwd: string,
+  footerData: ReadonlyFooterDataProvider,
+  requestRender: () => void,
+): void {
+  if (cache.disposed || Date.now() - cache.lastRefresh < VCS_CACHE_TTL_MS || cache.inFlight) return;
+  if (cache.cwd !== cwd) {
+    cache.cwd = cwd;
+    cache.info = null;
+    invalidateVcs(cache);
+  }
+  cache.inFlight = true;
+  const generation = cache.generation;
   void (async () => {
     try {
-      // Try jj first, fall back to git.
-      cachedVcsInfo = (await readJjInfo(cwd)) ?? (await readGitInfo(cwd, footerData));
+      const info = (await readJjInfo(cwd)) ?? (await readGitInfo(cwd, footerData));
+      if (!cache.disposed && cache.generation === generation && cache.cwd === cwd) cache.info = info;
     } finally {
-      lastVcsRefresh = Date.now();
-      vcsRefreshInFlight = false;
-      requestRender();
+      cache.lastRefresh = cache.generation === generation ? Date.now() : 0;
+      cache.inFlight = false;
+      if (!cache.disposed) requestRender();
     }
   })();
 }
@@ -262,6 +297,7 @@ function buildLine(
   ctx: ExtensionContext,
   pi: ExtensionAPI,
   footerData: ReadonlyFooterDataProvider,
+  vcsCache: VcsCache,
   codexQuotaTracker: QuotaTracker,
   openCodeGoQuotaTracker: QuotaTracker,
   width: number,
@@ -270,11 +306,11 @@ function buildLine(
   if (width <= 0) return "";
 
   // Kick a background VCS refresh if stale (non-blocking; render uses the cache).
-  refreshVcs(ctx.cwd, footerData, requestRender);
+  refreshVcs(vcsCache, ctx.cwd, footerData, requestRender);
 
   // Collect usage data
   const usage = collectUsage(ctx);
-  const totalTokens = usage.input + usage.output;
+  const totalTokens = usage.input + usage.output + usage.cacheRead + usage.cacheWrite;
   const contextUsage = ctx.getContextUsage();
   const modelId = ctx.model?.id;
   const modelProvider = ctx.model?.provider;
@@ -294,7 +330,7 @@ function buildLine(
   const thinkSeg = renderThinking(theme, thinkingLevel);
   if (thinkSeg) left.push(thinkSeg);
 
-  const vcsSeg = renderVcs(theme, cachedVcsInfo);
+  const vcsSeg = renderVcs(theme, vcsCache.info);
   if (vcsSeg) left.push(vcsSeg);
 
   // ── Right segments ──
@@ -362,21 +398,38 @@ function buildLine(
   return truncateToWidth(leftText + padding + sep + rightText, width);
 }
 
+export function renderExtensionStatuses(
+  statuses: ReadonlyMap<string, string>,
+  width: number,
+  ellipsis: string,
+): string | undefined {
+  if (statuses.size === 0 || width <= 0) return undefined;
+  const line = Array.from(statuses.entries())
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, text]) => text.replace(/[\r\n\t]/g, " ").replace(/ +/g, " ").trim())
+    .filter(Boolean)
+    .join(" ");
+  return line ? truncateToWidth(line, width, ellipsis) : undefined;
+}
+
 // ── Extension factory ───────────────────────────────────────
 
 export default function footerExtension(pi: ExtensionAPI): void {
   let activationCount = 0;
   let enabled = false;
+  let activeVcsCache: VcsCache | undefined;
 
-  /** Activate the footer for a session context. */
+  /** Activate the footer for a TUI session context. */
   const activateFooter = (ctx: ExtensionContext): void => {
-    if (!ctx.hasUI) return;
+    if (ctx.mode !== "tui") return;
 
     enabled = true;
+    const vcsCache = createVcsCache(ctx.cwd);
+    activeVcsCache = vcsCache;
 
     ctx.ui.setFooter((tui, theme, footerData) => {
       const unsubscribeBranchChange = footerData.onBranchChange(() => {
-        lastVcsRefresh = 0;
+        invalidateVcs(vcsCache);
         tui.requestRender();
       });
 
@@ -389,23 +442,31 @@ export default function footerExtension(pi: ExtensionAPI): void {
 
       const component = {
         invalidate() {
-          lastVcsRefresh = 0;
+          invalidateVcs(vcsCache);
         },
         render(width: number): string[] {
-          return [
-            buildLine(
-              theme,
-              ctx,
-              pi,
-              footerData,
-              codexQuotaTracker,
-              openCodeGoQuotaTracker,
-              width,
-              () => tui.requestRender(),
-            ),
-          ];
+          const mainLine = buildLine(
+            theme,
+            ctx,
+            pi,
+            footerData,
+            vcsCache,
+            codexQuotaTracker,
+            openCodeGoQuotaTracker,
+            width,
+            () => tui.requestRender(),
+          );
+          const statusLine = renderExtensionStatuses(
+            footerData.getExtensionStatuses(),
+            width,
+            theme.fg("dim", "..."),
+          );
+          return statusLine ? [mainLine, statusLine] : [mainLine];
         },
         dispose() {
+          vcsCache.disposed = true;
+          invalidateVcs(vcsCache);
+          if (activeVcsCache === vcsCache) activeVcsCache = undefined;
           unsubscribeBranchChange();
           codexQuotaTracker.dispose();
           openCodeGoQuotaTracker.dispose();
@@ -427,22 +488,9 @@ export default function footerExtension(pi: ExtensionAPI): void {
     activateFooter(ctx);
   });
 
-  pi.on("model_select", (_event, _ctx) => {
-    lastVcsRefresh = 0;
-  });
-
-  pi.on("thinking_level_select", (_event, _ctx) => {
-    lastVcsRefresh = 0;
-  });
 
   pi.on("tool_execution_end", (event, _ctx) => {
-    if (["bash", "edit", "write"].includes(event.toolName)) {
-      lastVcsRefresh = 0;
-    }
-  });
-
-  pi.on("turn_end", (_event, _ctx) => {
-    lastVcsRefresh = 0;
+    if (["bash", "edit", "write"].includes(event.toolName)) invalidateVcs(activeVcsCache);
   });
 
   // ── Commands ──
@@ -459,6 +507,10 @@ export default function footerExtension(pi: ExtensionAPI): void {
         ctx.ui.setFooter(undefined);
         ctx.ui.notify("Footer: default restored", "info");
       } else if (sub === "on") {
+        if (ctx.mode !== "tui") {
+          ctx.ui.notify("Footer: custom footer is available only in TUI mode", "warning");
+          return;
+        }
         activateFooter(ctx);
         ctx.ui.notify("Footer: custom activated", "info");
       } else {

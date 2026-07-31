@@ -1,8 +1,8 @@
 /**
  * JJ context tool for Pi.
  *
- * Provides compact, structured, read-only Jujutsu repository context so the
- * agent does not need to spend tokens on several verbose `jj` shell commands.
+ * Provides compact, structured Jujutsu repository context without explicit
+ * history mutations. Fresh reads may perform JJ's normal working-copy snapshot.
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
@@ -20,7 +20,7 @@ const jjContextParams = Type.Object({
     description: "What JJ context to return. summary is the compact default.",
   })),
   revset: Type.Optional(Type.String({
-    description: "Revset for log mode, or for focused inspection. Defaults to @.",
+    description: "Revset for log mode or focused inspection. Summary log defaults to ::@; log mode defaults to @::.",
   })),
   limit: Type.Optional(Type.Integer({
     minimum: 1,
@@ -283,11 +283,11 @@ export default function jjContextExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "jj_context",
     label: "JJ Context",
-    description: "Return compact, structured, read-only Jujutsu repository context. Use instead of multiple verbose jj status/log/diff/op bash commands when inspecting repository state.",
+    description: "Return compact, structured Jujutsu repository context without explicit history mutations. Fresh reads may snapshot the working copy.",
     promptSnippet: "Inspect compact JJ repository context (status, current change, short log, operation restore info).",
     promptGuidelines: [
       "Use jj_context before JJ/Git history inspection when compact repository context is enough; use bash only for specific JJ commands or full diffs.",
-      "Do not use jj_context for mutating JJ operations; it is read-only and intended for status/log/recovery context.",
+      "Do not use jj_context for explicit mutations. Its default fresh read may perform JJ's normal working-copy snapshot.",
     ],
     parameters: jjContextParams,
 
@@ -295,7 +295,9 @@ export default function jjContextExtension(pi: ExtensionAPI) {
       const mode = (params.mode ?? "summary") as JjMode;
       const fresh = params.fresh ?? true;
       const limit = clampLimit(params.limit, mode === "summary" ? 5 : mode === "changes" ? 30 : 10);
-      const revset = params.revset?.trim() || (mode === "log" ? "@::" : "@");
+      const requestedRevset = params.revset?.trim();
+      const revset = requestedRevset || (mode === "log" ? "@::" : "@");
+      const summaryLogRevset = requestedRevset || "::@";
 
       const root = await requireJjRepo(pi, ctx, signal, fresh);
       const versionResult = await runJj(pi, ctx, ["--version"], signal, fresh);
@@ -340,7 +342,7 @@ export default function jjContextExtension(pi: ExtensionAPI) {
       const bookmarks = await nearestBookmarks(pi, ctx, signal, fresh);
       const changes = await changesSummary(pi, ctx, signal, fresh, limit);
       const operation = await operationSummary(pi, ctx, signal, fresh, Math.min(limit, 5));
-      const log = await recentLog(pi, ctx, signal, fresh, revset, limit);
+      const log = await recentLog(pi, ctx, signal, fresh, summaryLogRevset, limit);
 
       const data = {
         vcs: "jj",
@@ -350,6 +352,7 @@ export default function jjContextExtension(pi: ExtensionAPI) {
         nearestBookmarks: bookmarks,
         changes,
         operation,
+        logRevset: summaryLogRevset,
         log,
       };
       return { content: [{ type: "text", text: toolText(mode, data) }], details: data };
