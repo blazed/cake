@@ -108,6 +108,11 @@ in
           "--top-k 64"
           "--min-p 0.01"
         ];
+        deepseekSampling = [
+          "--temp 1.0"
+          "--top-p 0.95"
+          "--min-p 0.0"
+        ];
 
         # KV dtype convention: q8 weights keep q8_0/q8_0 (max-context memory saving);
         # q4/q6 weights use f16/f16 (f16 avoids the severe long-context slowdown that
@@ -139,8 +144,7 @@ in
                 "-fa on"
                 "--cache-type-k ${kv}"
                 "--cache-type-v ${kv}"
-                "--no-mmap"
-                "--direct-io"
+                "--load-mode dio"
               ]
               ++ sampling
               ++ [
@@ -164,9 +168,12 @@ in
 
         mkQwenModel =
           args:
-          mkModel (args // {
-            chatTemplateFile = froggericQwenChatTemplate;
-          });
+          mkModel (
+            args
+            // {
+              chatTemplateFile = froggericQwenChatTemplate;
+            }
+          );
       in
       {
         models = {
@@ -205,6 +212,15 @@ in
           "qwen3.6:35b-a3b-q8" = mkQwenModel {
             hf = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q8_K_XL";
             kv = "q8_0";
+          };
+          "deepseek-v4-flash-0731:iq3" = mkModel {
+            hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
+            kv = "f16";
+            ctx = 131072;
+            sampling = deepseekSampling;
+            # The GGUF chat template enables thinking by default; avoid passing the
+            # Qwen-specific preserve_thinking template argument.
+            thinking = false;
           };
           "gemma-4:31b-q6" = mkModel {
             hf = "unsloth/gemma-4-31B-it-GGUF:UD-Q6_K_XL";
@@ -272,8 +288,6 @@ in
       "PATH=/run/current-system/sw/bin:${pkgs.rocmPackages.rocm-smi}/bin"
       "LD_LIBRARY_PATH=/run/opengl-driver/lib:/run/opengl-driver-32/lib"
       "XDG_CACHE_HOME=/var/cache"
-      # Let ROCm allocate from the full unified-memory/GTT pool on this APU.
-      "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
       # Strix Halo (gfx1151) ROCm tuning:
       # Force correct gfx1151 identification on recent kernels (else misdetected as gfx1100).
       "HSA_OVERRIDE_GFX_VERSION=11.5.1"
