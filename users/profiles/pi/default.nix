@@ -11,7 +11,6 @@ let
   system = pkgs.stdenv.hostPlatform.system;
   piNode = import ./node-package.nix { inherit pkgs inputs; };
 
-  # Packages installed by Pi through settings.packages.
   thirdPartyPackages =
     # Work around npm omitting remote-pi's optional native keyring dependency.
     lib.optionals (system == "x86_64-linux") [
@@ -27,7 +26,6 @@ let
       "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
       "npm:@juicesharp/rpiv-ask-user-question@2.3.1"
       "npm:@plannotator/pi-extension@0.25.1"
-      "npm:pi-claude-bridge@0.6.3"
       "npm:pi-hashline-edit@0.8.3"
       "npm:pi-web-access@0.17.1"
       # Keep remote-pi installed, but do not load any of its resources by default.
@@ -78,30 +76,14 @@ let
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
 
-  claudeBridge = {
-    askClaude = {
-      enabled = false;
-      allowFullMode = false;
-      defaultMode = "read";
-    };
-    provider = {
-      plan = "max";
-      pathToClaudeCodeExecutable = lib.getExe inputs.claude-code.packages.${system}.default;
-    };
-  };
-
-  # Deliberately allow autonomous host-side implementation; users can override
-  # this with the flag, environment, or declarative policy if they need less access.
   subagents = {
     claude.permissions = "full";
   };
 
-  # MCP servers (settings.mcpServers schema). Empty = no servers.
   mcp = {
     mcpServers = { };
   };
 
-  # llama-swap exposes local models through a stable OpenAI-compatible Tailscale Service.
   models = {
     providers = {
       "local-ai" = {
@@ -227,12 +209,10 @@ in
 {
   home.packages = [ piWrapped ];
 
-  # Keep Pi's inspectable temporary output off the tmpfs root and expire it.
   systemd.user.tmpfiles.rules = [
     "d %h/.pi/tmp 0700 - - 7d"
   ];
 
-  # Keep these directories writable alongside third-party installations.
   home.file.".pi/agent/skills" = {
     source = ./skills;
     recursive = true;
@@ -243,25 +223,18 @@ in
     recursive = true;
   };
 
-  # Keep the dependency-heavy extension as one directory symlink instead of
-  # asking Home Manager to create a link for every file in node_modules.
   home.file.".pi/agent/extensions/subagents".source = subagentsExtension;
 
-  # Read-only Nix-managed configuration.
   home.file.".pi/agent/AGENTS.md".source = ./AGENTS.md;
-  home.file.".pi/agent/claude-bridge.json".text = builtins.toJSON claudeBridge;
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
   home.file.".pi/agent/subagents.json".text = builtins.toJSON subagents;
   home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
 
-  # Pi writes lastChangelogVersion, so install a writable settings copy.
   home.activation.piSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run install -D -m0644 ${settingsJson} "${config.home.homeDirectory}/.pi/agent/settings.json"
   '';
 
-  # pi-web-access honors XDG_CONFIG_HOME and mutates this file via /curator.
-  # Merge declared values over valid runtime config while preserving extra fields.
   home.activation.piWebSearch = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     target="${config.xdg.configHome}/pi/web-search.json"
     if [[ -n "''${DRY_RUN:-}" ]]; then
