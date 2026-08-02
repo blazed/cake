@@ -163,6 +163,14 @@ in
             # The GGUF chat template enables thinking by default; avoid passing the
             thinking = false;
           };
+          "deepseek-v4-flash-0731-abliterated:q2" = mkModel {
+            hf = "huihui-ai/Huihui-DeepSeek-V4-Flash-0731-abliterated-GGUF";
+            kv = "f16";
+            ctx = 131072;
+            sampling = deepseekSampling;
+            # The embedded template supports enable_thinking but enables no mode by default.
+            thinking = false;
+          };
         };
 
         healthCheckTimeout = 7200;

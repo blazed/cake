@@ -118,40 +118,68 @@ let
           supportsLongCacheRetention = false;
         };
         models = [
-            {
-              id = "deepseek-v4-flash-0731:iq3";
-              name = "DeepSeek V4 Flash 0731 IQ3";
-              reasoning = true;
-              thinkingLevelMap = {
-                minimal = null;
-                low = null;
-                medium = null;
-                high = "high";
-                xhigh = null;
-                max = "max";
-              };
-              input = [ "text" ];
-              contextWindow = 131072;
-              maxTokens = 32768;
-              cost = {
-                input = 0;
-                output = 0;
-                cacheRead = 0;
-                cacheWrite = 0;
-              };
-              compat = {
-                thinkingFormat = "chat-template";
-                chatTemplateKwargs = {
-                  enable_thinking = {
-                    "$var" = "thinking.enabled";
-                  };
-                  reasoning_effort = {
-                    "$var" = "thinking.effort";
-                  };
+          {
+            id = "deepseek-v4-flash-0731:iq3";
+            name = "DeepSeek V4 Flash 0731 IQ3";
+            reasoning = true;
+            thinkingLevelMap = {
+              minimal = null;
+              low = null;
+              medium = null;
+              high = "high";
+              xhigh = null;
+              max = "max";
+            };
+            input = [ "text" ];
+            contextWindow = 131072;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+            compat = {
+              thinkingFormat = "chat-template";
+              chatTemplateKwargs = {
+                enable_thinking = {
+                  "$var" = "thinking.enabled";
+                };
+                reasoning_effort = {
+                  "$var" = "thinking.effort";
                 };
               };
-            }
-          ];
+            };
+          }
+          {
+            id = "deepseek-v4-flash-0731-abliterated:q2";
+            name = "DeepSeek V4 Flash 0731 Abliterated Q2";
+            reasoning = true;
+            thinkingLevelMap = {
+              minimal = null;
+              low = null;
+              medium = null;
+              high = "high";
+              xhigh = null;
+              max = "max";
+            };
+            input = [ "text" ];
+            contextWindow = 131072;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+            compat = {
+              thinkingFormat = "chat-template";
+              chatTemplateKwargs.enable_thinking = {
+                "$var" = "thinking.enabled";
+              };
+            };
+          }
+        ];
       };
     };
   };
