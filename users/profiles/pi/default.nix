@@ -30,7 +30,15 @@ let
       "npm:pi-claude-bridge@0.6.3"
       "npm:pi-hashline-edit@0.8.3"
       "npm:pi-web-access@0.14.0"
-      "npm:remote-pi@0.5.5"
+      # Keep remote-pi installed, but do not load any of its resources by default.
+      # It can be enabled later through `pi config`.
+      {
+        source = "npm:remote-pi@0.5.5";
+        extensions = [ ];
+        skills = [ ];
+        prompts = [ ];
+        themes = [ ];
+      }
     ];
 
   extraSkillDirs = [ ];
