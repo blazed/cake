@@ -25,11 +25,11 @@ let
     ]
     ++ [
       "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
-      "npm:@juicesharp/rpiv-ask-user-question@2.1.0"
-      "npm:@plannotator/pi-extension@0.24.2"
+      "npm:@juicesharp/rpiv-ask-user-question@2.3.1"
+      "npm:@plannotator/pi-extension@0.25.1"
       "npm:pi-claude-bridge@0.6.3"
       "npm:pi-hashline-edit@0.8.3"
-      "npm:pi-web-access@0.14.0"
+      "npm:pi-web-access@0.17.1"
       # Keep remote-pi installed, but do not load any of its resources by default.
       # It can be enabled later through `pi config`.
       {
