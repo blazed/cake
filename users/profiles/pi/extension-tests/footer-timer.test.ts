@@ -193,10 +193,10 @@ test("JJ footer keeps an empty merge revision instead of mixing multiple parents
   }
 });
 
-test("working timer spans repeated agent starts, settles once, and never owns the title", () => {
+test("working timer spans repeated agent starts and animates the title", () => {
   let now = 1_000;
   let intervalCallback: (() => void) | undefined;
-  let titleWrites = 0;
+  let titleWrites: string[] = [];
   let clears = 0;
   const handlers = new Map<string, (event: unknown, ctx: any) => void>();
   const messages: Array<string | undefined> = [];
@@ -204,6 +204,9 @@ test("working timer spans repeated agent starts, settles once, and never owns th
   const pi = {
     on(name: string, handler: (event: unknown, ctx: any) => void) {
       handlers.set(name, handler);
+    },
+    getSessionName() {
+      return "test";
     },
   };
   const ctx = {
@@ -215,8 +218,8 @@ test("working timer spans repeated agent starts, settles once, and never owns th
       setWidget(key: string, widget: unknown) {
         widgets.set(key, widget);
       },
-      setTitle() {
-        titleWrites++;
+      setTitle(title: string) {
+        titleWrites.push(title);
       },
     },
   };
@@ -231,29 +234,33 @@ test("working timer spans repeated agent starts, settles once, and never owns th
       intervalCallback = undefined;
     }) as typeof globalThis.clearInterval,
   })(pi as never);
-
+  
   handlers.get("agent_start")?.({}, ctx);
   now = 5_000;
   handlers.get("agent_start")?.({}, ctx);
   intervalCallback?.();
   now = 7_000;
   handlers.get("agent_settled")?.({}, ctx);
-
-  assert.equal(titleWrites, 0);
+  
+  assert.equal(titleWrites[0]?.startsWith("⠋ π - test - "), true);
+  assert.equal(titleWrites[1]?.startsWith("⠙ π - test - "), true);
+  assert.equal(titleWrites[2]?.startsWith("π - test - "), true);
   assert.equal(messages.includes("Working... (4s)"), true);
   assert.equal(messages.at(-1), undefined);
-  assert.equal(clears, 1);
+  assert.equal(clears, 2);
   const widgetFactory = widgets.get("working-timer-summary") as (
     tui: unknown,
     theme: { fg: (_role: string, text: string) => string },
   ) => { render(width: number): string[] };
   const component = widgetFactory({}, { fg: (_role, text) => text });
   assert.deepEqual(component.render(80), ["Worked for 6s"]);
-
+  
   now = 8_000;
   handlers.get("agent_start")?.({}, ctx);
   handlers.get("session_shutdown")?.({}, ctx);
-  assert.equal(clears, 2);
+  assert.equal(titleWrites[3]?.startsWith("⠋ π - test - "), true);
+  assert.equal(titleWrites[4]?.startsWith("π - test - "), true);
+  assert.equal(clears, 4);
   assert.equal(widgets.get("working-timer-summary"), undefined);
 });
 
