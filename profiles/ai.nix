@@ -94,20 +94,6 @@ in
               '';
             });
         llama-server = lib.getExe' llama-cpp "llama-server";
-        froggericQwenChatTemplate = ./ai/chat-templates/froggeric-qwen3.6-v21.3.jinja;
-
-        qwenSampling = [
-          "--temp 0.6"
-          "--top-p 0.95"
-          "--top-k 20"
-          "--min-p 0.00"
-        ];
-        gemmaSampling = [
-          "--temp 1.0"
-          "--top-p 0.95"
-          "--top-k 64"
-          "--min-p 0.01"
-        ];
         deepseekSampling = [
           "--temp 1.0"
           "--top-p 0.95"
@@ -122,7 +108,7 @@ in
             hf,
             kv,
             ctx ? 262144,
-            sampling ? qwenSampling,
+            sampling ? [ ],
             mtp ? false,
             thinking ? true,
             chatTemplateFile ? null,
@@ -166,74 +152,15 @@ in
             );
           };
 
-        mkQwenModel =
-          args:
-          mkModel (
-            args
-            // {
-              chatTemplateFile = froggericQwenChatTemplate;
-            }
-          );
       in
       {
         models = {
-          "qwen3.6:27b-mtp-q8" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q8_K_XL";
-            kv = "q8_0";
-            mtp = true;
-          };
-          "qwen3.6:27b-mtp-q4" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-27B-MTP-GGUF:UD-Q4_K_XL";
-            kv = "f16";
-            mtp = true;
-          };
-          "qwen3.6:35b-a3b-mtp-q4" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL";
-            kv = "f16";
-            mtp = true;
-          };
-          "qwen3.6:35b-a3b-mtp-q8" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q8_K_XL";
-            kv = "q8_0";
-            mtp = true;
-          };
-          "qwen3.6:27b-q8" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-27B-GGUF:UD-Q8_K_XL";
-            kv = "q8_0";
-          };
-          "qwen3.6:27b-q4" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL";
-            kv = "f16";
-          };
-          "qwen3.6:35b-a3b-q4" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL";
-            kv = "f16";
-          };
-          "qwen3.6:35b-a3b-q8" = mkQwenModel {
-            hf = "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q8_K_XL";
-            kv = "q8_0";
-          };
           "deepseek-v4-flash-0731:iq3" = mkModel {
             hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
             kv = "f16";
             ctx = 131072;
             sampling = deepseekSampling;
             # The GGUF chat template enables thinking by default; avoid passing the
-            # Qwen-specific preserve_thinking template argument.
-            thinking = false;
-          };
-          "gemma-4:31b-q6" = mkModel {
-            hf = "unsloth/gemma-4-31B-it-GGUF:UD-Q6_K_XL";
-            kv = "f16";
-            ctx = 200000;
-            sampling = gemmaSampling;
-            thinking = false;
-          };
-          "gemma-4:26b-a4b-q6" = mkModel {
-            hf = "unsloth/gemma-4-26B-A4B-it-GGUF:UD-Q6_K_XL";
-            kv = "f16";
-            ctx = 200000;
-            sampling = gemmaSampling;
             thinking = false;
           };
         };

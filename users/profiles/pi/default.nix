@@ -108,39 +108,8 @@ let
           maxTokensField = "max_tokens";
           supportsStrictMode = false;
           supportsLongCacheRetention = false;
-          thinkingFormat = "qwen-chat-template";
         };
-        models =
-          (map
-            (id: {
-              inherit id;
-              name = id;
-              reasoning = true;
-              input = [
-                "text"
-                "image"
-              ];
-              contextWindow = 262144;
-              maxTokens = 32768;
-              cost = {
-                input = 0;
-                output = 0;
-                cacheRead = 0;
-                cacheWrite = 0;
-              };
-            })
-            [
-              "qwen3.6:27b-mtp-q4"
-              "qwen3.6:27b-mtp-q8"
-              "qwen3.6:27b-q4"
-              "qwen3.6:27b-q8"
-              "qwen3.6:35b-a3b-mtp-q4"
-              "qwen3.6:35b-a3b-mtp-q8"
-              "qwen3.6:35b-a3b-q4"
-              "qwen3.6:35b-a3b-q8"
-            ]
-          )
-          ++ [
+        models = [
             {
               id = "deepseek-v4-flash-0731:iq3";
               name = "DeepSeek V4 Flash 0731 IQ3";
