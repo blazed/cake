@@ -12,12 +12,12 @@ in
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "246";
+      version = "247";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-2LqmPvPR7qk7LsBFARaqt7owmzLnj1DimwsRZUsOt+Y=";
+        hash = "sha256-YnawuBPZMv7oc0CNEIEQAGg8Pr/0ltskCDXJvLF+VPc=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -26,7 +26,7 @@ in
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-jQRnFGqQvk6my7ejnesv1pylCmEXLs9GKbQJEZdsaYg=";
+      vendorHash = "sha256-MhR8B2+Yb/xqrTlIxaVHLoQf1eTOO49c65l72IAuZyU=";
       tags = (oa.tags or [ ]) ++ [ "embed_ui" ];
       preBuild = ''
         ldflags+=" -X main.commit=$(cat COMMIT)"
@@ -41,7 +41,7 @@ in
           pname = "llama-swap-ui";
           inherit version src;
           sourceRoot = "${src.name}/ui-svelte";
-          npmDepsHash = "sha256-cAdFKDhmyaYCoKqSYEuAhu29rBxs7i8uTmU2SHwTLnY=";
+          npmDepsHash = "sha256-6MPXQtmaz97D9PUU2Nn5DH/2HZNP/rnAWVSck/FiCyk=";
           postPatch = ''
             substituteInPlace vite.config.ts \
               --replace-fail "../internal/server/ui_dist" "${placeholder "out"}/ui_dist"
@@ -65,12 +65,12 @@ in
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "10245";
+              version = "10274";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-S33x6+LPa0BFPbZD5A+M4TfHlDNfJ8Z3QcRK95XU7s4=";
+                hash = "sha256-xjeh+zY8n2kh+CZKDf9v8kKKITsdd6CkwXrk8q7aMCQ=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
