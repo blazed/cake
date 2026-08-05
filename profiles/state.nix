@@ -72,6 +72,7 @@
         ".config/pipewire"
         ".config/pulse"
         ".config/spotify"
+        ".config/vesktop"
         ".config/warcraftlogs"
         ".factorio"
         ".gemini"
