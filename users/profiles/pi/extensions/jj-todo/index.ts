@@ -8,6 +8,7 @@
 import { randomUUID } from "node:crypto";
 import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
 const JJ_TIMEOUT_MS = 8_000;
@@ -616,6 +617,41 @@ export default function jjTodoExtension(pi: ExtensionAPI) {
       "Use jj_todo read actions before verbose jj shell commands; use bash with jj for graph edits and unusual mutations.",
     ],
     parameters: jjTodoParams,
+    renderShell: "self",
+    renderCall(args, theme) {
+      const target = args.rev ?? args.parent;
+      const detail = [args.action, args.flag, target].filter(Boolean).join(" ");
+      return new Text(
+        theme.fg("toolTitle", theme.bold("JJ TODO")) + ` ${theme.fg("accent", detail)}`,
+        0,
+        0,
+      );
+    },
+    renderResult(result, options, theme, context) {
+      const details = result.details as {
+        action?: JjTodoAction;
+        ok?: boolean;
+        issues?: unknown[];
+        tasks?: unknown[];
+        ready?: unknown[];
+        task?: { firstLine?: string };
+        previewTask?: { firstLine?: string };
+      } | undefined;
+      const action = details?.action ?? context.args.action;
+      const subject = details?.task?.firstLine ?? details?.previewTask?.firstLine;
+      const fallback = subject
+        ?? (action === "check"
+          ? details?.ok ? "workflow healthy" : `${details?.issues?.length ?? 0} workflow issue(s)`
+          : action === "next"
+            ? `${details?.ready?.length ?? 0} task(s) ready`
+            : `${details?.tasks?.length ?? 0} task(s)`);
+      const raw = result.content.find((item) => item.type === "text")?.text;
+      const summary = context.isError ? raw?.split(/\r?\n/, 1)[0] ?? fallback : fallback;
+      const color = context.isError ? "error" : "success";
+      let text = theme.fg(color, `${context.isError ? "x" : "✓"} ${summary}`);
+      if (options.expanded && raw && raw !== summary) text += `\n${raw}`;
+      return new Text(text, 0, 0);
+    },
 
     async execute(_toolCallId, params: JjTodoParams, signal, _onUpdate, ctx) {
       const action = params.action;

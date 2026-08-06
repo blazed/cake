@@ -74,6 +74,7 @@ import {
   runTool,
   type SubagentRuntime,
 } from "./src/runtime.ts";
+import { compactCall, compactResult } from "./src/tool-renderer.ts";
 import { openSubagentPicker, openSubagentTakeover } from "./src/ui/takeover.ts";
 import { resolveClaudePermissionPolicy } from "./src/backends/claude-permissions.ts";
 import { addUsage, createUsageLedger } from "./src/usage.ts";
@@ -393,6 +394,15 @@ export default function (pi: ExtensionAPI) {
         }),
       ),
     }),
+    renderShell: "self",
+    renderCall(args, theme) {
+      return compactCall(theme, "Subagent Spawn", `${args.harness}: ${args.name}`);
+    },
+    renderResult(result, options, theme, context) {
+      const details = result.details as { id?: string; title?: string } | undefined;
+      const summary = `${details?.id ?? "subagent"} · ${details?.title ?? "spawned"}`;
+      return compactResult(result, { ...options, isError: context.isError }, theme, summary);
+    },
     async execute(_toolCallId, params, signal, _onUpdate, ctx) {
       const manager = await getManager();
       const harness = params.harness;
@@ -463,6 +473,18 @@ export default function (pi: ExtensionAPI) {
         description: SUBAGENT_WAIT_PARAMETER_DESCRIPTIONS.ids,
       }),
     }),
+    renderShell: "self",
+    renderCall(args, theme) {
+      return compactCall(theme, "Subagent Wait", args.ids.join(", "));
+    },
+    renderResult(result, options, theme, context) {
+      const details = result.details as { pending?: string[]; results?: unknown[] } | undefined;
+      const count = details?.pending?.length ?? details?.results?.length ?? 0;
+      const summary = options.isPartial
+        ? `Waiting for ${count} subagent(s)…`
+        : `${count} subagent(s) settled`;
+      return compactResult(result, { ...options, isError: context.isError }, theme, summary);
+    },
     async execute(_toolCallId, params, signal, onUpdate) {
       const manager = await getManager();
       const ids = [...new Set(params.ids)];
@@ -565,6 +587,20 @@ export default function (pi: ExtensionAPI) {
         description: SUBAGENT_CANCEL_PARAMETER_DESCRIPTIONS.ids,
       }),
     }),
+    renderShell: "self",
+    renderCall(args, theme) {
+      return compactCall(theme, "Subagent Cancel", args.ids.join(", "));
+    },
+    renderResult(result, options, theme, context) {
+      const details = result.details as { results?: unknown[] } | undefined;
+      const count = details?.results?.length ?? 0;
+      return compactResult(
+        result,
+        { ...options, isError: context.isError },
+        theme,
+        `${count} subagent(s) handled`,
+      );
+    },
     async execute(_toolCallId, params, signal) {
       const manager = await getManager();
       const ids = [...new Set(params.ids)];
@@ -618,6 +654,15 @@ export default function (pi: ExtensionAPI) {
         description: SUBAGENT_CHECK_PARAMETER_DESCRIPTIONS.id,
       }),
     }),
+    renderShell: "self",
+    renderCall(args, theme) {
+      return compactCall(theme, "Subagent Check", args.id);
+    },
+    renderResult(result, options, theme, context) {
+      const details = result.details as { id?: string; status?: string; turns?: number } | undefined;
+      const summary = `${details?.id ?? "subagent"} · ${details?.status ?? "unknown"} · ${details?.turns ?? 0} turn(s)`;
+      return compactResult(result, { ...options, isError: context.isError }, theme, summary);
+    },
     async execute(_toolCallId, params) {
       const manager = await getManager();
       const snap = manager.view.get(params.id);
@@ -655,6 +700,20 @@ export default function (pi: ExtensionAPI) {
     label: "List Subagents",
     description: SUBAGENT_LIST_TOOL_DESCRIPTION,
     parameters: Type.Object({}),
+    renderShell: "self",
+    renderCall(_args, theme) {
+      return compactCall(theme, "Subagent List");
+    },
+    renderResult(result, options, theme, context) {
+      const details = result.details as { subagents?: unknown[] } | undefined;
+      const count = details?.subagents?.length ?? 0;
+      return compactResult(
+        result,
+        { ...options, isError: context.isError },
+        theme,
+        `${count} subagent(s)`,
+      );
+    },
     async execute() {
       const manager = await getManager();
       const subs = manager.view.list().filter(isModelVisible);
