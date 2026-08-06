@@ -6,6 +6,7 @@
  */
 
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
 
 const JJ_TIMEOUT_MS = 5_000;
@@ -290,6 +291,39 @@ export default function jjContextExtension(pi: ExtensionAPI) {
       "Do not use jj_context for explicit mutations. Its default fresh read may perform JJ's normal working-copy snapshot.",
     ],
     parameters: jjContextParams,
+    renderShell: "self",
+    renderCall(args, theme) {
+      const mode = args.mode ?? "summary";
+      const revset = args.revset ? ` ${theme.fg("dim", args.revset)}` : "";
+      return new Text(
+        theme.fg("toolTitle", theme.bold("JJ Context")) + ` ${theme.fg("accent", mode)}` + revset,
+        0,
+        0,
+      );
+    },
+    renderResult(result, options, theme, context) {
+      const details = result.details as {
+        current?: CurrentRevision;
+        changes?: { changed?: { total?: number } };
+        log?: unknown[];
+        operation?: { recent?: unknown[] };
+      } | undefined;
+      const mode = (context.args.mode ?? "summary") as JjMode;
+      const count = mode === "log"
+        ? `${details?.log?.length ?? 0} revision(s)`
+        : mode === "recovery"
+          ? `${details?.operation?.recent?.length ?? 0} operation(s)`
+          : `${details?.changes?.changed?.total ?? 0} changed file(s)`;
+      const current = details?.current
+        ? ` · ${details.current.changeId} ${details.current.description}`
+        : "";
+      const raw = result.content.find((item) => item.type === "text")?.text;
+      const summary = context.isError ? raw?.split(/\r?\n/, 1)[0] ?? count : `${count}${current}`;
+      const color = context.isError ? "error" : "success";
+      let text = theme.fg(color, `${context.isError ? "x" : "✓"} ${summary}`);
+      if (options.expanded && raw && raw !== summary) text += `\n${raw}`;
+      return new Text(text, 0, 0);
+    },
 
     async execute(_toolCallId, params: JjContextParams, signal, _onUpdate, ctx) {
       const mode = (params.mode ?? "summary") as JjMode;
