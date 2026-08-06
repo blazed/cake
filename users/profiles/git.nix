@@ -44,6 +44,7 @@ in
 
     ignores = [
       ".nvimlog" # TODO(blazed): find out why this is needed?
+      ".pi/quiet-tools"
       ".pi/remote-pi/"
       ".pi/workflows/"
     ];
