@@ -31,6 +31,9 @@ let
       "npm:pi-mcp-adapter@2.19.0"
       "npm:pi-quiet-tools@0.2.0"
       "npm:pi-web-access@0.17.1"
+
+      # testing
+      "npm:pi-subagents@0.44.0"
       {
         source = "npm:remote-pi@0.5.5";
         extensions = [ ];
@@ -57,6 +60,46 @@ let
     steeringMode = "all";
     followUpMode = "all";
     showCacheMissNotices = true;
+    subagents = {
+      defaultModel = "openai-codex/gpt-5.6-terra";
+      defaultThinking = "medium";
+      modelScope = {
+        enforce = true;
+        allow = [
+          "openai-codex/*"
+          "opencode-go/*"
+        ];
+      };
+      agentOverrides = {
+        scout = {
+          model = "openai-codex/gpt-5.6-luna";
+          thinking = "low";
+          fallbackModels = [ "opencode-go/deepseek-v4-flash:high" ];
+        };
+        researcher = {
+          model = "opencode-go/deepseek-v4-flash";
+          thinking = "max";
+          fallbackModels = [ "openai-codex/gpt-5.6-terra:high" ];
+        };
+        delegate = {
+          model = "openai-codex/gpt-5.6-terra";
+          thinking = "medium";
+        };
+        worker = {
+          model = "openai-codex/gpt-5.6-luna";
+          thinking = "xhigh";
+        };
+        reviewer = {
+          model = "openai-codex/gpt-5.6-sol";
+          thinking = "xhigh";
+        };
+        oracle = {
+          model = "openai-codex/gpt-5.6-sol";
+          thinking = "xhigh";
+          fallbackModels = [ "opencode-go/deepseek-v4-flash:max" ];
+        };
+      };
+    };
     openaiNativeCompaction = {
       enabled = true;
       debug = false;
@@ -194,8 +237,6 @@ let
 
   localExtensionsCheck = pkgs.callPackage ./extension-check.nix { inherit piNode; };
 
-  subagentsExtension = pkgs.callPackage ./subagents-package.nix { inherit piNode; };
-
   piExtensions = pkgs.runCommand "pi-extensions" { } ''
     test -e ${localExtensionsCheck}/result
     cp -r ${./extensions}/. $out
@@ -230,7 +271,8 @@ in
     recursive = true;
   };
 
-  home.file.".pi/agent/extensions/subagents".source = subagentsExtension;
+  # Subagents extension disabled (source kept at ./extensions/subagents).
+  # Re-enable with: home.file.".pi/agent/extensions/subagents".source = pkgs.callPackage ./subagents-package.nix { inherit piNode; };
 
   home.file.".pi/agent/AGENTS.md".source = ./AGENTS.md;
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
