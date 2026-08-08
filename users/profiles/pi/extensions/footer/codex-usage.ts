@@ -108,7 +108,9 @@ async function readCodexQuotaSnapshot(ctx: ExtensionContext, signal: AbortSignal
   const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
   if (!auth.ok || !auth.apiKey) return null;
 
-  const headers = new Headers(auth.headers);
+  const headers = new Headers(
+    Object.entries(auth.headers ?? {}).filter((e): e is [string, string] => e[1] !== null),
+  );
   headers.set("Authorization", `Bearer ${auth.apiKey}`);
   headers.set("Accept", "application/json");
   headers.set("User-Agent", "cake-footer");
