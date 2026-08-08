@@ -25,12 +25,12 @@ let
     ++ [
       "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
       "git:github.com/DietrichGebert/ponytail@16f29800fd2681bdf24f3eb4ccffe38be3baec6b"
-      "npm:@juicesharp/rpiv-ask-user-question@2.3.1"
+      "npm:@juicesharp/rpiv-ask-user-question@2.4.0"
       "npm:@vanillagreen/pi-tool-renderer@1.7.1"
-      "npm:pi-blackhole@0.4.3"
-      "npm:pi-mcp-adapter@2.19.0"
+      "npm:pi-blackhole@0.4.5"
+      "npm:pi-mcp-adapter@2.21.1"
       "npm:pi-quiet-tools@0.2.0"
-      "npm:pi-web-access@0.17.1"
+      "npm:pi-web-access@0.19.0"
       {
         source = "npm:remote-pi@0.5.5";
         extensions = [ ];
