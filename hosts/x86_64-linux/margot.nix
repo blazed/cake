@@ -34,8 +34,6 @@
 
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 
-  services.fwupd.enable = true;
-
   boot.initrd.availableKernelModules = [
     "igc"
     "nvme"
