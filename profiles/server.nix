@@ -29,6 +29,7 @@ in
   networking.firewall.allowedTCPPorts = [ 22 ];
 
   services.smartd.enable = true;
+  services.fwupd.enable = true;
 
   programs.fish.enable = true;
   security.sudo.wheelNeedsPassword = false;
