@@ -76,6 +76,13 @@ pkgs.testers.runNixOSTest {
               hairpin = false;
               rateLimitNew = "10/minute burst 20 packets";
             }
+            {
+              # exercises the `protocol = "udp"` forward path (the tcp
+              # enum default is otherwise never tested)
+              port = 7777;
+              target = "10.0.10.5:7777";
+              protocol = "udp";
+            }
           ];
           # newer dnsmasq's stop-dns-rebind also covers the TEST-NET
           # documentation ranges this test uses as upstream sentinels, so
@@ -155,8 +162,10 @@ pkgs.testers.runNixOSTest {
     # Static-IP backend on the trusted VLAN, used as the target for both
     # `portForwards` (WAN-ingress DNAT and hairpin) test cases.
     backend =
-      { lib, ... }:
+      { lib, pkgs, ... }:
       {
+        # python3 for the UDP listener in the udp-DNAT subtest
+        environment.systemPackages = [ pkgs.python3 ];
         virtualisation.vlans = [ 2 ];
         networking.useDHCP = lib.mkForce false;
         networking.vlans.lan10 = {
@@ -192,8 +201,10 @@ pkgs.testers.runNixOSTest {
       };
 
     wan =
-      { lib, ... }:
+      { lib, pkgs, ... }:
       {
+        # python3 for the UDP sender in the udp-DNAT subtest
+        environment.systemPackages = [ pkgs.python3 ];
         virtualisation.vlans = [ 1 ];
         networking.useDHCP = lib.mkForce false;
         networking.interfaces.eth1.ipv4.addresses = [
@@ -380,6 +391,29 @@ pkgs.testers.runNixOSTest {
         # iot is excluded from the hairpin DNAT set, so its traffic to the
         # WAN IP dead-ends at the router's input chain.
         iot.fail("curl -sf --max-time 3 http://198.51.100.1:8443/")
+
+    with subtest("portForward: WAN client reaches LAN backend via UDP DNAT"):
+        # the udp forward (port 7777 -> 10.0.10.5:7777) is protocol-
+        # specific, so a TCP curl can't validate it; run a one-shot UDP
+        # listener on the backend and send datagrams through the router
+        # from the WAN side. (bash /dev/udp silently fails to transmit
+        # here, hence the python sender.) nohup+redirect so the driver
+        # session doesn't wait on the backgrounded socket.
+        backend.succeed(
+            "cat >/tmp/recv.py <<'EOF'\n"
+            "import socket\n"
+            "s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\n"
+            "s.bind(('10.0.10.5', 7777))\n"
+            "d, a = s.recvfrom(64)\n"
+            "open('/tmp/udp-ok', 'w').write(a[0])\n"
+            "EOF\n"
+            "nohup python3 /tmp/recv.py >/tmp/recv.log 2>&1 &\n"
+        )
+        wan.succeed(
+            "python3 -c \"import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); "
+            "[(s.sendto(b'ping', ('198.51.100.1', 7777))) for _ in range(5)]\""
+        )
+        backend.wait_until_succeeds("test -f /tmp/udp-ok", timeout=30)
 
     with subtest("portForward hairpin: traffic to router's own LAN IP isn't hijacked"):
         # The hairpin rule excludes destinations matching internal-interface

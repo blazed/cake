@@ -154,6 +154,12 @@
         hairpin = true;
         rateLimitNew = "10/minute burst 20 packets";
       }
+      {
+        port = 7777;
+        target = "10.0.10.16:7777";
+        protocol = "udp";
+        hairpin = true;
+      }
     ];
     dotUpstreams = [
       "45.90.28.0"
@@ -177,6 +183,7 @@
       address = [
         "/registry.exsules.com/10.0.10.14"
         "/git.exsules.com/10.0.10.14"
+        "/play.exsules.com/10.0.10.16"
       ];
     };
   };
