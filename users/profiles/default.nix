@@ -79,19 +79,5 @@ in
 
   programs.skim.enable = true;
 
-  systemd.user.services.nix-index = {
-    Unit.Description = "Nix-index indexes all files in nixpkgs";
-    Service.ExecStart = "${pkgs.nix-index}/bin/nix-index";
-  };
-
-  systemd.user.timers.nix-index = {
-    Unit.Description = "Nix-index indexes all files in nixpkgs";
-    Timer = {
-      OnCalendar = "*-*-* 4:00:00";
-      Unit = "nix-index.service";
-    };
-    Install.WantedBy = [ "timers.target" ];
-  };
-
   home.stateVersion = "25.05";
 }
