@@ -47,6 +47,7 @@ in
       ".pi-subagents/"
       ".pi/quiet-tools/"
       ".pi/remote-pi/"
+      ".pi/subagents/"
       ".pi/workflows/"
     ];
   };
