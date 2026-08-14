@@ -1,0 +1,6 @@
+diff --git a/cmd/vllm-wrapper/main_test.go b/cmd/vllm-wrapper/main_test.go
+--- a/cmd/vllm-wrapper/main_test.go
++++ b/cmd/vllm-wrapper/main_test.go
+@@ -111 +111 @@ func TestStartDaemonArgv(t *testing.T) {
+-		"#!/bin/bash\nprintf '%s\n' \"$@\" > \""+argvFile+"\"\nexit 0\n",
++		"#!/bin/sh\nprintf '%s\n' \"$@\" > \""+argvFile+"\"\nexit 0\n",
