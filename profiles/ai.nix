@@ -117,6 +117,7 @@ in
             cmd = lib.concatStringsSep "\n" (
               [
                 llama-server
+                "--host ::1"
                 "-hf ${hf}"
                 "--port \${PORT}"
                 "--ctx-size ${toString ctx}"
@@ -170,6 +171,27 @@ in
             sampling = deepseekSampling;
             # The embedded template supports enable_thinking but enables no mode by default.
             thinking = false;
+          };
+          "qwen3.8-27b:q8" = mkModel {
+            hf = "unsloth/Qwen3.8-27B-GGUF:Q8_0";
+            kv = "q8_0";
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+              "--top-k 20"
+              "--min-p 0.0"
+            ];
+            mtp = true;
+          };
+          "muse-glimmer-30b:q8" = mkModel {
+            hf = "unsloth/Muse-Glimmer-30B-GGUF:UD-Q8_K_XL";
+            kv = "q8_0";
+            ctx = 131072;
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+              "--top-k 64"
+            ];
           };
         };
 
