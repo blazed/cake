@@ -9,9 +9,11 @@
       EDITOR = "nvim";
       MANPAGER = "nvim -c 'set ft=man bt=nowrite noswapfile nobk shada=\\\"NONE\\\" ro noma' +Man! -o -";
     };
-    packages = [
-      pkgs.candle
-      pkgs.nvrh
-    ];
+    packages = [ pkgs.nvrh ];
+  };
+
+  programs.lazyvim = {
+    enable = true;
+    extras.lang.nix.enable = true;
   };
 }
