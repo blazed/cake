@@ -52,6 +52,66 @@
       };
     };
 
+  systemd.services.k3s-node-lifecycle =
+    let
+      nodeLifecycle = pkgs.writeShellApplication {
+        name = "k3s-node-lifecycle";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.kubectl
+        ];
+        text = ''
+          export KUBECONFIG=/run/agenix/k3s-node-lifecycle
+          node=${lib.escapeShellArg hostName}
+
+          case "''${1:-}" in
+            start)
+              until kubectl get node "$node" >/dev/null 2>&1; do
+                sleep 5
+              done
+              kubectl uncordon "$node"
+              exec sleep infinity
+              ;;
+            drain)
+              kubectl drain "$node" \
+                --ignore-daemonsets \
+                --delete-emptydir-data \
+                --timeout=10m
+              ;;
+            *)
+              echo "usage: $0 start|drain" >&2
+              exit 2
+              ;;
+          esac
+        '';
+      };
+    in
+    {
+      description = "Drain and recover the local k3s node";
+      unitConfig = {
+        ConditionPathExists = "/run/agenix/k3s-node-lifecycle";
+        X-StopOnRemoval = false;
+      };
+      wantedBy = [ "multi-user.target" ];
+      wants = [
+        "network-online.target"
+        "k3s.service"
+      ];
+      after = [
+        "network-online.target"
+        "k3s.service"
+      ];
+      before = [ "shutdown.target" ];
+      conflicts = [ "shutdown.target" ];
+      restartIfChanged = false;
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = "${nodeLifecycle}/bin/k3s-node-lifecycle start";
+        ExecStop = "${nodeLifecycle}/bin/k3s-node-lifecycle drain";
+        TimeoutStopSec = "15min";
+      };
+    };
+
   services.k3s = {
     enable = true;
     package = pkgs.k3s_1_36;

@@ -24,6 +24,9 @@
     k3s-token = {
       file = ../../secrets/k3s/token.age;
     };
+    k3s-node-lifecycle = {
+      file = ../../secrets/k3s/node-lifecycle-kubeconfig.age;
+    };
     wifi-networks = {
       file = ../../secrets/wifi-networks.age;
     };
