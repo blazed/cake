@@ -211,6 +211,52 @@ let
               };
             };
           }
+          {
+            id = "qwen3.8-27b:q8";
+            name = "Qwen3.8 27B Q8";
+            reasoning = true;
+            input = [ "text" ];
+            contextWindow = 262144;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+            compat = {
+              thinkingFormat = "chat-template";
+              chatTemplateKwargs = {
+                enable_thinking = {
+                  "$var" = "thinking.enabled";
+                };
+                preserve_thinking = true;
+              };
+            };
+          }
+          {
+            id = "qwen3.8-27b:blackfrost-q8";
+            name = "Qwen3.8 27B Blackfrost Q8";
+            reasoning = true;
+            input = [ "text" ];
+            contextWindow = 262144;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+            compat = {
+              thinkingFormat = "chat-template";
+              chatTemplateKwargs = {
+                enable_thinking = {
+                  "$var" = "thinking.enabled";
+                };
+                preserve_thinking = true;
+              };
+            };
+          }
         ];
       };
     };

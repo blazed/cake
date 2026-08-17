@@ -49,6 +49,7 @@
         ".cache/nix"
         ".cache/nix-index"
         ".cache/nvim"
+        ".cache/restic"
         ".cache/spotify"
         ".cache/umu"
         ".cache/zellij"

@@ -184,6 +184,17 @@ in
             ];
             mtp = true;
           };
+          "qwen3.8-27b:blackfrost-q8" = mkModel {
+            hf = "Blackfrost-AI/Qwen3.8-27B-ABLITERATED-GGUF:Q8_0";
+            kv = "q8_0";
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+              "--top-k 20"
+              "--min-p 0.0"
+            ];
+            mtp = true;
+          };
           "muse-glimmer-30b:q8" = mkModel {
             hf = "unsloth/Muse-Glimmer-30B-GGUF:UD-Q8_K_XL";
             kv = "q8_0";
