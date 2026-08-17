@@ -76,7 +76,7 @@ in
   ];
 
   programs.niri = {
-    package = pkgs.niri-unstable;
+    package = inputs.niri.packages.${pkgs.system}.niri-unstable;
     enable = true;
 
     config = kdl.serialize.nodes (settings.render config.programs.niri.settings) + ''

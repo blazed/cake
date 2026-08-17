@@ -404,11 +404,13 @@ pkgs.testers.runNixOSTest {
             "import socket\n"
             "s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\n"
             "s.bind(('10.0.10.5', 7777))\n"
+            "open('/tmp/udp-ready', 'w').close()\n"
             "d, a = s.recvfrom(64)\n"
             "open('/tmp/udp-ok', 'w').write(a[0])\n"
             "EOF\n"
             "nohup python3 /tmp/recv.py >/tmp/recv.log 2>&1 &\n"
         )
+        backend.wait_until_succeeds("test -f /tmp/udp-ready", timeout=10)
         wan.succeed(
             "python3 -c \"import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); "
             "[(s.sendto(b'ping', ('198.51.100.1', 7777))) for _ in range(5)]\""

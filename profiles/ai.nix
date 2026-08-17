@@ -244,10 +244,7 @@ in
 
   systemd.services.llama-swap.serviceConfig = {
     LimitMEMLOCK = "infinity";
-    CacheDirectory = [
-      "llama.cpp"
-      "huggingface"
-    ];
+    CacheDirectory = lib.mkForce "llama-swap llama.cpp huggingface";
     # The upstream module sets ProcSubset = "pid", which hides /proc/meminfo, /proc/stat
     # and /proc/loadavg - the performance monitor's gopsutil reads need them. Relax it so
     # system CPU/RAM/load metrics work (other processes stay hidden via ProtectProc).

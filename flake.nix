@@ -75,14 +75,11 @@
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-hardware.url = "github:nixos/nixos-hardware";
-    # Newer nixpkgs currently breaks input-remapper and avante.nvim builds;
-    # keep the last known-good revision until those regressions are fixed.
-    nixpkgs.url = "github:NixOS/nixpkgs/d407951447dcd00442e97087bf374aad70c04cea";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     persway.inputs.crane.follows = "crane";
     persway.inputs.devenv.follows = "devenv";
-    candle.url = "github:blazed/candle/add-nixvim";
-    candle.inputs.nixpkgs.follows = "nixpkgs";
+    lazyvim.url = "github:pfassina/lazyvim-nix";
     persway.inputs.fenix.follows = "fenix";
     persway.inputs.flake-parts.follows = "flake-parts";
     persway.inputs.flake-utils.follows = "flake-utils";

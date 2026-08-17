@@ -17,7 +17,6 @@ let
     "container-processes"
     "container-shell"
     "devenv-up"
-    "candle" # Disabled until I can figure out why it fails
   ];
   # These workstation hosts currently exceed GitHub-hosted runner limits when
   # building from a cold cache. Keep lighter host builds enabled, and cache the
