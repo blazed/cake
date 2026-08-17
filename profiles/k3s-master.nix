@@ -87,11 +87,48 @@ in
             externalIPs: false
             loadBalancerIPs: true
         '';
+        nodeLifecycleRbac = pkgs.writeText "k3s-node-lifecycle-rbac.yaml" ''
+          ---
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: k3s-node-lifecycle
+            namespace: kube-system
+          ---
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRole
+          metadata:
+            name: k3s-node-lifecycle
+          rules:
+            - apiGroups: [""]
+              resources: ["nodes"]
+              verbs: ["get", "patch", "update"]
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["get", "list", "delete"]
+            - apiGroups: ["policy"]
+              resources: ["pods/eviction"]
+              verbs: ["create"]
+          ---
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: k3s-node-lifecycle
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: k3s-node-lifecycle
+          subjects:
+            - kind: ServiceAccount
+              name: k3s-node-lifecycle
+              namespace: kube-system
+        '';
       in
       {
         kured = "${pkgs.kured-yaml}/kured.yaml";
         cilium = "${cilium}/cilium.yaml";
         cilium-l2 = "${ciliumL2}";
+        k3s-node-lifecycle-rbac = "${nodeLifecycleRbac}";
       };
   };
 }

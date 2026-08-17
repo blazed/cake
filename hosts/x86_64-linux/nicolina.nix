@@ -36,6 +36,9 @@
     k3s-token = {
       file = ../../secrets/k3s/token.age;
     };
+    k3s-node-lifecycle = {
+      file = ../../secrets/k3s/node-lifecycle-kubeconfig.age;
+    };
     id_ed25519 = {
       file = ../../secrets/id_ed25519.age;
       owner = "${toString adminUser.uid}";

@@ -23,6 +23,9 @@
     k3s-token = {
       file = ../../secrets/k3s/token.age;
     };
+    k3s-node-lifecycle = {
+      file = ../../secrets/k3s/node-lifecycle-kubeconfig.age;
+    };
     ts = {
       file = ../../secrets/ts.age;
       owner = "1447";
