@@ -1,4 +1,3 @@
-# Shared bubblewrap definitions for jailed agents and their NixOS tests.
 { pkgs, inputs }:
 let
   inherit (pkgs.stdenv.hostPlatform) system;
@@ -6,7 +5,6 @@ let
   llm = inputs.llm-agents.packages.${system};
   piNode = import ./pi/node-package.nix { inherit pkgs inputs; };
 
-  # Curated tools; credentials remain unavailable unless explicitly injected per agent.
   devTools = with pkgs; [
     # keep-sorted start
     bashInteractive
@@ -37,7 +35,6 @@ let
   cu = "${pkgs.coreutils}/bin";
   jjBin = "${pkgs.jujutsu}/bin/jj";
 
-  # Preserve project environments while filtering secrets and prepending devTools.
   forwardHostEnv =
     c: with c; [
       (ro-bind "/nix/store" "/nix/store")
@@ -58,8 +55,6 @@ let
       '')
     ];
 
-  # Inject JJ identity without mounting ~/.config/jj or SSH signing keys. Bind the
-  # current workspace and shared repository store so parallel workspaces function.
   jjWorkspace =
     c: with c; [
       (add-runtime ''
@@ -91,38 +86,31 @@ let
       '')
     ];
 
-  # Permissions shared by every jailed agent.
   common =
     c:
     (with c; [
-      network # API calls (and local llama on :9292 if used)
+      network
       time-zone
-      mount-cwd # current project dir, read-write
-      # Respect Home Manager's global Git ignore rules without exposing all Git config.
+      mount-cwd
       (try-readonly (noescape "~/.config/git/ignore"))
-      no-new-session # interactive TUIs need to feed input to the terminal
+      no-new-session
       (try-fwd-env "TERM")
       (try-fwd-env "COLORTERM")
       (try-fwd-env "LANG")
       (add-pkg-deps devTools)
-      # Provide /usr/bin/env so `#!/usr/bin/env bash|sh|nu|...` shebangs work for
-      # scripts the agent runs; the interpreters are on the in-jail PATH.
       (ro-bind "${pkgs.coreutils}/bin/env" "/usr/bin/env")
     ])
     ++ forwardHostEnv c
     ++ jjWorkspace c;
 
-  # Combine shared permissions with agent-specific config paths and extras.
   permsFor =
     spec: c:
     common c
     ++ map (p: c.try-readwrite (c.noescape p)) (spec.paths or [ ])
     ++ (spec.extra or (_: [ ])) c;
 
-  # name -> { pkg; paths?; extra?; }
   agents = {
     claude = {
-      # The jail is the permission boundary, so Claude runs without its own prompts.
       pkg = pkgs.writeShellScriptBin "claude" ''
         exec ${
           pkgs.lib.getExe inputs.claude-code.packages.${system}.default
@@ -135,7 +123,6 @@ let
       extra = c: [ (c.try-fwd-env "ANTHROPIC_API_KEY") ];
     };
     codex = {
-      # The jail is the permission boundary, so Codex bypasses its sandbox.
       pkg = pkgs.writeShellScriptBin "codex" ''
         exec ${pkgs.lib.getExe llm.codex} --dangerously-bypass-approvals-and-sandbox "$@"
       '';
@@ -153,16 +140,11 @@ let
         "~/.config/pi"
       ];
       extra = c: [
-        # Store Pi's inspectable temporary output on disk instead of tmpfs.
         (c.add-runtime ''
           ${cu}/install -d -m 0700 "$HOME/.pi/tmp"
           RUNTIME_ARGS+=(--setenv TMPDIR "$HOME/.pi/tmp")
         '')
-        # pi-web-access resolves Exa only when requested; expose the agenix file
-        # read-only instead of injecting it into every child process environment.
         (c.try-readonly (c.noescape "/run/agenix/exa-api-key"))
-        # Give Pass an isolated, ephemeral session without exposing the host keyring or
-        # the host's Proton Pass session. The PAT is injected only into jailed Pi.
         (c.add-runtime ''
           RUNTIME_ARGS+=(
             --setenv PROTON_PASS_KEY_PROVIDER fs
@@ -183,7 +165,6 @@ let
   ) agents;
   wrappers = pkgs.lib.attrValues wrappersByName;
 
-  # Generate launcher dispatch from the configured agents.
   agentNames = pkgs.lib.concatStringsSep "|" (builtins.attrNames agents);
   agentArms = pkgs.lib.concatStringsSep "\n" (
     pkgs.lib.mapAttrsToList (
@@ -191,130 +172,152 @@ let
     ) wrappersByName
   );
 
-  # Create, list, and safely remove per-feature JJ workspaces for jailed agents.
-  launcher = pkgs.writeShellApplication {
-    name = "jailed-agent-ws";
-    runtimeInputs = with pkgs; [
-      jujutsu
-      direnv
-      coreutils
-      gnugrep
-    ];
-    text = ''
-            # Resolve the main repository from any workspace.
-            mainroot() {
-              local root ptr store
-              root=$(jj workspace root 2>/dev/null) || return 1
-              ptr="$root/.jj/repo"
-              if [ -f "$ptr" ]; then
-                store=$(realpath -m "$root/.jj/$(<"$ptr")")
-              else
-                store="$ptr"
-              fi
-              dirname "$(dirname "$store")"
-            }
+  hostAgentNames = "claude|codex|pi";
+  hostAgentArms = ''
+    claude) bin=${pkgs.lib.getExe inputs.claude-code.packages.${system}.default} ;;
+    codex) bin=${pkgs.lib.getExe llm.codex} ;;
+    pi) bin=${piNode}/bin/pi ;;
+  '';
 
-            sub="''${1:-}"
-            if [ "$#" -gt 0 ]; then shift; fi
-            case "$sub" in
-              new)
-                if [ "$#" -lt 2 ]; then
-                  echo "usage: jailed-agent-ws new <${agentNames}> <feature> [agent args...]" >&2
-                  exit 2
+  mkLauncher =
+    {
+      name,
+      agentNames,
+      agentArms,
+      mode,
+    }:
+    pkgs.writeShellApplication {
+      inherit name;
+      runtimeInputs = with pkgs; [
+        jujutsu
+        direnv
+        coreutils
+        gnugrep
+      ];
+      text = ''
+              mainroot() {
+                local root ptr store
+                root=$(jj workspace root 2>/dev/null) || return 1
+                ptr="$root/.jj/repo"
+                if [ -f "$ptr" ]; then
+                  store=$(realpath -m "$root/.jj/$(<"$ptr")")
+                else
+                  store="$ptr"
                 fi
-                agent="$1"; shift
-                name="$1"; shift
-                case "$agent" in
-      ${agentArms}
-                  *) echo "unknown agent '$agent' (expected ${agentNames})" >&2; exit 2 ;;
-                esac
-                mr=$(mainroot) || { echo "not inside a jj repo" >&2; exit 1; }
-                ws="$(dirname "$mr")/$(basename "$mr")-$name"
-                if [ ! -e "$ws/.jj" ]; then
-                  echo "creating jj workspace: $ws" >&2
-                  jj workspace add --name "$name" "$ws"
-                fi
-                cd "$ws" || exit 1
-                # Activate devenv on the host before entering the jail.
-                if [ -f .envrc ]; then
-                  direnv allow . || true
-                  exec direnv exec "$PWD" "$bin" "$@"
-                fi
-                exec "$bin" "$@"
-                ;;
-              rm)
-                force=0
-                name=""
-                for a in "$@"; do
-                  case "$a" in
-                    --force | -f) force=1 ;;
-                    -*) echo "unknown flag '$a'" >&2; exit 2 ;;
-                    *) name="$a" ;;
+                dirname "$(dirname "$store")"
+              }
+
+              sub="''${1:-}"
+              if [ "$#" -gt 0 ]; then shift; fi
+              case "$sub" in
+                new)
+                  if [ "$#" -lt 2 ]; then
+                    echo "usage: ${name} new <${agentNames}> <feature> [agent args...]" >&2
+                    exit 2
+                  fi
+                  agent="$1"; shift
+                  name="$1"; shift
+                  case "$agent" in
+        ${agentArms}
+                    *) echo "unknown agent '$agent' (expected ${agentNames})" >&2; exit 2 ;;
                   esac
-                done
-                if [ -z "$name" ]; then
-                  echo "usage: jailed-agent-ws rm <feature> [--force]" >&2
+                  mr=$(mainroot) || { echo "not inside a jj repo" >&2; exit 1; }
+                  ws="$(dirname "$mr")/$(basename "$mr")-$name"
+                  if [ ! -e "$ws/.jj" ]; then
+                    echo "creating jj workspace: $ws" >&2
+                    jj workspace add --name "$name" "$ws"
+                  fi
+                  cd "$ws" || exit 1
+                  if [ -f .envrc ]; then
+                    direnv allow . || true
+                    exec direnv exec "$PWD" "$bin" "$@"
+                  fi
+                  exec "$bin" "$@"
+                  ;;
+                rm)
+                  force=0
+                  name=""
+                  for a in "$@"; do
+                    case "$a" in
+                      --force | -f) force=1 ;;
+                      -*) echo "unknown flag '$a'" >&2; exit 2 ;;
+                      *) name="$a" ;;
+                    esac
+                  done
+                  if [ -z "$name" ]; then
+                    echo "usage: ${name} rm <feature> [--force]" >&2
+                    exit 2
+                  fi
+                  if [ "$name" = "default" ]; then
+                    echo "refusing to remove the main (default) workspace" >&2
+                    exit 1
+                  fi
+                  curroot=$(jj workspace root 2>/dev/null) || { echo "not inside a jj repo" >&2; exit 1; }
+                  mr=$(mainroot) || { echo "not inside a jj repo" >&2; exit 1; }
+                  ws="$(dirname "$mr")/$(basename "$mr")-$name"
+                  if [ "$curroot" = "$ws" ]; then
+                    echo "refusing to remove the workspace you're in; run from the main checkout" >&2
+                    exit 1
+                  fi
+                  if ! jj workspace list | cut -d: -f1 | grep -qx "$name"; then
+                    echo "no jj workspace named '$name'" >&2
+                    exit 1
+                  fi
+                  if [ "$force" -ne 1 ]; then
+                    if ! unsaved=$(jj log --no-graph --ignore-working-copy \
+                      -r "(::$name@ ~ ::(bookmarks() | remote_bookmarks())) ~ empty()" \
+                      -T '"x"' 2>/dev/null); then
+                      echo "could not check '$name' for unsaved work (jj log failed); refusing to rm." >&2
+                      echo "fix the repo, or pass --force if you're sure (commits stay in the op log)." >&2
+                      exit 1
+                    fi
+                    if [ -n "$unsaved" ]; then
+                      echo "workspace '$name' has commits not reachable from a bookmark:" >&2
+                      jj log -r "(::$name@ ~ ::(bookmarks() | remote_bookmarks())) ~ empty()" >&2 || true
+                      echo "bookmark or merge them first, or pass --force (commits stay in the op log)." >&2
+                      exit 1
+                    fi
+                  fi
+                  echo "forgetting workspace '$name' and removing $ws" >&2
+                  jj workspace forget "$name"
+                  rm -rf "$ws"
+                  ;;
+                ls)
+                  mr=$(mainroot) || { echo "not inside a jj repo" >&2; exit 1; }
+                  parent=$(dirname "$mr")
+                  base=$(basename "$mr")
+                  jj workspace list | while IFS= read -r line; do
+                    n=''${line%%:*}
+                    if [ "$n" = "default" ]; then
+                      echo "$line"
+                    elif [ -d "$parent/$base-$n" ]; then
+                      echo "$line  -> $parent/$base-$n"
+                    else
+                      echo "$line  -> (dir missing: $parent/$base-$n)"
+                    fi
+                  done
+                  ;;
+                *)
+                  echo "usage: ${name} <new|rm|ls> ..." >&2
+                  echo "  new <${agentNames}> <feature> [args...]  create/enter a ${mode} agent workspace" >&2
+                  echo "  rm  <feature> [--force]                    forget the workspace and remove its dir" >&2
+                  echo "  ls                                         list workspaces and their dirs" >&2
                   exit 2
-                fi
-                if [ "$name" = "default" ]; then
-                  echo "refusing to remove the main (default) workspace" >&2
-                  exit 1
-                fi
-                curroot=$(jj workspace root 2>/dev/null) || { echo "not inside a jj repo" >&2; exit 1; }
-                mr=$(mainroot) || { echo "not inside a jj repo" >&2; exit 1; }
-                ws="$(dirname "$mr")/$(basename "$mr")-$name"
-                if [ "$curroot" = "$ws" ]; then
-                  echo "refusing to remove the workspace you're in; run from the main checkout" >&2
-                  exit 1
-                fi
-                if ! jj workspace list | cut -d: -f1 | grep -qx "$name"; then
-                  echo "no jj workspace named '$name'" >&2
-                  exit 1
-                fi
-                if [ "$force" -ne 1 ]; then
-                  # Fail closed if unique, unbookmarked commits cannot be checked.
-                  if ! unsaved=$(jj log --no-graph --ignore-working-copy \
-                    -r "(::$name@ ~ ::(bookmarks() | remote_bookmarks())) ~ empty()" \
-                    -T '"x"' 2>/dev/null); then
-                    echo "could not check '$name' for unsaved work (jj log failed); refusing to rm." >&2
-                    echo "fix the repo, or pass --force if you're sure (commits stay in the op log)." >&2
-                    exit 1
-                  fi
-                  if [ -n "$unsaved" ]; then
-                    echo "workspace '$name' has commits not reachable from a bookmark:" >&2
-                    jj log -r "(::$name@ ~ ::(bookmarks() | remote_bookmarks())) ~ empty()" >&2 || true
-                    echo "bookmark or merge them first, or pass --force (commits stay in the op log)." >&2
-                    exit 1
-                  fi
-                fi
-                echo "forgetting workspace '$name' and removing $ws" >&2
-                jj workspace forget "$name"
-                rm -rf "$ws"
-                ;;
-              ls)
-                mr=$(mainroot) || { echo "not inside a jj repo" >&2; exit 1; }
-                parent=$(dirname "$mr")
-                base=$(basename "$mr")
-                jj workspace list | while IFS= read -r line; do
-                  n=''${line%%:*}
-                  if [ "$n" = "default" ]; then
-                    echo "$line"
-                  elif [ -d "$parent/$base-$n" ]; then
-                    echo "$line  -> $parent/$base-$n"
-                  else
-                    echo "$line  -> (dir missing: $parent/$base-$n)"
-                  fi
-                done
-                ;;
-              *)
-                echo "usage: jailed-agent-ws <new|rm|ls> ..." >&2
-                echo "  new <${agentNames}> <feature> [args...]  create/enter a jailed agent workspace" >&2
-                echo "  rm  <feature> [--force]                    forget the workspace and remove its dir" >&2
-                echo "  ls                                         list workspaces and their dirs" >&2
-                exit 2
-                ;;
-            esac
-    '';
+                  ;;
+              esac
+      '';
+    };
+
+  launcher = mkLauncher {
+    name = "jailed-agent-ws";
+    inherit agentNames agentArms;
+    mode = "jailed";
+  };
+  hostLauncher = mkLauncher {
+    name = "agent-ws";
+    agentNames = hostAgentNames;
+    agentArms = hostAgentArms;
+    mode = "host";
   };
 in
 {
@@ -325,5 +328,6 @@ in
     wrappers
     wrappersByName
     launcher
+    hostLauncher
     ;
 }
