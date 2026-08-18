@@ -41,7 +41,7 @@ in
     settings.trusted-users = [ "root" ];
     extraOptions = ''
       experimental-features = nix-command flakes
-      keep-outputs = true
+      keep-outputs = false
       keep-derivations = true
       tarball-ttl = 900
       !include ${config.age.secrets.github-token.path}
@@ -54,6 +54,8 @@ in
       dates = "daily";
       options = "--delete-older-than 7d";
     };
+
+    optimise.automatic = true;
 
     package = pkgs.nix;
   };
