@@ -112,6 +112,16 @@
       };
     };
 
+  systemd.services.k3s = {
+    wants = [ "tailscaled.service" ];
+    after = [ "tailscaled.service" ];
+    preStart = lib.mkBefore ''
+      until ${pkgs.iproute2}/bin/ip -o -4 addr show scope global dev tailscale0 >/dev/null 2>&1; do
+        sleep 1
+      done
+    '';
+  };
+
   services.k3s = {
     enable = true;
     package = pkgs.k3s_1_36;
