@@ -10,6 +10,20 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
   piNode = import ./node-package.nix { inherit pkgs inputs; };
+  piJujutsu = pkgs.writeShellApplication {
+    name = "jj";
+    text = ''
+      for argument in "$@"; do
+        case "$argument" in
+          --allow-private | --allow-private=*)
+            echo "jj: --allow-private is disabled in Pi" >&2
+            exit 2
+            ;;
+        esac
+      done
+      exec ${lib.getExe pkgs.jujutsu} "$@"
+    '';
+  };
 
   thirdPartyPackages =
     # Work around npm omitting remote-pi's optional native keyring dependency.
@@ -295,7 +309,16 @@ let
     paths = [ piNode ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
+      ${lib.getExe piJujutsu} --version >/dev/null
+      set +e
+      rejection="$(${lib.getExe piJujutsu} git push --allow-private 2>&1)"
+      rejectionStatus=$?
+      set -e
+      test "$rejectionStatus" -eq 2
+      test "$rejection" = "jj: --allow-private is disabled in Pi"
+
       wrapProgram $out/bin/pi \
+        --prefix PATH : ${lib.makeBinPath [ piJujutsu ]} \
         --run 'export TMPDIR="$HOME/.pi/tmp"; ${pkgs.coreutils}/bin/install -d -m 0700 "$TMPDIR"'
     '';
   };

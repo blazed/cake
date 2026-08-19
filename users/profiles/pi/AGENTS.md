@@ -14,6 +14,8 @@ Use tools only when needed. If the user asks only for an explanation, example, o
 
 All repositories on this machine use **JJ (Jujutsu)** with a Git backend. Prefer `jj` over `git` for version-control operations: status, diff, log, commits, bookmarks/branches, fetch, push, and history inspection. Use `git` only when a tool specifically requires Git or for explicit Git interop.
 
+Never pass `--allow-private` to `jj git push`. Private commits are intentionally protected; if a push is rejected, stop and report it instead of bypassing the protection.
+
 ## Shell command output
 
 The user's interactive shell is **Nushell**. When presenting commands for the user to copy and run:
