@@ -50,7 +50,7 @@ let
   themeName = "catppuccin-frappe";
   settings = {
     defaultProvider = "openai-codex";
-    defaultModel = "gpt-5.6-sol";
+    defaultModel = "gpt-5.6-luna";
     defaultThinkingLevel = "high";
     enableInstallTelemetry = false;
     enableSkillCommands = true;
