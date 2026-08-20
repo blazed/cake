@@ -119,7 +119,7 @@ in
               [
                 llama-server
                 "--host ::1"
-                "-hf ${hf}"
+                "--hf-repo ${hf}"
                 "--port \${PORT}"
                 "--ctx-size ${toString ctx}"
                 "--batch-size 4096"
@@ -244,7 +244,6 @@ in
 
   systemd.services.llama-swap.serviceConfig = {
     LimitMEMLOCK = "infinity";
-    CacheDirectory = lib.mkForce "llama-swap llama.cpp huggingface";
     # The upstream module sets ProcSubset = "pid", which hides /proc/meminfo, /proc/stat
     # and /proc/loadavg - the performance monitor's gopsutil reads need them. Relax it so
     # system CPU/RAM/load metrics work (other processes stay hidden via ProtectProc).
@@ -253,7 +252,6 @@ in
       # rocm-smi (GPU backend for the performance monitor) is appended to PATH.
       "PATH=/run/current-system/sw/bin:${pkgs.rocmPackages.rocm-smi}/bin"
       "LD_LIBRARY_PATH=/run/opengl-driver/lib:/run/opengl-driver-32/lib"
-      "XDG_CACHE_HOME=/var/cache"
       # Strix Halo (gfx1151) ROCm tuning:
       # Force correct gfx1151 identification on recent kernels (else misdetected as gfx1100).
       "HSA_OVERRIDE_GFX_VERSION=11.5.1"
