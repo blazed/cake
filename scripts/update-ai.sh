@@ -22,7 +22,7 @@ nix_build_file() {
 update_llama_cpp() {
   local current latest
   current=$(sed -n '/llama-cpp/,/llama-server/{s/.*version = "\([0-9]*\)".*/\1/p}' "$AI_NIX" | head -1)
-  latest=$(curl -s "https://api.github.com/repos/ggml-org/llama.cpp/releases/latest" | jq -r '.tag_name' | sed 's/^b//')
+  latest=$(curl -fsS "https://api.github.com/repos/ggml-org/llama.cpp/releases?per_page=1" | jq -er '.[0].tag_name' | sed 's/^b//')
 
   echo "llama.cpp: current=$current latest=$latest"
   if [ "$current" = "$latest" ]; then
