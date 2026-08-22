@@ -35,6 +35,7 @@ in
     telegram-desktop
     vulkan-loader
     wl-clipboard
+    wl-clipboard-x11
     xdg-utils
   ];
 
