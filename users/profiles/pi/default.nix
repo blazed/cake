@@ -288,7 +288,7 @@ let
     '';
   };
   webSearch = {
-    provider = "exa";
+    provider = "auto";
     exaApiKey = "!${lib.getExe exaApiKeyCommand}";
     allowBrowserCookies = false;
     workflow = "none";
