@@ -41,13 +41,13 @@ let
       "git:github.com/DietrichGebert/ponytail@16f29800fd2681bdf24f3eb4ccffe38be3baec6b"
       "npm:@juicesharp/rpiv-ask-user-question@2.7.0"
       "npm:@vanillagreen/pi-tool-renderer@1.7.2"
-      "npm:pi-blackhole@0.4.7"
+      "npm:pi-blackhole@0.4.8"
       "npm:pi-mcp-adapter@2.27.0"
       "npm:pi-quiet-tools@0.2.0"
-      "npm:pi-web-access@0.24.1"
+      "npm:pi-web-access@0.24.2"
 
       # testing
-      "npm:pi-subagents@0.54.0"
+      "npm:pi-subagents@0.55.0"
       {
         source = "npm:remote-pi@0.5.5";
         extensions = [ ];
