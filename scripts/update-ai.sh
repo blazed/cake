@@ -154,7 +154,8 @@ NIX
 let pkgs = import <nixpkgs> {};
     src = ${llama_swap_src_expr//@HASH@/$src_hash};
 in pkgs.fetchNpmDeps {
-  src = "\${src}/ui-svelte";
+  inherit src;
+  sourceRoot = "\${src.name}/ui";
   hash = "$FAKE_HASH";
 }
 NIX

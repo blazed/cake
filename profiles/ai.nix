@@ -41,7 +41,7 @@ in
         ui = pkgs.buildNpmPackage {
           pname = "llama-swap-ui";
           inherit version src;
-          sourceRoot = "${src.name}/ui-svelte";
+          sourceRoot = "${src.name}/${if lib.versionAtLeast version "251" then "ui" else "ui-svelte"}";
           npmDepsHash = "sha256-6MPXQtmaz97D9PUU2Nn5DH/2HZNP/rnAWVSck/FiCyk=";
           postPatch = ''
             substituteInPlace vite.config.ts \
