@@ -88,12 +88,10 @@ let
         scout = {
           model = "openai-codex/gpt-5.6-luna";
           thinking = "low";
-          fallbackModels = [ "opencode-go/deepseek-v4-flash:high" ];
         };
         researcher = {
-          model = "opencode-go/deepseek-v4-flash";
-          thinking = "max";
-          fallbackModels = [ "openai-codex/gpt-5.6-terra:high" ];
+          model = "openai-codex/gpt-5.6-terra";
+          thinking = "high";
         };
         delegate = {
           model = "openai-codex/gpt-5.6-terra";
@@ -110,7 +108,6 @@ let
         oracle = {
           model = "openai-codex/gpt-5.6-sol";
           thinking = "xhigh";
-          fallbackModels = [ "opencode-go/deepseek-v4-flash:max" ];
         };
       };
     };
@@ -229,7 +226,10 @@ let
             id = "qwen3.8-27b:q8";
             name = "Qwen3.8 27B Q8";
             reasoning = true;
-            input = [ "text" "image" ];
+            input = [
+              "text"
+              "image"
+            ];
             contextWindow = 262144;
             maxTokens = 32768;
             cost = {
@@ -252,7 +252,10 @@ let
             id = "qwen3.8-27b:rvn-ara-q8";
             name = "Qwen3.8 27B RVN ARA Q8";
             reasoning = true;
-            input = [ "text" "image" ];
+            input = [
+              "text"
+              "image"
+            ];
             contextWindow = 262144;
             maxTokens = 32768;
             cost = {
@@ -275,7 +278,10 @@ let
             id = "qwen3.8-27b:rvn-ara-q6";
             name = "Qwen3.8 27B RVN ARA Q6";
             reasoning = true;
-            input = [ "text" "image" ];
+            input = [
+              "text"
+              "image"
+            ];
             contextWindow = 262144;
             maxTokens = 32768;
             cost = {
