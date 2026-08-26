@@ -181,7 +181,8 @@ in
               "in" = [ "text" ] ++ lib.optional vision "image";
               out = [ "text" ];
               context = ctx;
-            } // lib.optionalAttrs tools {
+            }
+            // lib.optionalAttrs tools {
               inherit tools;
             };
           }
@@ -195,6 +196,7 @@ in
             hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
             name = "DeepSeek V4 Flash IQ3";
             description = "Stock DeepSeek V4 Flash at IQ3 quality.";
+            tools = true;
             kv = "f16";
             ctx = 131072;
             sampling = deepseekSampling;
@@ -206,6 +208,7 @@ in
             name = "DeepSeek V4 Flash Heretic v2 IQ3";
             description = "DeepSeek V4 Flash with the conservative Heretic v2 LoRA.";
             lora = deepseekHereticLora;
+            tools = true;
             kv = "f16";
             ctx = 131072;
             sampling = deepseekSampling;
@@ -263,18 +266,6 @@ in
               "--min-p 0.0"
             ];
           };
-          "muse-glimmer-30b:q8" = mkModel {
-            hf = "unsloth/Muse-Glimmer-30B-GGUF:UD-Q8_K_XL";
-            name = "Muse Glimmer 30B Q8";
-            description = "Muse Glimmer 30B at Q8 quality.";
-            kv = "q8_0";
-            ctx = 131072;
-            sampling = [
-              "--temp 1.0"
-              "--top-p 0.95"
-              "--top-k 64"
-            ];
-          };
         };
 
         healthCheckTimeout = 7200;
@@ -285,12 +276,8 @@ in
         unloadTimeout = 60;
         groups = { };
 
-        # Experimental system/GPU performance monitor (UI tab + Prometheus /metrics).
-        # Enabled by default upstream; set the poll interval explicitly to avoid the 5s
-        # default keeping the GPU out of low-power states. GPU stats come from rocm-smi
-        # (added to the service PATH below); CPU/RAM/load need ProcSubset relaxed below.
         performance = {
-          disabled = false;
+          disabled = true;
           every = "15s";
         };
       };
