@@ -198,8 +198,8 @@ let
             };
           }
           {
-            id = "deepseek-v4-flash-0731-abliterated:q2";
-            name = "DeepSeek V4 Flash 0731 Abliterated Q2";
+            id = "deepseek-v4-flash-0731-heretic:iq3";
+            name = "DeepSeek V4 Flash 0731 Heretic v2 IQ3";
             reasoning = true;
             thinkingLevelMap = {
               minimal = null;
@@ -229,7 +229,7 @@ let
             id = "qwen3.8-27b:q8";
             name = "Qwen3.8 27B Q8";
             reasoning = true;
-            input = [ "text" ];
+            input = [ "text" "image" ];
             contextWindow = 262144;
             maxTokens = 32768;
             cost = {
@@ -249,10 +249,33 @@ let
             };
           }
           {
-            id = "qwen3.8-27b:blackfrost-q8";
-            name = "Qwen3.8 27B Blackfrost Q8";
+            id = "qwen3.8-27b:rvn-ara-q8";
+            name = "Qwen3.8 27B RVN ARA Q8";
             reasoning = true;
-            input = [ "text" ];
+            input = [ "text" "image" ];
+            contextWindow = 262144;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+            compat = {
+              thinkingFormat = "chat-template";
+              chatTemplateKwargs = {
+                enable_thinking = {
+                  "$var" = "thinking.enabled";
+                };
+                preserve_thinking = true;
+              };
+            };
+          }
+          {
+            id = "qwen3.8-27b:rvn-ara-q6";
+            name = "Qwen3.8 27B RVN ARA Q6";
+            reasoning = true;
+            input = [ "text" "image" ];
             contextWindow = 262144;
             maxTokens = 32768;
             cost = {

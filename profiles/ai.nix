@@ -58,6 +58,14 @@ in
     openFirewall = true;
     settings =
       let
+        qwenMmproj = pkgs.fetchurl {
+          url = "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/resolve/main/mmproj-Qwen3.8-27B-Q8_0.gguf";
+          hash = "sha256-LpaKavl8412JcYkLJXubftq/IK2RRQUB+lMWKhnuM+s=";
+        };
+        deepseekHereticLora = pkgs.fetchurl {
+          url = "https://huggingface.co/MoriNoNushi/DeepSeek-V4-Flash-0731-heretic-abliterated-v2-GGUF-lora/resolve/main/ds4-flash-heretic-f4-t265-lora.gguf";
+          hash = "sha256-NkI/bWN/zO5tDACkpPJcJV+1OCVFt2ASM0qW4hzU3lI=";
+        };
         llama-cpp =
           (pkgs.llama-cpp.override {
             rocmSupport = true;
@@ -109,10 +117,19 @@ in
             hf,
             kv,
             ctx ? 262144,
+            batchSize ? 4096,
+            ubatchSize ? 2048,
             sampling ? [ ],
             mtp ? false,
+            flashAttention ? true,
             thinking ? true,
             chatTemplateFile ? null,
+            lora ? null,
+            mmproj ? null,
+            vision ? false,
+            tools ? false,
+            name ? null,
+            description ? null,
           }:
           {
             cmd = lib.concatStringsSep "\n" (
@@ -121,15 +138,23 @@ in
                 "--host ::1"
                 "--hf-repo ${hf}"
                 "--port \${PORT}"
+              ]
+              ++ lib.optionals (lora != null) [
+                "--lora ${lora}"
+              ]
+              ++ lib.optionals (mmproj != null) [
+                "--mmproj ${mmproj}"
+              ]
+              ++ [
                 "--ctx-size ${toString ctx}"
-                "--batch-size 4096"
-                "--ubatch-size 2048"
+                "--batch-size ${toString batchSize}"
+                "--ubatch-size ${toString ubatchSize}"
                 "--cache-reuse 256"
                 "--threads 16"
                 "--threads-batch 32"
                 "--kv-unified"
                 "-ngl 999"
-                "-fa on"
+                "-fa ${if flashAttention then "on" else "off"}"
                 "--cache-type-k ${kv}"
                 "--cache-type-v ${kv}"
                 "--load-mode dio"
@@ -152,29 +177,53 @@ in
                 "--chat-template-kwargs '{\"preserve_thinking\":true}'"
               ]
             );
-          };
+            capabilities = {
+              "in" = [ "text" ] ++ lib.optional vision "image";
+              out = [ "text" ];
+              context = ctx;
+            } // lib.optionalAttrs tools {
+              inherit tools;
+            };
+          }
+          // lib.optionalAttrs (name != null) { inherit name; }
+          // lib.optionalAttrs (description != null) { inherit description; };
 
       in
       {
         models = {
           "deepseek-v4-flash-0731:iq3" = mkModel {
             hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
+            name = "DeepSeek V4 Flash IQ3";
+            description = "Stock DeepSeek V4 Flash at IQ3 quality.";
             kv = "f16";
             ctx = 131072;
             sampling = deepseekSampling;
             # The GGUF chat template enables thinking by default; avoid passing the
             thinking = false;
           };
-          "deepseek-v4-flash-0731-abliterated:q2" = mkModel {
-            hf = "huihui-ai/Huihui-DeepSeek-V4-Flash-0731-abliterated-GGUF";
+          "deepseek-v4-flash-0731-heretic:iq3" = mkModel {
+            hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
+            name = "DeepSeek V4 Flash Heretic v2 IQ3";
+            description = "DeepSeek V4 Flash with the conservative Heretic v2 LoRA.";
+            lora = deepseekHereticLora;
             kv = "f16";
             ctx = 131072;
             sampling = deepseekSampling;
+            # Avoid the ROCm fused path that crashes while applying the rank-1 LoRA.
+            flashAttention = false;
+            # FA off needs smaller compute buffers on this GPU.
+            batchSize = 1024;
+            ubatchSize = 512;
             # The embedded template supports enable_thinking but enables no mode by default.
             thinking = false;
           };
           "qwen3.8-27b:q8" = mkModel {
             hf = "unsloth/Qwen3.8-27B-GGUF:Q8_0";
+            name = "Qwen3.8 27B Q8";
+            description = "Stock Qwen3.8 27B with image input support.";
+            mmproj = qwenMmproj;
+            vision = true;
+            tools = true;
             kv = "q8_0";
             sampling = [
               "--temp 1.0"
@@ -184,8 +233,13 @@ in
             ];
             mtp = true;
           };
-          "qwen3.8-27b:blackfrost-q8" = mkModel {
-            hf = "Blackfrost-AI/Qwen3.8-27B-ABLITERATED-GGUF:Q8_0";
+          "qwen3.8-27b:rvn-ara-q8" = mkModel {
+            hf = "0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF:RVN-Q8_0-multilingual";
+            name = "Qwen3.8 27B RVN ARA Q8";
+            description = "RVN ARA Qwen3.8 27B with image input support.";
+            mmproj = qwenMmproj;
+            vision = true;
+            tools = true;
             kv = "q8_0";
             sampling = [
               "--temp 1.0"
@@ -193,10 +247,26 @@ in
               "--top-k 20"
               "--min-p 0.0"
             ];
-            mtp = true;
+          };
+          "qwen3.8-27b:rvn-ara-q6" = mkModel {
+            hf = "0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF:RVN-Q6_K-multilingual";
+            name = "Qwen3.8 27B RVN ARA Q6";
+            description = "RVN ARA Qwen3.8 27B with image input support.";
+            mmproj = qwenMmproj;
+            vision = true;
+            tools = true;
+            kv = "f16";
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+              "--top-k 20"
+              "--min-p 0.0"
+            ];
           };
           "muse-glimmer-30b:q8" = mkModel {
             hf = "unsloth/Muse-Glimmer-30B-GGUF:UD-Q8_K_XL";
+            name = "Muse Glimmer 30B Q8";
+            description = "Muse Glimmer 30B at Q8 quality.";
             kv = "q8_0";
             ctx = 131072;
             sampling = [
@@ -209,6 +279,10 @@ in
 
         healthCheckTimeout = 7200;
         globalTTL = 3600;
+        logTimeFormat = "rfc3339";
+        logToStdout = "both";
+        sendLoadingState = true;
+        unloadTimeout = 60;
         groups = { };
 
         # Experimental system/GPU performance monitor (UI tab + Prometheus /metrics).
