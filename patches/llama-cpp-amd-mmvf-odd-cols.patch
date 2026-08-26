@@ -1,0 +1,24 @@
+diff --git a/ggml/src/ggml-cuda/ggml-cuda.cu b/ggml/src/ggml-cuda/ggml-cuda.cu
+index 44c2ac6aa..e114469d3 100644
+--- a/ggml/src/ggml-cuda/ggml-cuda.cu
++++ b/ggml/src/ggml-cuda/ggml-cuda.cu
+@@ -1884,7 +1884,8 @@ static bool ggml_cuda_mul_mat_id_needs_sync(const ggml_tensor * dst, const int c
+             if (dst->ne[2] <= get_mmvq_mmid_max_batch(src0->type, cc)) {
+                 return false;
+             }
+-        } else if (GGML_CUDA_CC_IS_AMD(cc)) {
++        } else if (GGML_CUDA_CC_IS_AMD(cc) &&
++                   ggml_cuda_should_use_mmvf(src0->type, cc, src0->ne, src0->nb, src1->ne[2])) {
+             return false;
+         }
+     }
+@@ -1923,7 +1924,8 @@ static void ggml_cuda_mul_mat_id(ggml_backend_cuda_context & ctx, ggml_tensor *
+                     return;
+                 }
+             } else {
+-                if (GGML_CUDA_CC_IS_AMD(cc)) {
++                if (GGML_CUDA_CC_IS_AMD(cc) &&
++                    ggml_cuda_should_use_mmvf(src0->type, cc, src0->ne, src0->nb, ne12)) {
+                     ggml_cuda_mul_mat_vec_f(ctx, src0, src1, ids, dst);
+                     return;
+                 }

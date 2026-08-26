@@ -88,6 +88,7 @@ in
               };
               npmRoot = "tools/ui";
               npmDepsHash = "sha256-2Q7XhaLAArmviOLdQsNbYTfdyDE5pW9lR26cRHEVl9k=";
+              patches = (oa.patches or [ ]) ++ [ ../patches/llama-cpp-amd-mmvf-odd-cols.patch ];
 
               cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
                 "-DGGML_NATIVE=ON"
@@ -114,7 +115,9 @@ in
         # quantized V cache causes on gfx1151).
         mkModel =
           {
-            hf,
+            hf ? null,
+            modelUrl ? null,
+            modelPath ? null,
             kv,
             ctx ? 262144,
             batchSize ? 4096,
@@ -136,7 +139,15 @@ in
               [
                 llama-server
                 "--host ::1"
+              ]
+              ++ lib.optionals (hf != null) [
                 "--hf-repo ${hf}"
+              ]
+              ++ lib.optionals (modelUrl != null) [
+                "--model ${modelPath}"
+                "--model-url ${modelUrl}"
+              ]
+              ++ [
                 "--port \${PORT}"
               ]
               ++ lib.optionals (lora != null) [
@@ -144,6 +155,7 @@ in
               ]
               ++ lib.optionals (mmproj != null) [
                 "--mmproj ${mmproj}"
+                "--image-min-tokens 1024"
               ]
               ++ [
                 "--ctx-size ${toString ctx}"
@@ -169,10 +181,13 @@ in
               ++ lib.optionals (chatTemplateFile != null) [
                 "--chat-template-file ${chatTemplateFile}"
               ]
-              ++ lib.optionals mtp [
-                "--spec-type draft-mtp"
-                "--spec-draft-n-max 2"
-              ]
+              ++ lib.optionals mtp (
+                lib.optional (modelPath != null) "--spec-draft-model ${modelPath}"
+                ++ [
+                  "--spec-type draft-mtp"
+                  "--spec-draft-n-max 2"
+                ]
+              )
               ++ lib.optionals thinking [
                 "--chat-template-kwargs '{\"preserve_thinking\":true}'"
               ]
@@ -212,11 +227,6 @@ in
             kv = "f16";
             ctx = 131072;
             sampling = deepseekSampling;
-            # Avoid the ROCm fused path that crashes while applying the rank-1 LoRA.
-            flashAttention = false;
-            # FA off needs smaller compute buffers on this GPU.
-            batchSize = 1024;
-            ubatchSize = 512;
             # The embedded template supports enable_thinking but enables no mode by default.
             thinking = false;
           };
@@ -237,13 +247,15 @@ in
             mtp = true;
           };
           "qwen3.8-27b:rvn-ara-q8" = mkModel {
-            hf = "0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF:RVN-Q8_0-multilingual";
+            modelUrl = "https://huggingface.co/0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF/resolve/main/RVN-Q8_0-multilingual-mtp.gguf";
+            modelPath = "/var/cache/llama-swap/RVN-Q8_0-multilingual-mtp.gguf";
             name = "Qwen3.8 27B RVN ARA Q8";
             description = "RVN ARA Qwen3.8 27B with image input support.";
             mmproj = qwenMmproj;
             vision = true;
             tools = true;
             kv = "q8_0";
+            mtp = true;
             sampling = [
               "--temp 1.0"
               "--top-p 0.95"
@@ -252,13 +264,15 @@ in
             ];
           };
           "qwen3.8-27b:rvn-ara-q6" = mkModel {
-            hf = "0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF:RVN-Q6_K-multilingual";
+            modelUrl = "https://huggingface.co/0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF/resolve/main/RVN-Q6_K-multilingual-mtp.gguf";
+            modelPath = "/var/cache/llama-swap/RVN-Q6_K-multilingual-mtp.gguf";
             name = "Qwen3.8 27B RVN ARA Q6";
             description = "RVN ARA Qwen3.8 27B with image input support.";
             mmproj = qwenMmproj;
             vision = true;
             tools = true;
             kv = "f16";
+            mtp = true;
             sampling = [
               "--temp 1.0"
               "--top-p 0.95"
@@ -277,7 +291,7 @@ in
         groups = { };
 
         performance = {
-          disabled = true;
+          disabled = false;
           every = "15s";
         };
       };
