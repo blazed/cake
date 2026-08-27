@@ -78,6 +78,7 @@ in
     pkgs.lsof
     pkgs.man-pages
     pkgs.mkpasswd
+    pkgs.nh
     pkgs.nmap
     pkgs.openssl
     pkgs.pciutils

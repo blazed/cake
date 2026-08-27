@@ -23,24 +23,6 @@ let
 
   xcursor_theme = config.gtk.cursorTheme.name;
 
-  screenshot = pkgs.writeShellApplication {
-    name = "screenshot";
-    runtimeInputs = [
-      pkgs.slurp
-      pkgs.grim
-      pkgs.wl-clipboard
-    ];
-    text = ''
-      selection="$(slurp)"
-      if [ "$#" -gt 0 ] && [ "$1" = "--clipboard" ]; then
-        grim -g "$selection" - | wl-copy --type image/png
-      else
-        mkdir -p "$HOME/Pictures/screenshots"
-        grim -g "$selection" "$HOME/Pictures/screenshots/$(date +'%Y-%m-%dT%H%M%S.png')"
-      fi
-    '';
-  };
-
   extraConfig = pkgs.writeText "extra-niri-config" ''
     blur {
       passes 2
@@ -203,10 +185,10 @@ in
           "--always-new-process"
         ];
         "Mod+Shift+S".action.spawn = [
-          "${screenshot}/bin/screenshot"
+          "screenshot"
           "--clipboard"
         ];
-        "Mod+Ctrl+S".action.spawn = "${screenshot}/bin/screenshot";
+        "Mod+Ctrl+S".action.spawn = "screenshot";
 
         "XF86AudioRaiseVolume" = {
           allow-when-locked = true;

@@ -5,6 +5,24 @@
 }:
 let
   inherit (config) gtk;
+
+  screenshot = pkgs.writeShellApplication {
+    name = "screenshot";
+    runtimeInputs = [
+      pkgs.slurp
+      pkgs.grim
+      pkgs.wl-clipboard
+    ];
+    text = ''
+      selection="$(slurp)"
+      if [ "$#" -gt 0 ] && [ "$1" = "--clipboard" ]; then
+        grim -g "$selection" - | wl-copy --type image/png
+      else
+        mkdir -p "$HOME/Pictures/screenshots"
+        grim -g "$selection" "$HOME/Pictures/screenshots/$(date +'%Y-%m-%dT%H%M%S.png')"
+      fi
+    '';
+  };
 in
 {
   imports = [
@@ -30,6 +48,7 @@ in
     persway
     shotcut
     signal-desktop
+    screenshot
     slack
     spotify
     telegram-desktop

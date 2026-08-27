@@ -23,24 +23,6 @@ let
     Install.WantedBy = [ "sway-session.target" ];
   };
 
-  screenshot = pkgs.writeShellApplication {
-    name = "screenshot";
-    runtimeInputs = [
-      pkgs.slurp
-      pkgs.grim
-      pkgs.wl-clipboard
-    ];
-    text = ''
-      selection="$(slurp)"
-      if [ "$#" -gt 0 ] && [ "$1" = "--clipboard" ]; then
-        grim -g "$selection" - | wl-copy --type image/png
-      else
-        mkdir -p "$HOME/Pictures/screenshots"
-        grim -g "$selection" "$HOME/Pictures/screenshots/$(date +'%Y-%m-%dT%H%M%S.png')"
-      fi
-    '';
-  };
-
   swayOnReload = pkgs.writeShellApplication {
     name = "sway-on-reload";
     runtimeInputs = [ pkgs.sway ];
@@ -265,7 +247,8 @@ in
         "${modifier}+z" = "exec persway change-layout stack-main --size 70";
         "${modifier}+c" = "exec persway change-layout stack-main --size 70 --stack-layout tiled";
 
-        "${modifier}+Shift+s" = "exec ${screenshot}/bin/screenshot";
+        "${modifier}+Shift+s" = "exec screenshot --clipboard";
+        "${modifier}+Ctrl+s" = "exec screenshot";
 
         "${modifier}+Escape" = ''mode "(p)oweroff, (s)uspend, (h)ibernate, (r)eboot, (l)ogout"'';
         "${modifier}+x" = ''mode "disabled keybindings"'';

@@ -31,6 +31,7 @@ in
     cake
     createInstallerIso
     just
+    nh
     nil
     nixfmt
     nixfmt-tree
