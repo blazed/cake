@@ -81,6 +81,10 @@ in
           url = "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/resolve/main/mmproj-Qwen3.8-27B-Q8_0.gguf";
           hash = "sha256-LpaKavl8412JcYkLJXubftq/IK2RRQUB+lMWKhnuM+s=";
         };
+        qwenChatTemplate = pkgs.fetchurl {
+          url = "https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates/resolve/main/chat_template.jinja";
+          hash = "sha256-xHyCsFRHUtRU9OQnIo2dnYw99kyeRGy9Aik2L2eUgAk=";
+        };
         deepseekHereticLora = pkgs.fetchurl {
           url = "https://huggingface.co/MoriNoNushi/DeepSeek-V4-Flash-0731-heretic-abliterated-v2-GGUF-lora/resolve/main/ds4-flash-heretic-f4-t265-lora.gguf";
           hash = "sha256-NkI/bWN/zO5tDACkpPJcJV+1OCVFt2ASM0qW4hzU3lI=";
@@ -146,11 +150,12 @@ in
             flashAttention ? true,
             thinking ? true,
             chatTemplateFile ? null,
+            reasoningFormat ? null,
             lora ? null,
             mmproj ? null,
             imageMinTokens ? null,
             imageMaxTokens ? null,
-            ttl ? null,
+            ttl ? -1,
             vision ? false,
             tools ? false,
             name ? null,
@@ -208,6 +213,9 @@ in
               ++ lib.optionals (chatTemplateFile != null) [
                 "--chat-template-file ${chatTemplateFile}"
               ]
+              ++ lib.optionals (reasoningFormat != null) [
+                "--reasoning-format ${reasoningFormat}"
+              ]
               ++ lib.optionals mtp (
                 lib.optional (modelPath != null) "--spec-draft-model ${modelPath}"
                 ++ [
@@ -263,7 +271,10 @@ in
             name = "Qwen3.8 27B Q8";
             imageMinTokens = 1024;
             description = "Stock Qwen3.8 27B with image input support.";
+
             mmproj = qwenMmproj;
+            chatTemplateFile = qwenChatTemplate;
+            reasoningFormat = "deepseek";
             vision = true;
             tools = true;
             kv = "q8_0";
@@ -282,6 +293,8 @@ in
             imageMinTokens = 1024;
             description = "RVN ARA Qwen3.8 27B with image input support.";
             mmproj = qwenMmproj;
+            chatTemplateFile = qwenChatTemplate;
+            reasoningFormat = "deepseek";
             vision = true;
             tools = true;
             kv = "q8_0";
@@ -300,6 +313,8 @@ in
             imageMinTokens = 1024;
             description = "RVN ARA Qwen3.8 27B with image input support.";
             mmproj = qwenMmproj;
+            chatTemplateFile = qwenChatTemplate;
+            reasoningFormat = "deepseek";
             vision = true;
             tools = true;
             kv = "f16";
@@ -344,7 +359,7 @@ in
         };
 
         healthCheckTimeout = 7200;
-        globalTTL = 3600;
+        globalTTL = 1800;
         logTimeFormat = "rfc3339";
         logToStdout = "both";
         sendLoadingState = true;
