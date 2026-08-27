@@ -4,3 +4,47 @@ diff --git a/cmd/vllm-wrapper/main_test.go b/cmd/vllm-wrapper/main_test.go
 @@ -111 +111 @@ func TestStartDaemonArgv(t *testing.T) {
 -		"#!/bin/bash\nprintf '%s\n' \"$@\" > \""+argvFile+"\"\nexit 0\n",
 +		"#!/bin/sh\nprintf '%s\n' \"$@\" > \""+argvFile+"\"\nexit 0\n",
+diff --git a/internal/process/process_command.go b/internal/process/process_command.go
+--- a/internal/process/process_command.go
++++ b/internal/process/process_command.go
+@@ -797,6 +797,11 @@ func (p *ProcessCommand) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+ 		swaputil.SendResponse(w, r, http.StatusServiceUnavailable, fmt.Sprintf("[%s] process is not ready", p.id))
+ 		return
+ 	}
++	// Monitoring must not keep an otherwise idle model alive.
++	if r.URL.Path == "/metrics" {
++		(*fn)(w, r)
++		return
++	}
+ 	if p.config.Compat.IgnoreWebsockets && swaputil.IsWebSocketUpgrade(r) {
+ 		(*fn)(w, r)
+ 		return
+diff --git a/internal/process/process_command_test.go b/internal/process/process_command_test.go
+--- a/internal/process/process_command_test.go
++++ b/internal/process/process_command_test.go
+@@ -712,6 +712,25 @@ func TestProcessCommand_TTL_IgnoresWebsocket(t *testing.T) {
+ 	}
+ }
+ 
++func TestProcessCommand_MetricsDoesNotResetTTL(t *testing.T) {
++	p := &ProcessCommand{}
++	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		w.WriteHeader(http.StatusOK)
++	})
++	p.handler.Store(&handler)
++	p.lastUse.Store(42)
++
++	rr := httptest.NewRecorder()
++	p.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/metrics", nil))
++
++	if rr.Code != http.StatusOK {
++		t.Fatalf("expected 200, got %d", rr.Code)
++	}
++	if got := p.lastUse.Load(); got != 42 {
++		t.Fatalf("metrics request reset last use to %d", got)
++	}
++}
++
+ // TestProcessCommand_TTL_ZeroDisables verifies that UnloadAfter=0 does not
+ // spawn a TTL goroutine — the process stays ready until explicitly stopped.
+ func TestProcessCommand_TTL_ZeroDisables(t *testing.T) {
