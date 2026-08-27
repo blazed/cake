@@ -6,7 +6,26 @@
 }:
 let
   port = 9292;
+  metricsPort = 9293;
   service = "svc:ai";
+
+  llama-swap-exporter = pkgs.buildGoModule {
+    pname = "llama-swap-exporter";
+    version = "unstable-2026-05-10";
+    src = pkgs.fetchFromGitHub {
+      owner = "squat";
+      repo = "llama-swap-exporter";
+      rev = "85f46187bb9cc5ed86dfe3379aaeee1de64a2470";
+      hash = "sha256-3oEu7+cyFxBrSpp5289jso3LH1FmvJnvRDoum3dd5Vc=";
+    };
+    vendorHash = null;
+    ldflags = [
+      "-s"
+      "-w"
+      "-X github.com/squat/llama-swap-exporter/version.Version=unstable-2026-05-10"
+    ];
+    meta.mainProgram = "llama-swap-exporter";
+  };
 in
 {
   services.llama-swap = {
@@ -295,6 +314,27 @@ in
           every = "15s";
         };
       };
+  };
+
+  # Prometheus scrapes the exporter from the LAN, like llama-swap on port 9292.
+  networking.firewall.allowedTCPPorts = [ metricsPort ];
+
+  systemd.services.llama-swap-exporter = {
+    description = "Prometheus exporter for llama-swap and llama.cpp";
+    after = [ "llama-swap.service" ];
+    wants = [ "llama-swap.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${lib.getExe llama-swap-exporter} --upstream http://127.0.0.1:${toString port} --web.listen-address 0.0.0.0:${toString metricsPort}";
+      Restart = "on-failure";
+      DynamicUser = true;
+      NoNewPrivileges = true;
+      PrivateDevices = true;
+      PrivateTmp = true;
+      ProtectHome = true;
+      ProtectSystem = "strict";
+      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+    };
   };
 
   systemd.services.tailscale-serve-llama-swap = {
