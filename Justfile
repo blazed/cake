@@ -10,18 +10,20 @@ search query:
   @nix search nixpkgs {{query}} --json | from json | transpose | flatten | select column0 version description | rename --column { column0: attribute }
 
 gc:
-  @nix-collect-garbage -d
+  @nh clean all --keep 1
+
+test flake="github:blazed/cake":
+  @nh os test --no-write-lock-file '{{flake}}' -L
 
 upgrade flake="github:blazed/cake":
-  @rm -rf ~/.cache/nix/fetcher-cache-v1.sqlite*
-  @nixos-rebuild boot --flake '{{flake}}' --use-remote-sudo -L
-  @if (echo initrd kernel kernel-modules | all { |it| (readlink $"/run/booted-system/($it)") != (readlink $"/nix/var/nix/profiles/system/($it)") }) { echo "The system must be rebooted for the changes to take effect" } else { nixos-rebuild switch --flake '{{flake}}' --use-remote-sudo -L }
+  @nh os boot --ask --refresh --no-write-lock-file '{{flake}}' -L
+  @if (echo initrd kernel kernel-modules | all { |it| (readlink $"/run/booted-system/($it)") != (readlink $"/nix/var/nix/profiles/system/($it)") }) { echo "The system must be rebooted for the changes to take effect" } else { nh os switch --ask --refresh --no-write-lock-file '{{flake}}' -L }
 
 switch-remote host="":
-  nixos-rebuild switch --flake '.#{{host}}' --target-host '{{host}}' --use-remote-sudo -L
+  nh os switch --ask --no-write-lock-file --target-host '{{host}}' --hostname '{{host}}' --elevation-strategy passwordless '.#{{host}}' -L
 
 build flake="github:blazed/cake":
-  @nixos-rebuild build --flake '{{flake}}' --use-remote-sudo -L
+  @nh os build --no-write-lock-file '{{flake}}' -L
 
 [private]
 echo +args:

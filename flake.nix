@@ -8,7 +8,6 @@
       "https://blazed.cachix.org"
       "https://cachix.cachix.org"
       "https://cache.numtide.com"
-      "https://nix-amd-ai.cachix.org"
       "https://niri.cachix.org"
     ];
     extra-trusted-public-keys = [
@@ -16,7 +15,6 @@
       "blazed.cachix.org-1:e9Rx3vtlQSp3nckCdGYpSFJbOb/hi1KuTyvWTBkiwAI="
       "cachix.cachix.org-1:eWNHQldwUO7G2VkjpnjDbWwy4KQ/HNxht7H4SSoMckM="
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
-      "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ="
       "niri.cachix.org-1:Wv0OmO7PsuocRKzfDoJ3mulSl7Z6oezYhGhR+3W2964="
     ];
   };
@@ -26,8 +24,6 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     agenix.inputs.systems.follows = "systems";
     agenix.url = "github:ryantm/agenix";
-    age-plugin-yubikey.flake = false;
-    age-plugin-yubikey.url = "github:str4d/age-plugin-yubikey";
     cachix.url = "github:cachix/cachix";
     cachix.inputs = {
       devenv.follows = "devenv";
@@ -66,14 +62,7 @@
     niri.url = "github:sodiboo/niri-flake";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
-    # AMD AI stack (Lemonade server, XRT/NPU, ROCm/Vulkan backends). Deliberately
-    # NOT `.follows`-ing nixpkgs: the overlay is built against this flake's own
-    # pinned nixpkgs so its Cachix (nix-amd-ai.cachix.org) substitutes; following
-    # our nixpkgs would re-hash every backend and force a from-source rebuild.
-    nix-amd-ai.url = "github:noamsto/nix-amd-ai";
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=v0.7.0";
-    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-hardware.url = "github:nixos/nixos-hardware";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
@@ -87,11 +76,6 @@
     persway.inputs.nix2container.follows = "nix2container";
     persway.inputs.nixpkgs.follows = "nixpkgs";
     persway.url = "github:johnae/persway";
-    pre-commit-hooks.inputs.flake-compat.follows = "flake-compat";
-    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
-    rust-overlay.url = "github:oxalica/rust-overlay";
     systems.url = "github:nix-systems/default";
   };
 

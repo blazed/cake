@@ -12,15 +12,7 @@
       ...
     }:
     let
-      inherit (lib // builtins)
-        filterAttrs
-        mapAttrs
-        readDir
-        mapAttrs'
-        ;
-      locallyDefinedPackages = mapAttrs (
-        name: _: (pkgs.callPackage (../packages + "/${name}") { inherit inputs; })
-      ) (filterAttrs (_filename: type: type == "directory") (readDir ../packages));
+      inherit (lib) mapAttrs';
     in
     {
       packages =
@@ -31,7 +23,6 @@
             inherit lib;
           };
         }) self.nixosConfigurations)
-        // locallyDefinedPackages
         // {
           cake = pkgs.writeShellApplication {
             name = "cake";

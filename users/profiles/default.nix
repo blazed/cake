@@ -21,7 +21,6 @@ in
     ./jujutsu.nix
     ./mergiraf.nix
     ./neovim.nix
-    ./nh.nix
     ./nushell/default.nix
     ./pi/default.nix
     ./protonpass.nix
