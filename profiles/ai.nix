@@ -148,6 +148,9 @@ in
             chatTemplateFile ? null,
             lora ? null,
             mmproj ? null,
+            imageMinTokens ? null,
+            imageMaxTokens ? null,
+            ttl ? null,
             vision ? false,
             tools ? false,
             name ? null,
@@ -174,7 +177,12 @@ in
               ]
               ++ lib.optionals (mmproj != null) [
                 "--mmproj ${mmproj}"
-                "--image-min-tokens 1024"
+              ]
+              ++ lib.optionals (imageMinTokens != null) [
+                "--image-min-tokens ${toString imageMinTokens}"
+              ]
+              ++ lib.optionals (imageMaxTokens != null) [
+                "--image-max-tokens ${toString imageMaxTokens}"
               ]
               ++ [
                 "--ctx-size ${toString ctx}"
@@ -220,6 +228,7 @@ in
               inherit tools;
             };
           }
+          // lib.optionalAttrs (ttl != null) { inherit ttl; }
           // lib.optionalAttrs (name != null) { inherit name; }
           // lib.optionalAttrs (description != null) { inherit description; };
 
@@ -252,6 +261,7 @@ in
           "qwen3.8-27b:q8" = mkModel {
             hf = "unsloth/Qwen3.8-27B-GGUF:Q8_0";
             name = "Qwen3.8 27B Q8";
+            imageMinTokens = 1024;
             description = "Stock Qwen3.8 27B with image input support.";
             mmproj = qwenMmproj;
             vision = true;
@@ -269,6 +279,7 @@ in
             modelUrl = "https://huggingface.co/0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF/resolve/main/RVN-Q8_0-multilingual-mtp.gguf";
             modelPath = "/var/cache/llama-swap/RVN-Q8_0-multilingual-mtp.gguf";
             name = "Qwen3.8 27B RVN ARA Q8";
+            imageMinTokens = 1024;
             description = "RVN ARA Qwen3.8 27B with image input support.";
             mmproj = qwenMmproj;
             vision = true;
@@ -286,6 +297,7 @@ in
             modelUrl = "https://huggingface.co/0bserverx/Qwen3.8-27B-Heretic-Abliterated-Uncensored-GGUF/resolve/main/RVN-Q6_K-multilingual-mtp.gguf";
             modelPath = "/var/cache/llama-swap/RVN-Q6_K-multilingual-mtp.gguf";
             name = "Qwen3.8 27B RVN ARA Q6";
+            imageMinTokens = 1024;
             description = "RVN ARA Qwen3.8 27B with image input support.";
             mmproj = qwenMmproj;
             vision = true;
@@ -299,6 +311,36 @@ in
               "--min-p 0.0"
             ];
           };
+          "qwen3-vl-4b:camera-q8" = mkModel {
+            hf = "Qwen/Qwen3-VL-4B-Instruct-GGUF:Q8_0";
+
+            name = "Qwen3-VL 4B Camera Q8";
+            description = "Always-resident fast VLM for security camera event analysis.";
+
+            vision = true;
+            tools = false;
+            thinking = false;
+
+            kv = "q8_0";
+            ctx = 32768;
+
+            batchSize = 2048;
+            ubatchSize = 1024;
+
+            # Never TTL-unload the camera worker.
+            ttl = 0;
+
+            # Bound per-frame cost when passing several camera frames.
+            imageMinTokens = 512;
+            imageMaxTokens = 1024;
+
+            sampling = [
+              "--temp 0.2"
+              "--top-p 0.8"
+              "--top-k 20"
+              "--min-p 0.0"
+            ];
+          };
         };
 
         healthCheckTimeout = 7200;
@@ -307,7 +349,44 @@ in
         logToStdout = "both";
         sendLoadingState = true;
         unloadTimeout = 60;
-        groups = { };
+        groups = {
+          camera = {
+            swap = false;
+            exclusive = false;
+            persistent = true;
+            members = [
+              "qwen3-vl-4b:camera-q8"
+            ];
+          };
+        };
+
+        hooks = {
+          on_startup = {
+            preload = [
+              "qwen3-vl-4b:camera-q8"
+            ];
+          };
+        };
+
+        selectors = {
+          "camera-vlm" = {
+            strategy = "pin";
+            targets = [
+              "qwen3-vl-4b:camera-q8"
+            ];
+            name = "Camera VLM";
+            description = "Fast always-resident security camera vision model.";
+          };
+
+          "camera-vlm-deep" = {
+            strategy = "pin";
+            targets = [
+              "qwen3.8-27b:q8"
+            ];
+            name = "Camera VLM Deep";
+            description = "High-quality security camera visual analysis model.";
+          };
+        };
 
         performance = {
           disabled = false;
@@ -333,7 +412,11 @@ in
       PrivateTmp = true;
       ProtectHome = true;
       ProtectSystem = "strict";
-      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+      RestrictAddressFamilies = [
+        "AF_INET"
+        "AF_INET6"
+        "AF_UNIX"
+      ];
     };
   };
 
