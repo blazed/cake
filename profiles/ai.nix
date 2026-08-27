@@ -266,6 +266,20 @@ in
             # The embedded template supports enable_thinking but enables no mode by default.
             thinking = false;
           };
+          "qwen3-14b:q4" = mkModel {
+            hf = "Qwen/Qwen3-14B-GGUF:Q4_K_M";
+            name = "Qwen3 14B Q4_K_M";
+            description = "Qwen3 14B at Q4_K_M quality.";
+            tools = true;
+            kv = "f16";
+            ctx = 40960;
+            sampling = [
+              "--temp 0.6"
+              "--top-p 0.95"
+              "--top-k 20"
+              "--min-p 0.0"
+            ];
+          };
           "qwen3.8-27b:q8" = mkModel {
             hf = "unsloth/Qwen3.8-27B-GGUF:Q8_0";
             name = "Qwen3.8 27B Q8";
