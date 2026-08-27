@@ -12,6 +12,7 @@
     ../../profiles/hardware/framework-desktop.nix
     ../../profiles/disk/btrfs-on-luks.nix
     ../../profiles/ai.nix
+    ../../profiles/frigate.nix
     ../../profiles/k3s-agent.nix
     ../../profiles/server.nix
     ../../profiles/state.nix
