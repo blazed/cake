@@ -74,6 +74,11 @@ let
     steeringMode = "all";
     followUpMode = "all";
     showCacheMissNotices = true;
+    kendex.extensionManager.config."@vanillagreen/pi-tool-renderer" = {
+      commandPreviewChars = 1000;
+      renderBashDiffs = true;
+      renderMutationTools = true;
+    };
     subagents = {
       defaultModel = "openai-codex/gpt-5.6-terra";
       defaultThinking = "medium";
