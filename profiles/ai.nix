@@ -266,6 +266,30 @@ in
             # The embedded template supports enable_thinking but enables no mode by default.
             thinking = false;
           };
+          "nemotron-3-nano-4b:q4" = mkModel {
+            hf = "unsloth/NVIDIA-Nemotron-3-Nano-4B-GGUF:UD-Q4_K_XL";
+            name = "Nemotron 3 Nano 4B Q4";
+            description = "Nemotron 3 Nano 4B for tool calling and agentic workloads.";
+            tools = true;
+            kv = "f16";
+            ctx = 32768;
+            sampling = [
+              "--temp 0.6"
+              "--top-p 0.95"
+            ];
+          };
+          "nemotron-3-nano-30b-a3b:q4" = mkModel {
+            hf = "unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL";
+            name = "Nemotron 3 Nano 30B A3B Q4";
+            description = "Nemotron 3 Nano 30B A3B for tool calling and agentic workloads.";
+            tools = true;
+            kv = "f16";
+            ctx = 32768;
+            sampling = [
+              "--temp 0.6"
+              "--top-p 0.95"
+            ];
+          };
           "qwen3-14b:q4" = mkModel {
             hf = "Qwen/Qwen3-14B-GGUF:Q4_K_M";
             name = "Qwen3 14B Q4_K_M";
