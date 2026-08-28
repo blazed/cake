@@ -37,24 +37,14 @@ let
       }
     ]
     ++ [
-      "git:github.com/blazed/pi-openai-compaction@b087ebf12329a4da7bdd9376d3f7b28603cae2c1"
       "git:github.com/DietrichGebert/ponytail@16f29800fd2681bdf24f3eb4ccffe38be3baec6b"
       "npm:@juicesharp/rpiv-ask-user-question@2.7.1"
       "npm:@vanillagreen/pi-tool-renderer@2.0.0"
       "npm:pi-blackhole@0.4.9"
       "npm:pi-mcp-adapter@2.30.0"
       "npm:pi-quiet-tools@0.2.0"
-      "npm:pi-web-access@0.26.0"
-
-      # testing
       "npm:pi-subagents@0.58.0"
-      {
-        source = "npm:remote-pi@0.5.5";
-        extensions = [ ];
-        skills = [ ];
-        prompts = [ ];
-        themes = [ ];
-      }
+      "npm:pi-web-access@0.26.0"
     ];
 
   extraSkillDirs = [ ];
