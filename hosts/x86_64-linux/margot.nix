@@ -21,6 +21,9 @@
   ];
 
   age.secrets = {
+    frigate-camera-env = {
+      file = ../../secrets/margot/frigate-camera-env.age;
+    };
     k3s-token = {
       file = ../../secrets/k3s/token.age;
     };
