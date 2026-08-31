@@ -1,23 +1,10 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
   service = "svc:frigate";
-  demoImage = pkgs.fetchurl {
-    url = "https://raw.githubusercontent.com/blakeblackshear/frigate/v0.17.2/docker/rockchip/COCO/subset/000000052891.jpg";
-    hash = "sha256-5VuGoc2odBF7ob2FXjjbybVCe4QMNi1yMwAZZ27EekQ=";
-  };
-  demoVideo = pkgs.runCommand "frigate-demo.mp4" { nativeBuildInputs = [ pkgs.ffmpeg-headless ]; } ''
-    ffmpeg -hide_banner -loglevel error \
-      -f lavfi -i color=c=black:s=640x480:r=5:d=5 \
-      -loop 1 -framerate 5 -t 15 -i ${demoImage} \
-      -f lavfi -i color=c=black:s=640x480:r=5:d=5 \
-      -filter_complex '[1:v]scale=640:480,setsar=1[demo];[0:v][demo][2:v]concat=n=3:v=1:a=0,format=yuv420p[v]' \
-      -map '[v]' -c:v libx264 -preset veryfast -movflags +faststart "$out"
-  '';
 in
 {
   services.frigate = {
@@ -30,8 +17,7 @@ in
       telemetry.version_check = false;
 
       ffmpeg.hwaccel_args = "preset-vaapi";
-
-      # ponytail: CPU detection is enough for one 5 FPS demo; use ONNX/ROCm with the real camera if needed.
+      # ponytail: CPU detection is enough for one 4 FPS substream; use ONNX/ROCm if measured load warrants it.
       detectors.cpu.type = "cpu";
 
       genai = {
@@ -40,15 +26,26 @@ in
         model = "camera-vlm";
         provider_options.context_size = 32768;
       };
+      face_recognition = {
+        enabled = true;
+        model_size = "large";
+      };
+      semantic_search.enabled = true;
 
       objects = {
-        track = [ "dog" ];
+        track = [
+          "person"
+          "dog"
+        ];
         filters.dog.threshold = 0.5;
         genai = {
           enabled = true;
           use_snapshot = true;
-          objects = [ "dog" ];
-          prompt = "Briefly describe the {label} and its activity in this synthetic security-camera event.";
+          objects = [
+            "person"
+            "dog"
+          ];
+          prompt = "Briefly describe the {label} and its activity in this security-camera event.";
         };
       };
 
@@ -61,29 +58,65 @@ in
         enabled = true;
         retain.default = 1;
       };
-      review.alerts.labels = [ "dog" ];
+      review.alerts.labels = [
+        "person"
+        "dog"
+      ];
+      review.genai.enabled = true;
 
-      cameras.demo = {
+      cameras.e1_zoom = {
+        # Native HEVC needs a browser with hardware decode; the H.264 transcode plays everywhere.
+        live.streams = {
+          "4K" = "e1_zoom_live";
+          "4K HEVC" = "e1_zoom";
+        };
         ffmpeg.inputs = [
           {
-            path = toString demoVideo;
-            input_args = [
-              "-re"
-              "-stream_loop"
-              "-1"
-            ];
-            roles = [
-              "detect"
-              "record"
-            ];
+            path = "rtsp://127.0.0.1:8554/e1_zoom";
+            input_args = "preset-rtsp-restream";
+            roles = [ "record" ];
+          }
+          {
+            path = "rtsp://127.0.0.1:8554/e1_zoom_sub";
+            input_args = "preset-rtsp-restream";
+            roles = [ "detect" ];
           }
         ];
         detect = {
           enabled = true;
-          width = 640;
-          height = 480;
-          fps = 5;
+          fps = 4;
         };
+        review.alerts.required_zones = [ "doorway" ];
+        zones.doorway = {
+          coordinates = "0.269,0.678,0.345,0.686,0.345,0.997,0.274,0.998";
+          loitering_time = 0;
+          friendly_name = "Doorway";
+        };
+        motion.mask = [
+          "0.367,0,0.368,0.061,0.001,0.066,0,0.007"
+          "0.824,0.936,0.822,1,0.994,1,0.992,0.944"
+        ];
+      };
+    };
+  };
+
+  services.go2rtc = {
+    enable = true;
+    settings = {
+      api.listen = "127.0.0.1:1984";
+      ffmpeg.bin = "${config.services.frigate.settings.ffmpeg.path}/bin/ffmpeg";
+      rtsp.listen = "127.0.0.1:8554";
+      streams = {
+        # go2rtc expands ${VAR} from the unit's EnvironmentFile when loading the config.
+        e1_zoom = [
+          "ffmpeg:http://10.0.40.10/flv?port=1935&app=bcs&stream=channel0_main.bcs&user=\${FRIGATE_E1_USER}&password=\${FRIGATE_E1_PASSWORD}#video=copy"
+        ];
+        e1_zoom_sub = [
+          "ffmpeg:http://10.0.40.10/flv?port=1935&app=bcs&stream=channel0_ext.bcs&user=\${FRIGATE_E1_USER}&password=\${FRIGATE_E1_PASSWORD}#video=copy"
+        ];
+        e1_zoom_live = [
+          "exec:${config.services.frigate.settings.ffmpeg.path}/bin/ffmpeg -hide_banner -v error -fflags nobuffer -flags low_delay -hwaccel vaapi -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format vaapi -hwaccel_flags allow_profile_mismatch -rtsp_transport tcp -i rtsp://127.0.0.1:8554/e1_zoom -an -vf scale_vaapi=format=nv12 -c:v h264_vaapi -b:v 12M -maxrate 12M -bufsize 24M -g 40 -bf 0 -profile:v high -level:v 5.1 -user_agent ffmpeg/go2rtc -rtsp_transport tcp -f rtsp {output}"
+        ];
       };
     };
   };
@@ -94,6 +127,17 @@ in
     after = [ "llama-swap.service" ];
     wants = [ "llama-swap.service" ];
     environment.OPENAI_BASE_URL = "http://127.0.0.1:9292/v1";
+  };
+
+  systemd.services.go2rtc = {
+    before = [ "frigate.service" ];
+    requiredBy = [ "frigate.service" ];
+    serviceConfig = {
+      EnvironmentFile = [ config.age.secrets.frigate-camera-env.path ];
+      # /dev/dri/renderD128 access for the VAAPI live-stream transcode
+      SupplementaryGroups = [ "render" ];
+      Restart = "on-failure";
+    };
   };
 
   systemd.services.tailscale-serve-frigate = {
