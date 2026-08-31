@@ -31,12 +31,12 @@ in
   services.llama-swap = {
     enable = true;
     package = pkgs.llama-swap.overrideAttrs (oa: rec {
-      version = "251";
+      version = "252";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-N769kY7zJ58gcrKrfbA7Wgxz2EnxktVWiN8MdiuYfQQ=";
+        hash = "sha256-meuWcSFOgKC2ZESP7jn9mmqRJo1aKw+lMeioh2bVHQY=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -61,7 +61,7 @@ in
           pname = "llama-swap-ui";
           inherit version src;
           sourceRoot = "${src.name}/${if lib.versionAtLeast version "251" then "ui" else "ui-svelte"}";
-          npmDepsHash = "sha256-+J/C0yDjG0is5G5bNGfFY1ztA7dFqBind/VoS2mxT6s=";
+          npmDepsHash = "sha256-lmhRJ8275PIQ+7vHdr9aZ31lYeXUkXrWnlvuwOadjRQ=";
           postPatch = ''
             substituteInPlace vite.config.ts \
               --replace-fail "../internal/server/ui_dist" "${placeholder "out"}/ui_dist"
@@ -97,12 +97,12 @@ in
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "10702";
+              version = "10729";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-QN2/vBohMuyVtt8CL6823K/kyarORz2k84NyURLsqSU=";
+                hash = "sha256-7DQ6u9ZiFdPXuLF6YdLcoVoMxoykxLdZdXjEV2kEuBw=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
