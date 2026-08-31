@@ -95,6 +95,8 @@ let
 
   trustedVlanNames = attrNames (filterAttrs (_: v: v.trusted) cfg.vlans);
   untrustedVlanNames = attrNames (filterAttrs (_: v: !v.trusted) cfg.vlans);
+  dnsVlanNames = attrNames (filterAttrs (_: v: v.allowDns) cfg.vlans);
+  wanVlanNames = attrNames (filterAttrs (_: v: v.allowWan) cfg.vlans);
 
   forceDnsVlanNames = attrNames (filterAttrs (_: v: v.forceDns) cfg.vlans);
   hasForceDns = forceDnsVlanNames != [ ];
@@ -135,6 +137,8 @@ let
   # own management LAN; tagged untrusted VLANs ride on top of it).
   trustedAll = unique ([ cfg.internalInterface ] ++ trustedVlanNames ++ cfg.trustedInterfaces);
   allInternalNames = unique (internalInterfaceNames ++ cfg.trustedInterfaces);
+  dnsInternalNames = unique ([ cfg.internalInterface ] ++ dnsVlanNames ++ cfg.trustedInterfaces);
+  wanInternalNames = unique ([ cfg.internalInterface ] ++ wanVlanNames ++ cfg.trustedInterfaces);
 
   # rp_filter=1 already drops cross-interface spoofing at the routing layer;
   # these explicit per-interface source checks keep the trust boundaries
@@ -284,7 +288,10 @@ in
       type = listOf (submodule {
         options = {
           protocol = mkOption {
-            type = enum [ "tcp" "udp" ];
+            type = enum [
+              "tcp"
+              "udp"
+            ];
             default = "tcp";
             description = "Transport protocol.";
           };
@@ -374,6 +381,16 @@ in
                   can only reach trusted interfaces via established/related
                   state (IoT-style isolation).
             '';
+          };
+          allowDns = mkOption {
+            type = bool;
+            default = true;
+            description = "Whether this VLAN may query the router's DNS resolver.";
+          };
+          allowWan = mkOption {
+            type = bool;
+            default = true;
+            description = "Whether this VLAN may initiate connections through the WAN interface.";
           };
           forceDns = mkOption {
             type = bool;
@@ -551,9 +568,7 @@ in
         # dnsForwarders exist precisely to return tailnet/CGNAT-range
         # answers (e.g. MagicDNS 100.x), so they are exempted automatically;
         # rebindOkDomains covers other legitimate private-space answers.
-        rebind-domain-ok = map (domain: "/${domain}/") (
-          attrNames cfg.dnsForwarders ++ cfg.rebindOkDomains
-        );
+        rebind-domain-ok = map (domain: "/${domain}/") (attrNames cfg.dnsForwarders ++ cfg.rebindOkDomains);
         dhcp-authoritative = true;
         expand-hosts = true;
         dhcp-range = mapAttrsToList (
@@ -627,10 +642,11 @@ in
               # before any accept so spoofed DNS/DHCP is caught too).
               ${antiSpoofRules}
 
-              # DNS + DHCP must work on every internal segment, including
-              # untrusted VLANs (router is their only resolver / DHCP server).
-              iifname { ${concatStringsSep "," allInternalNames} } udp dport { 53, 67 } counter accept comment "Allow DNS+DHCP from internal"
-              iifname { ${concatStringsSep "," allInternalNames} } tcp dport 53 counter accept comment "Allow DNS/TCP from internal"
+              # DHCP remains available to every internal segment. DNS can be
+              # disabled per VLAN for networks that must not leak queries.
+              iifname { ${concatStringsSep "," allInternalNames} } udp dport 67 counter accept comment "Allow DHCP from internal"
+              iifname { ${concatStringsSep "," dnsInternalNames} } udp dport 53 counter accept comment "Allow DNS from internal"
+              iifname { ${concatStringsSep "," dnsInternalNames} } tcp dport 53 counter accept comment "Allow DNS/TCP from internal"
 
               # Full router access only from trusted interfaces.
               iifname { ${concatStringsSep "," trustedAll} } counter accept comment "Allow trusted local network to access the router"
@@ -686,16 +702,19 @@ in
                 iifname { ${concatStringsSep "," forceDnsVlanNames} } tcp dport 853 counter reject with tcp reset comment "Block DoT from forceDns VLANs"
                 iifname { ${concatStringsSep "," forceDnsVlanNames} } udp dport 853 counter drop comment "Block DoQ from forceDns VLANs"
               ''}
-              iifname { ${concatStringsSep "," allInternalNames} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
+              iifname { ${concatStringsSep "," wanInternalNames} } oifname { "${cfg.externalInterface}" } counter accept comment "Allow LAN to WAN"
               iifname { "${cfg.externalInterface}" } oifname { ${concatStringsSep "," allInternalNames} } ct state { established, related } counter accept comment "Allow established back to LANs"
 
               # Throttle NEW connections to rate-limited forwards before the
               # blanket dnat accept below matches them. `ct original
               # proto-dst` is the pre-DNAT WAN port, so the budget stays
               # per-forward even when forwards share a target.
-              ${optionalString (rateLimitedForwards != [ ]) (concatMapStringsSep "\n              " (
-                f: ''iifname "${cfg.externalInterface}" meta l4proto ${f.protocol} ct status dnat ct state new ct original proto-dst ${toString f.port} limit rate over ${f.rateLimitNew} counter drop comment "Rate limit new connections to forward ${toString f.port}"''
-              ) rateLimitedForwards)}
+              ${optionalString (rateLimitedForwards != [ ]) (
+                concatMapStringsSep "\n              " (
+                  f:
+                  ''iifname "${cfg.externalInterface}" meta l4proto ${f.protocol} ct status dnat ct state new ct original proto-dst ${toString f.port} limit rate over ${f.rateLimitNew} counter drop comment "Rate limit new connections to forward ${toString f.port}"''
+                ) rateLimitedForwards
+              )}
 
               # DNAT'd WAN ingress: prerouting rewrites destination, here we
               # accept the resulting forward. `ct status dnat` is set by nftables
@@ -728,18 +747,21 @@ in
               ${concatMapStringsSep "\n              " (
                 f: ''iifname "${cfg.externalInterface}" ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
               ) cfg.portForwards}
-              ${optionalString hasHairpin (concatMapStringsSep "\n              " (
-                # Hairpin DNAT: trusted-side traffic for any local IP that
-                # isn't an internal-interface address (i.e. the WAN IP) on
-                # this port also gets DNAT'd to `target`. The `ip daddr !=`
-                # set keeps `client → router-LAN-IP:<port>` reaching the
-                # router's own services rather than being hijacked.
-                # Untrusted VLANs are deliberately excluded: forward would
-                # drop their DNAT'd flows anyway (untrusted→trusted needs
-                # established), so skipping the DNAT gives them a clean
-                # input-chain drop instead of half-applied NAT.
-                f: ''iifname { ${concatStringsSep "," trustedAll} } ip daddr != { ${concatStringsSep "," internalInterfaceAddresses} } fib daddr type local ${f.protocol} dport ${toString f.port} dnat to ${f.target}''
-              ) hairpinForwards)}
+              ${optionalString hasHairpin (
+                concatMapStringsSep "\n              " (
+                  # Hairpin DNAT: trusted-side traffic for any local IP that
+                  # isn't an internal-interface address (i.e. the WAN IP) on
+                  # this port also gets DNAT'd to `target`. The `ip daddr !=`
+                  # set keeps `client → router-LAN-IP:<port>` reaching the
+                  # router's own services rather than being hijacked.
+                  # Untrusted VLANs are deliberately excluded: forward would
+                  # drop their DNAT'd flows anyway (untrusted→trusted needs
+                  # established), so skipping the DNAT gives them a clean
+                  # input-chain drop instead of half-applied NAT.
+                  f:
+                  "iifname { ${concatStringsSep "," trustedAll} } ip daddr != { ${concatStringsSep "," internalInterfaceAddresses} } fib daddr type local ${f.protocol} dport ${toString f.port} dnat to ${f.target}"
+                ) hairpinForwards
+              )}
             }
 
             chain postrouting {
@@ -777,8 +799,6 @@ in
           }
         '';
       };
-
-
 
       # systemd-sysctl runs right after systemd-modules-load; without the
       # conntrack module loaded at that point the net.netfilter.* keys don't

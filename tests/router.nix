@@ -52,12 +52,25 @@ pkgs.testers.runNixOSTest {
               trusted = false;
               forceDns = true;
             };
+            camera = {
+              id = 40;
+              interface = "eth2";
+              address = "10.0.40.1";
+              trusted = false;
+              allowDns = false;
+              allowWan = false;
+            };
           };
           staticHosts = [
             {
               mac = "02:00:00:00:00:42";
               ip = "10.0.0.42";
               name = "fixed";
+            }
+            {
+              mac = "02:00:00:00:00:40";
+              ip = "10.0.40.10";
+              name = "camera";
             }
           ];
           # Two forwards to the same LAN backend (10.0.10.5:80) — one with
@@ -156,6 +169,25 @@ pkgs.testers.runNixOSTest {
         };
         networking.interfaces.eth1.useDHCP = false;
         networking.interfaces.iot20.useDHCP = true;
+        networking.firewall.enable = false;
+      };
+
+    # Tagged client on VLAN 40 — DHCP works, but DNS and WAN are denied.
+    camera =
+      { lib, pkgs, ... }:
+      {
+        environment.systemPackages = [ pkgs.dnsutils ];
+        virtualisation.vlans = [ 2 ];
+        networking.useDHCP = lib.mkForce false;
+        networking.vlans.camera40 = {
+          id = 40;
+          interface = "eth1";
+        };
+        networking.interfaces.eth1 = {
+          useDHCP = false;
+          macAddress = "02:00:00:00:00:40";
+        };
+        networking.interfaces.camera40.useDHCP = true;
         networking.firewall.enable = false;
       };
 
@@ -302,6 +334,20 @@ pkgs.testers.runNixOSTest {
         iot.wait_until_succeeds(
             "ip -4 addr show iot20 | grep -qE 'inet 10\\.0\\.20\\.'", timeout=120
         )
+
+    with subtest("isolated camera VLAN retains DHCP"):
+        camera.wait_until_succeeds(
+            "ip -4 addr show camera40 | grep -q 'inet 10.0.40.10/'", timeout=120
+        )
+
+    with subtest("isolated camera VLAN cannot query router DNS"):
+        camera.fail("dig +time=1 +tries=1 @10.0.40.1 test.lan.darkstar.se")
+
+    with subtest("isolated camera VLAN cannot reach WAN"):
+        camera.fail("curl -sf --max-time 3 http://198.51.100.2/")
+
+    with subtest("trusted clients can initiate to isolated camera VLAN"):
+        trusted.succeed("ping -c1 -W2 10.0.40.10")
 
     with subtest("trusted VLAN client can NAT out to WAN"):
         trusted.succeed("curl -sf --max-time 5 http://198.51.100.2/ | grep -q 'hi from wan'")

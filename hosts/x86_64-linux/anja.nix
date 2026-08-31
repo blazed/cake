@@ -99,6 +99,14 @@
         trusted = false;
         forceDns = true;
       };
+      camera = {
+        id = 40;
+        interface = "enp3s0";
+        address = "10.0.40.1";
+        trusted = false;
+        allowDns = false;
+        allowWan = false;
+      };
     };
     staticHosts = [
       {
@@ -140,6 +148,11 @@
         name = "nicolina";
         ip = "10.0.10.13";
         mac = "24:4b:fe:98:14:aa";
+      }
+      {
+        name = "e1-zoom";
+        ip = "10.0.40.10";
+        mac = "2c:1b:3a:75:30:68";
       }
     ];
     portForwards = [
