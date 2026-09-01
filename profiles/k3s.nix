@@ -20,6 +20,18 @@
       "eth+"
       "wlan+"
     ];
+    # tailscaled advertises cilium_host's pod-CIDR address as a WireGuard
+    # endpoint, so cluster peers tunnel Tailscale over the vxlan overlay
+    # (MTU 1230 < WG's needs → path-MTU blackhole; and the overlay itself
+    # can ride tailscale0). Upstream has no exclusion knob
+    # (tailscale/tailscale#1552), so drop outbound WG/disco into the pod
+    # CIDR; disco then confirms the LAN endpoint instead. Match tailscaled's
+    # SO_MARK bypass mark rather than its port — it doesn't reliably keep
+    # the configured --port (rebinds to an ephemeral one).
+    extraCommands = ''
+      iptables -D OUTPUT -d 10.244.0.0/16 -p udp -m mark --mark 0x80000/0xff0000 -j DROP 2>/dev/null || true
+      iptables -I OUTPUT -d 10.244.0.0/16 -p udp -m mark --mark 0x80000/0xff0000 -j DROP
+    '';
   };
 
   networking.networkmanager.unmanaged = lib.mkIf config.networking.networkmanager.enable [
