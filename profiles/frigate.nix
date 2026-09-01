@@ -53,6 +53,7 @@ let
 
   cameras = lib.attrNames config.services.frigate.settings.cameras;
   ffmpeg = "${config.services.frigate.settings.ffmpeg.path}/bin/ffmpeg";
+  ffprobe = "${config.services.frigate.settings.ffmpeg.path}/bin/ffprobe";
   timelapseDir = "/var/lib/timelapse";
 
   timelapse-grab = pkgs.writeShellApplication {
@@ -93,12 +94,95 @@ let
       find ${timelapseDir} -maxdepth 1 -name '*.mp4' -mtime +14 -delete
     '';
   };
+  scene-journal = pkgs.writeShellApplication {
+    name = "scene-journal";
+    runtimeInputs = with pkgs; [
+      curl
+      jq
+      coreutils
+    ];
+    text = ''
+      api=http://127.0.0.1:5000
+      llm=http://127.0.0.1:9292
+      day=$(date -d yesterday +%F)
+      after=$(date -d "$day" +%s)
+      before=$(date -d "$day + 1 day" +%s)
+      journal=${timelapseDir}/journal.md
+      tmp=$(mktemp -d)
+      trap 'rm -rf "$tmp"' EXIT
+
+      cams=(${lib.escapeShellArgs cameras})
+      for cam in "''${cams[@]}"; do
+        rm -f "$tmp"/c?.json "$tmp"/entry.txt "$tmp"/unknown.md
+
+        mp4=${timelapseDir}/$cam-$day.mp4
+        dur=
+        [ -f "$mp4" ] && dur=$(${ffprobe} -v error -show_entries format=duration -of csv=p=0 "$mp4") || true
+        if [ -n "$dur" ]; then
+          dur=''${dur%.*}
+          jq -n --arg day "$day" --arg cam "$cam" '{
+            type: "text",
+            text: "These frames were sampled in chronological order across \($day) from the stationary indoor home camera \($cam). Write a short journal entry for that day: 3-6 sentences covering the light and weather visible through the windows, any changes in the room, and anything unusual or out of place. Mention only what is visible in the frames."
+          }' > "$tmp/c0.json"
+          for i in 1 2 3 4 5 6 7 8; do
+            # Midpoints of 8 equal slices, so no frame lands on the black edges.
+            t=$(((dur * (2 * i - 1)) / 16))
+            ${ffmpeg} -hide_banner -v error -ss "$t" -i "$mp4" \
+              -frames:v 1 -vf scale=1280:-2 -q:v 4 -y "$tmp/frame.jpg" || continue
+            base64 -w0 "$tmp/frame.jpg" > "$tmp/b64"
+            jq -n --rawfile img "$tmp/b64" \
+              '{type: "image_url", image_url: {url: ("data:image/jpeg;base64," + $img)}}' \
+              > "$tmp/c$i.json"
+          done
+          if compgen -G "$tmp/c[1-8].json" > /dev/null; then
+            jq -s '{model: "camera-vlm", max_tokens: 1024, messages: [{role: "user", content: .}]}' \
+              "$tmp"/c?.json > "$tmp/req.json"
+            curl -sf --max-time 300 "$llm/v1/chat/completions" \
+              -H 'content-type: application/json' -d @"$tmp/req.json" \
+              | jq -er '.choices[0].message.content' > "$tmp/entry.txt" || true
+          fi
+        fi
+
+        # Persons whose face was not recognized (face recognition leaves
+        # sub_label empty), with the descriptions deep-describe wrote at 02:00.
+        curl -sf "$api/api/events?camera=$cam&labels=person&after=$after&before=$before&limit=100" \
+          | jq -r '.[] | select(.sub_label == null)
+              | [(.start_time | tostring), (.data.description // "no description")] | @tsv' \
+          | sort \
+          | while IFS=$'\t' read -r ts desc; do
+              printf -- '- %s — %s\n' "$(date -d "@''${ts%.*}" +%H:%M)" "$desc"
+            done > "$tmp/unknown.md" || true
+
+        if [ -s "$tmp/entry.txt" ] || [ -s "$tmp/unknown.md" ]; then
+          {
+            printf '## %s — %s\n\n' "$day" "$cam"
+            if [ -s "$tmp/entry.txt" ]; then
+              cat "$tmp/entry.txt"
+              echo
+            fi
+            if [ -s "$tmp/unknown.md" ]; then
+              printf '### Unknown persons\n\n'
+              cat "$tmp/unknown.md"
+              echo
+            fi
+          } >> "$journal"
+          echo "journaled $cam for $day"
+        fi
+      done
+    '';
+  };
 in
 {
   services.frigate = {
     enable = true;
     hostname = "localhost";
     vaapiDriver = "radeonsi";
+    # The build-sandbox config check runs Frigate's real {FRIGATE_*} env
+    # substitution, which KeyErrors without these; dummies satisfy it and are
+    # never written to the checked config.
+    preCheckConfig = ''
+      export FRIGATE_E1_USER=dummy FRIGATE_E1_PASSWORD=dummy
+    '';
     settings = {
       version = "0.17-0";
       mqtt.enabled = false;
@@ -121,18 +205,11 @@ in
       semantic_search.enabled = true;
 
       objects = {
-        track = [
-          "person"
-          "dog"
-        ];
-        filters.dog.threshold = 0.5;
+        track = [ "person" ];
         genai = {
           enabled = true;
           use_snapshot = true;
-          objects = [
-            "person"
-            "dog"
-          ];
+          objects = [ "person" ];
           prompt = "Briefly describe the {label} and its activity in this security-camera event.";
         };
       };
@@ -146,10 +223,7 @@ in
         enabled = true;
         retain.default = 1;
       };
-      review.alerts.labels = [
-        "person"
-        "dog"
-      ];
+      review.alerts.labels = [ "person" ];
       review.genai.enabled = true;
 
       cameras.e1_zoom = {
@@ -173,6 +247,15 @@ in
         detect = {
           enabled = true;
           fps = 4;
+        };
+        # Manual PTZ from the Frigate UI. Autotracking is impossible: the E1
+        # Zoom firmware lacks ONVIF FOV-relative movement (Frigate #8840).
+        onvif = {
+          host = "10.0.40.10";
+          port = 8000;
+          # Frigate substitutes {FRIGATE_*} placeholders from its environment.
+          user = "{FRIGATE_E1_USER}";
+          password = "{FRIGATE_E1_PASSWORD}";
         };
         review.alerts.required_zones = [ "doorway" ];
         zones.doorway = {
@@ -255,6 +338,8 @@ in
     after = [ "llama-swap.service" ];
     wants = [ "llama-swap.service" ];
     environment.OPENAI_BASE_URL = "http://127.0.0.1:9292/v1";
+    # Camera credentials for the {FRIGATE_*} placeholders in the ONVIF config.
+    serviceConfig.EnvironmentFile = [ config.age.secrets.frigate-camera-env.path ];
   };
 
   systemd.services.go2rtc = {
@@ -265,6 +350,35 @@ in
       # /dev/dri/renderD128 access for the VAAPI live-stream transcode
       SupplementaryGroups = [ "render" ];
       Restart = "on-failure";
+    };
+  };
+
+  systemd.services.scene-journal = {
+    description = "Daily VLM scene journal from the timelapse";
+    after = [
+      # Orders behind stitch when Persistent fires both at the same boot.
+      "timelapse-stitch.service"
+      "frigate.service"
+      "llama-swap.service"
+    ];
+    wants = [
+      "frigate.service"
+      "llama-swap.service"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = lib.getExe scene-journal;
+      PrivateTmp = true;
+    };
+  };
+
+  # 04:00: after the 02:00 deep re-description has written event descriptions
+  # and clear of the 03:00 auto-upgrade window.
+  systemd.timers.scene-journal = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "04:00";
+      Persistent = true;
     };
   };
 
