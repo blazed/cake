@@ -1,10 +1,98 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
   service = "svc:frigate";
+
+  frigate-deep-describe = pkgs.writeShellApplication {
+    name = "frigate-deep-describe";
+    runtimeInputs = with pkgs; [
+      curl
+      jq
+      coreutils
+    ];
+    text = ''
+      api=http://127.0.0.1:5000
+      llm=http://127.0.0.1:9292
+      tmp=$(mktemp -d)
+      trap 'rm -rf "$tmp"' EXIT
+
+      after=$(date -d '24 hours ago' +%s)
+      curl -sSf "$api/api/events?after=$after&has_snapshot=1&limit=200" \
+        | jq -r '.[] | [.id, .camera, .label] | @tsv' \
+        | while IFS=$'\t' read -r id camera label; do
+            curl -sf "$api/api/events/$id/snapshot.jpg" -o "$tmp/snap.jpg" || continue
+            base64 -w0 "$tmp/snap.jpg" > "$tmp/b64"
+            jq -n --rawfile img "$tmp/b64" --arg camera "$camera" --arg label "$label" '{
+              model: "camera-vlm-deep",
+              max_tokens: 4096,
+              messages: [{
+                role: "user",
+                content: [
+                  { type: "text",
+                    text: "This is a snapshot of a security-camera event from camera \($camera), where a \($label) was detected. Describe the \($label), its appearance and its activity in 2-4 sentences, noting anything unusual. Mention only what is visible in the image." },
+                  { type: "image_url", image_url: { url: ("data:image/jpeg;base64," + $img) } }
+                ]
+              }]
+            }' > "$tmp/req.json"
+            # Generous timeout: the first request may wait on the 27B model load.
+            desc=$(curl -sf --max-time 900 "$llm/v1/chat/completions" \
+              -H 'content-type: application/json' -d @"$tmp/req.json" \
+              | jq -er '.choices[0].message.content') || continue
+            [ -n "$desc" ] || continue
+            jq -n --arg d "$desc" '{description: $d}' \
+              | curl -sf -X POST "$api/api/events/$id/description" \
+                  -H 'content-type: application/json' -d @- > /dev/null \
+              && echo "described $id ($camera/$label)"
+          done
+    '';
+  };
+
+  cameras = lib.attrNames config.services.frigate.settings.cameras;
+  ffmpeg = "${config.services.frigate.settings.ffmpeg.path}/bin/ffmpeg";
+  timelapseDir = "/var/lib/timelapse";
+
+  timelapse-grab = pkgs.writeShellApplication {
+    name = "timelapse-grab";
+    runtimeInputs = [ pkgs.coreutils ];
+    text = ''
+      day=$(date +%F)
+      cams=(${lib.escapeShellArgs cameras})
+      for cam in "''${cams[@]}"; do
+        dir=${timelapseDir}/frames/$cam/$day
+        mkdir -p "$dir"
+        ${ffmpeg} -hide_banner -v error -rtsp_transport tcp \
+          -i "rtsp://127.0.0.1:8554/$cam" \
+          -frames:v 1 -q:v 2 "$dir/$(date +%H%M%S).jpg" || continue
+      done
+    '';
+  };
+
+  timelapse-stitch = pkgs.writeShellApplication {
+    name = "timelapse-stitch";
+    runtimeInputs = [
+      pkgs.coreutils
+      pkgs.findutils
+    ];
+    text = ''
+      day=$(date -d yesterday +%F)
+      cams=(${lib.escapeShellArgs cameras})
+      for cam in "''${cams[@]}"; do
+        dir=${timelapseDir}/frames/$cam/$day
+        [ -d "$dir" ] || continue
+        # Drop frameless days (dead camera) instead of failing on them forever.
+        [ -n "$(find "$dir" -name '*.jpg' | head -1)" ] || { rm -rf "$dir"; continue; }
+        ${ffmpeg} -hide_banner -v error -framerate 30 -pattern_type glob \
+          -i "$dir/*.jpg" -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p \
+          "${timelapseDir}/$cam-$day.mp4" \
+          && rm -rf "$dir"
+      done
+      find ${timelapseDir} -maxdepth 1 -name '*.mp4' -mtime +14 -delete
+    '';
+  };
 in
 {
   services.frigate = {
@@ -121,7 +209,47 @@ in
     };
   };
 
-  environment.persistence."/keep".directories = [ "/var/lib/frigate" ];
+  environment.persistence."/keep".directories = [
+    "/var/lib/frigate"
+    # Frames included, so the 03:00 upgrade reboot doesn't clip the day.
+    timelapseDir
+  ];
+
+  systemd.services.timelapse-grab = {
+    description = "Grab one timelapse frame per camera";
+    after = [ "go2rtc.service" ];
+    wants = [ "go2rtc.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = lib.getExe timelapse-grab;
+      # A hung RTSP grab must die before the next minutely tick.
+      TimeoutStartSec = 50;
+    };
+  };
+
+  systemd.timers.timelapse-grab = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "minutely";
+      AccuracySec = "1s";
+    };
+  };
+
+  systemd.services.timelapse-stitch = {
+    description = "Stitch yesterday's timelapse frames into a video";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = lib.getExe timelapse-stitch;
+    };
+  };
+
+  systemd.timers.timelapse-stitch = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "00:15";
+      Persistent = true;
+    };
+  };
 
   systemd.services.frigate = {
     after = [ "llama-swap.service" ];
@@ -137,6 +265,33 @@ in
       # /dev/dri/renderD128 access for the VAAPI live-stream transcode
       SupplementaryGroups = [ "render" ];
       Restart = "on-failure";
+    };
+  };
+
+  systemd.services.frigate-deep-describe = {
+    description = "Nightly deep VLM re-description of Frigate events";
+    after = [
+      "frigate.service"
+      "llama-swap.service"
+    ];
+    wants = [
+      "frigate.service"
+      "llama-swap.service"
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = lib.getExe frigate-deep-describe;
+      DynamicUser = true;
+      PrivateTmp = true;
+    };
+  };
+
+  # 02:00: after the day's events, before the 03:00 auto-upgrade window.
+  systemd.timers.frigate-deep-describe = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "02:00";
+      Persistent = true;
     };
   };
 
