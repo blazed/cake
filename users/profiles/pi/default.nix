@@ -41,7 +41,7 @@ let
       "npm:@juicesharp/rpiv-ask-user-question@2.7.1"
       "npm:@vanillagreen/pi-tool-renderer@2.0.0"
       "npm:pi-blackhole@0.4.9"
-      "npm:pi-mcp-adapter@2.30.0"
+      # "npm:pi-mcp-adapter@2.30.0"
       "npm:pi-quiet-tools@0.2.0"
       "npm:pi-subagents@0.58.0"
       "npm:pi-web-access@0.26.0"
