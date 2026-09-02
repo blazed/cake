@@ -6,9 +6,8 @@ let
   system = pkgs.stdenv.hostPlatform.system;
   pi = inputs.llm-agents.packages.${system}.pi;
 in
-# llm-agents compiles Pi into a standalone Bun binary. Bun binaries cannot
-# resolve external native add-ons loaded by extensions (remote-pi's
-# @napi-rs/keyring in particular), even when the .node package is installed.
+# llm-agents compiles Pi into a standalone Bun binary. Some extensions use
+# native Node add-ons that Bun binaries cannot reliably load.
 # Reuse the same fetched npm source/dependency closure but retain Pi's normal
 # Node entry point instead of compiling and deleting it.
 pi.overrideAttrs (_: {

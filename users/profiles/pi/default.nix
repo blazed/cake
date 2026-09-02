@@ -8,7 +8,6 @@
   ...
 }:
 let
-  system = pkgs.stdenv.hostPlatform.system;
   piNode = import ./node-package.nix { inherit pkgs inputs; };
   piJujutsu = pkgs.writeShellApplication {
     name = "jj";
@@ -25,27 +24,19 @@ let
     '';
   };
 
-  thirdPartyPackages =
-    # Work around npm omitting remote-pi's optional native keyring dependency.
-    lib.optionals (system == "x86_64-linux") [
-      {
-        source = "npm:@napi-rs/keyring-linux-x64-gnu@1.3.0";
-        extensions = [ ];
-        skills = [ ];
-        prompts = [ ];
-        themes = [ ];
-      }
-    ]
-    ++ [
-      "git:github.com/DietrichGebert/ponytail@16f29800fd2681bdf24f3eb4ccffe38be3baec6b"
-      "npm:@juicesharp/rpiv-ask-user-question@2.9.0"
-      "npm:@vanillagreen/pi-tool-renderer@2.0.0"
-      "npm:pi-blackhole@0.4.10"
-      # "npm:pi-mcp-adapter@2.30.0"
-      "npm:pi-quiet-tools@0.2.0"
-      "npm:pi-subagents@0.63.0"
-      "npm:pi-web-access@0.27.0"
-    ];
+  thirdPartyPackages = [
+    "npm:@juicesharp/rpiv-ask-user-question@2.9.0"
+    "npm:@vanillagreen/pi-tool-renderer@2.0.0"
+    "npm:pi-blackhole@0.4.10"
+    # "npm:pi-mcp-adapter@2.30.0"
+    "npm:pi-quiet-tools@0.2.0"
+    {
+      source = "npm:pi-subagents@0.63.0";
+      skills = [ "skills/pi-subagents/SKILL.md" ];
+      prompts = [ "!prompts/council.md" ];
+    }
+    "npm:pi-web-access@0.27.0"
+  ];
 
   extraSkillDirs = [ ];
 
@@ -221,6 +212,14 @@ let
             id = "qwen3.8-27b:q8";
             name = "Qwen3.8 27B Q8";
             reasoning = true;
+            thinkingLevelMap = {
+              minimal = null;
+              low = "low";
+              medium = "medium";
+              high = null;
+              xhigh = "xhigh";
+              max = null;
+            };
             input = [
               "text"
               "image"
@@ -247,6 +246,14 @@ let
             id = "qwen3.8-27b:rvn-ara-q8";
             name = "Qwen3.8 27B RVN ARA Q8";
             reasoning = true;
+            thinkingLevelMap = {
+              minimal = null;
+              low = "low";
+              medium = "medium";
+              high = null;
+              xhigh = "xhigh";
+              max = null;
+            };
             input = [
               "text"
               "image"
@@ -273,6 +280,14 @@ let
             id = "qwen3.8-27b:rvn-ara-q6";
             name = "Qwen3.8 27B RVN ARA Q6";
             reasoning = true;
+            thinkingLevelMap = {
+              minimal = null;
+              low = "low";
+              medium = "medium";
+              high = null;
+              xhigh = "xhigh";
+              max = null;
+            };
             input = [
               "text"
               "image"
@@ -364,14 +379,25 @@ in
     recursive = true;
   };
 
-  # Subagents extension disabled (source kept at ./extensions/subagents).
-  # Re-enable with: home.file.".pi/agent/extensions/subagents".source = pkgs.callPackage ./subagents-package.nix { inherit piNode; };
-
   home.file.".pi/agent/AGENTS.md".source = ./AGENTS.md;
+  home.file.".pi/agent/SYSTEM.md".source = ./SYSTEM.md;
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
   home.file.".pi/agent/subagents.json".text = builtins.toJSON subagents;
   home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
+
+  home.file.".pi/agent/extensions/subagent/config.json".text = builtins.toJSON {
+    toolDescriptionMode = "compact";
+  };
+
+  xdg.configFile."rpiv-ask-user-question/config.json".text = builtins.toJSON {
+    guidance.description = ''
+      Ask structured questions when a required decision cannot safely be inferred.
+      Put a recommended option first and suffix it with (Recommended). Use previews
+      only for single-select concrete alternatives. Never author Other or
+      Type something. options.
+    '';
+  };
 
   home.activation.piSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     run install -D -m0644 ${settingsJson} "${config.home.homeDirectory}/.pi/agent/settings.json"

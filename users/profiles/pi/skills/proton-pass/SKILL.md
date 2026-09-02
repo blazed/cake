@@ -1,6 +1,6 @@
 ---
 name: proton-pass
-description: "Uses Proton Pass CLI safely for credentials and secrets. Use before invoking pass-cli or accessing Proton Pass authentication, vaults, shares, items, or credentials."
+description: Safely access credentials and secrets with Proton Pass CLI. Use before any pass-cli or Proton Pass operation.
 metadata:
   topic: Proton Pass
   keywords: ["proton-pass", "pass-cli", "credentials", "secrets", "vaults"]
