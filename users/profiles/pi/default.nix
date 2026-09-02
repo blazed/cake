@@ -38,13 +38,13 @@ let
     ]
     ++ [
       "git:github.com/DietrichGebert/ponytail@16f29800fd2681bdf24f3eb4ccffe38be3baec6b"
-      "npm:@juicesharp/rpiv-ask-user-question@2.7.1"
+      "npm:@juicesharp/rpiv-ask-user-question@2.9.0"
       "npm:@vanillagreen/pi-tool-renderer@2.0.0"
-      "npm:pi-blackhole@0.4.9"
+      "npm:pi-blackhole@0.4.10"
       # "npm:pi-mcp-adapter@2.30.0"
       "npm:pi-quiet-tools@0.2.0"
-      "npm:pi-subagents@0.58.0"
-      "npm:pi-web-access@0.26.0"
+      "npm:pi-subagents@0.63.0"
+      "npm:pi-web-access@0.27.0"
     ];
 
   extraSkillDirs = [ ];
