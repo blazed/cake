@@ -224,6 +224,7 @@ in
                 ]
               )
               ++ lib.optionals thinking [
+                "--reasoning-preserve"
                 "--chat-template-kwargs '{\"preserve_thinking\":true}'"
               ]
             );
