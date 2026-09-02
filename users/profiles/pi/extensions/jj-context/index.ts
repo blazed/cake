@@ -284,12 +284,7 @@ export default function jjContextExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "jj_context",
     label: "JJ Context",
-    description: "Return compact, structured Jujutsu repository context without explicit history mutations. Fresh reads may snapshot the working copy.",
-    promptSnippet: "Inspect compact JJ repository context (status, current change, short log, operation restore info).",
-    promptGuidelines: [
-      "Use jj_context before JJ/Git history inspection when compact repository context is enough; use bash only for specific JJ commands or full diffs.",
-      "Do not use jj_context for explicit mutations. Its default fresh read may perform JJ's normal working-copy snapshot.",
-    ],
+    description: "Inspect compact JJ repository context: status, current change, recent log, and recovery info. Prefer this over shelling out for routine JJ inspection. Not for mutations; a fresh read may perform JJ's normal working-copy snapshot.",
     parameters: jjContextParams,
     renderShell: "self",
     renderCall(args, theme) {

@@ -1,6 +1,7 @@
 ---
 name: skill-authoring
 description: "Create SKILL.md files that teach the agent new domains. Use when authoring a new pi skill with frontmatter, body structure, and references."
+disable-model-invocation: true
 metadata:
   topic: Pi Skill Authoring
   keywords: ["skill", "author", "create", "improve", "domain"]

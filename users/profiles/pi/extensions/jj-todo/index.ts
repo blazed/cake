@@ -609,13 +609,7 @@ export default function jjTodoExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "jj_todo",
     label: "JJ TODO",
-    description: "Perform compact JJ TODO workflow operations with exact revision resolution and preview-gated mutations.",
-    promptSnippet: "Manage mechanical JJ TODO workflow operations. Create/update default to preview and require the returned token to apply.",
-    promptGuidelines: [
-      "Use jj_todo for routine JJ TODO mechanics; keep planning and task judgment in normal reasoning.",
-      "Create/update default to dryRun=true. Apply with dryRun=false and the one-use previewToken returned by the exact preview.",
-      "Use jj_todo read actions before verbose jj shell commands; use bash with jj for graph edits and unusual mutations.",
-    ],
+    description: "Perform mechanical JJ TODO workflow operations. Planning stays with the agent. Create/update preview by default; applying requires dryRun:false and the previewToken from that exact preview. Use direct JJ commands for graph edits or unusual mutations.",
     parameters: jjTodoParams,
     renderShell: "self",
     renderCall(args, theme) {
