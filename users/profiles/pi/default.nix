@@ -238,6 +238,9 @@ let
                 enable_thinking = {
                   "$var" = "thinking.enabled";
                 };
+                reasoning_effort = {
+                  "$var" = "thinking.effort";
+                };
                 preserve_thinking = true;
               };
             };
@@ -272,6 +275,9 @@ let
                 enable_thinking = {
                   "$var" = "thinking.enabled";
                 };
+                reasoning_effort = {
+                  "$var" = "thinking.effort";
+                };
                 preserve_thinking = true;
               };
             };
@@ -305,6 +311,9 @@ let
               chatTemplateKwargs = {
                 enable_thinking = {
                   "$var" = "thinking.enabled";
+                };
+                reasoning_effort = {
+                  "$var" = "thinking.effort";
                 };
                 preserve_thinking = true;
               };
