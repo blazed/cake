@@ -108,6 +108,12 @@ pkgs.testers.runNixOSTest {
           };
         };
 
+        # Keep the NTP test deterministic and independent of public servers.
+        services.chrony = {
+          servers = [ ];
+          extraConfig = "local stratum 10";
+        };
+
         # internal-only HTTP service on the router; trusted clients should
         # reach it, untrusted clients must not.
         services.nginx = {
@@ -176,7 +182,10 @@ pkgs.testers.runNixOSTest {
     camera =
       { lib, pkgs, ... }:
       {
-        environment.systemPackages = [ pkgs.dnsutils ];
+        environment.systemPackages = [
+          pkgs.dnsutils
+          pkgs.python3
+        ];
         virtualisation.vlans = [ 2 ];
         networking.useDHCP = lib.mkForce false;
         networking.vlans.camera40 = {
@@ -275,6 +284,7 @@ pkgs.testers.runNixOSTest {
     start_all()
 
     router.wait_for_unit("nftables.service")
+    router.wait_for_unit("chronyd.service")
     router.wait_for_unit("dnsmasq.service")
     router.wait_for_unit("nginx.service")
     wan.wait_for_unit("nginx.service")
@@ -340,11 +350,40 @@ pkgs.testers.runNixOSTest {
             "ip -4 addr show camera40 | grep -q 'inet 10.0.40.10/'", timeout=120
         )
 
+    with subtest("DHCP advertises the router as the camera subnet's NTP server"):
+        router.succeed(
+            "config=$(systemctl show -P ExecStart dnsmasq | "
+            "sed -n 's/.* -C \\([^ ;]*\\).*/\\1/p'); "
+            "grep -q '^dhcp-option=tag:camera,option:ntp-server,10.0.40.1$' \"$config\""
+        )
+
+    with subtest("isolated camera VLAN can query the router's NTP server"):
+        camera.succeed(
+            "python3 - <<'PY'\n"
+            "import socket\n"
+            "sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)\n"
+            "sock.settimeout(3)\n"
+            "sock.sendto(bytes([0x23]) + bytes(47), ('10.0.40.1', 123))\n"
+            "data, _ = sock.recvfrom(512)\n"
+            "assert len(data) >= 48\n"
+            "assert data[0] & 7 == 4\n"
+            "assert 0 < data[1] < 16\n"
+            "assert data[40:48] != bytes(8)\n"
+            "PY\n"
+        )
+
     with subtest("isolated camera VLAN cannot query router DNS"):
         camera.fail("dig +time=1 +tries=1 @10.0.40.1 test.lan.darkstar.se")
 
     with subtest("isolated camera VLAN cannot reach WAN"):
         camera.fail("curl -sf --max-time 3 http://198.51.100.2/")
+
+    with subtest("WAN cannot query the router's NTP server"):
+        wan.fail(
+            "python3 -c \"import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); "
+            "s.settimeout(2); s.sendto(bytes([0x23]) + bytes(47), ('198.51.100.1', 123)); "
+            "s.recvfrom(512)\""
+        )
 
     with subtest("trusted clients can initiate to isolated camera VLAN"):
         trusted.succeed("ping -c1 -W2 10.0.40.10")
