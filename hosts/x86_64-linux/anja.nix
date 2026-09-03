@@ -71,6 +71,16 @@
     };
   };
 
+  services.chrony = {
+    enableNTS = true;
+    servers = [
+      "time.cloudflare.com"
+      "sth1.nts.netnod.se"
+      "sth2.nts.netnod.se"
+      "ptbnts1.ptb.de"
+    ];
+  };
+
   services.router = {
     enable = true;
     externalInterface = "enp4s0";

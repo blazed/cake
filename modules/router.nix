@@ -375,8 +375,8 @@ in
             default = true;
             description = ''
               When false, this VLAN is treated as untrusted:
-                - on input, only DNS+DHCP to the router are allowed (no ssh,
-                  web UI, etc.);
+                - on input, only DHCP, NTP, and optionally DNS to the router
+                  are allowed (no ssh, web UI, etc.);
                 - on forward, trusted interfaces may initiate to it, but it
                   can only reach trusted interfaces via established/related
                   state (IoT-style isolation).
@@ -457,9 +457,15 @@ in
         message = "services.router.vlans.${name} currently only supports /24 (got /${toString v.prefixLength}).";
       }) cfg.vlans;
 
-      environment.persistence."/keep".directories = [ "/var/lib/dnsmasq" ];
+      environment.persistence."/keep".directories = [
+        "/var/lib/chrony"
+        "/var/lib/dnsmasq"
+      ];
 
       networking.useDHCP = mkForce false;
+      # dnsmasq is the router's resolver; do not let WAN DHCP inject DNS
+      # servers or search domains into resolvconf.
+      networking.dhcpcd.extraConfig = "nohook resolv.conf";
       networking.interfaces = {
         ${cfg.externalInterface}.useDHCP = true;
       }
@@ -540,6 +546,15 @@ in
         }
       ) cfg.vlans;
 
+      services.chrony = {
+        enable = true;
+        # Serve time only to the subnets owned by this router. The nftables
+        # input rule below independently keeps the NTP socket off the WAN.
+        extraConfig = concatMapStringsSep "\n" (net: "allow ${net.network}/${toString net.prefix}") (
+          builtins.attrValues internalInterfaces
+        );
+      };
+
       services.dnsmasq.enable = true;
       services.dnsmasq.resolveLocalQueries = true;
       services.dnsmasq.settings = {
@@ -578,6 +593,7 @@ in
           mapAttrsToList (iface: c: [
             "tag:${iface},option:router,${c.address}"
             "tag:${iface},option:dns-server,${c.address}"
+            "tag:${iface},option:ntp-server,${c.address}"
           ]) internalInterfaces
         );
         dhcp-host = map (
@@ -642,9 +658,10 @@ in
               # before any accept so spoofed DNS/DHCP is caught too).
               ${antiSpoofRules}
 
-              # DHCP remains available to every internal segment. DNS can be
-              # disabled per VLAN for networks that must not leak queries.
+              # DHCP and NTP remain available to every internal segment. DNS
+              # can be disabled per VLAN for networks that must not leak queries.
               iifname { ${concatStringsSep "," allInternalNames} } udp dport 67 counter accept comment "Allow DHCP from internal"
+              iifname { ${concatStringsSep "," internalInterfaceNames} } udp dport 123 counter accept comment "Allow NTP from internal"
               iifname { ${concatStringsSep "," dnsInternalNames} } udp dport 53 counter accept comment "Allow DNS from internal"
               iifname { ${concatStringsSep "," dnsInternalNames} } tcp dport 53 counter accept comment "Allow DNS/TCP from internal"
 
