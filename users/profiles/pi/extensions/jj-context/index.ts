@@ -284,7 +284,7 @@ export default function jjContextExtension(pi: ExtensionAPI) {
   pi.registerTool({
     name: "jj_context",
     label: "JJ Context",
-    description: "Inspect compact JJ repository context: status, current change, recent log, and recovery info. Prefer this over shelling out for routine JJ inspection. Not for mutations; a fresh read may perform JJ's normal working-copy snapshot.",
+    description: "Inspect compact JJ repository context: status, current change, recent log, and recovery info. Prefer this over shelling out for routine JJ inspection. Call directly or as a sibling tool call; never include it in tool_batch, which only accepts read, grep, find, ls, and bash. Not for mutations; a fresh read may perform JJ's normal working-copy snapshot.",
     parameters: jjContextParams,
     renderShell: "self",
     renderCall(args, theme) {
