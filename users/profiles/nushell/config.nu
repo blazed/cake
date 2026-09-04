@@ -801,14 +801,29 @@ def git_main_branch [] {
     | str replace --regex 'HEAD .*?[：: ]\s*(.+)' '$1'
 }
 
+def podman-clean [
+    --containers (-c)
+    --images (-i)
+] {
+    if not ($containers or $images) {
+        error make { msg: "Specify --containers, --images, or both." }
+    }
+
+    if $containers {
+        ^podman rm --all --force
+    }
+
+    if $images {
+        ^podman rmi --all --force
+    }
+}
+
 alias e = nvim
 alias c = gitui
 alias en = neovide --fork
 alias cat = bat
 alias gss = git status -s
 alias glol = git log --graph --pretty='%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
-# def gwip []: { ^git add -A; ^git rm (git ls-files --deleted) err> /dev/null; ^git commit -m "--wip--" }
-# def gunwip []: { ^git log -n 1 | ^grep -q -c '\--wip--'; ^git reset HEAD~1 }
 alias gc = git commit -v
 alias gca = git commit -v -a
 alias gl = git pull
