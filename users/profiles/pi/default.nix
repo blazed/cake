@@ -133,6 +133,9 @@ let
 
   models = {
     providers = {
+      anthropic = {
+        modelOverrides."claude-fable-5-1".headers."user-agent" = "claude-cli/2.1.258";
+      };
       "local-ai" = {
         baseUrl = "https://ai.tailef5cf.ts.net/v1";
         api = "openai-responses";
