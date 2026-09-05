@@ -28,6 +28,7 @@ let
     "npm:@juicesharp/rpiv-ask-user-question@2.9.0"
     "npm:@vanillagreen/pi-tool-renderer@2.0.0"
     "npm:pi-blackhole@0.4.10"
+    "npm:pi-commandcode-provider@0.6.4"
     # "npm:pi-mcp-adapter@2.30.0"
     "npm:pi-quiet-tools@0.2.0"
     {
