@@ -35,7 +35,7 @@ let
       skills = [ "skills/pi-subagents/SKILL.md" ];
       prompts = [ "!prompts/council.md" ];
     }
-    "npm:pi-web-access@0.27.0"
+    "npm:pi-web-access@0.28.0"
   ];
 
   extraSkillDirs = [ ];
