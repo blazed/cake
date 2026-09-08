@@ -9,6 +9,8 @@ let
   metricsPort = 9293;
   service = "svc:ai";
 
+  llama-swap = pkgs.llama-swap.override { buildGoModule = pkgs.buildGo127Module; };
+
   llama-swap-exporter = pkgs.buildGoModule {
     pname = "llama-swap-exporter";
     version = "unstable-2026-05-10";
@@ -30,7 +32,7 @@ in
 {
   services.llama-swap = {
     enable = true;
-    package = pkgs.llama-swap.overrideAttrs (oa: rec {
+    package = llama-swap.overrideAttrs (oa: rec {
       version = "252";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
