@@ -1,0 +1,14 @@
+--- a/Services/PrivacyService.qml
++++ b/Services/PrivacyService.qml
+@@ -109,6 +109,11 @@
+             return false
+         }
+         const name = (node.name || "").toLowerCase()
++        // ASM keeps this internal processing stream around even with no mic users.
++        // Exclude only the filter input, not apps capturing its processed output.
++        if (name === "effect_input.sonar-micro-eq") {
++            return true
++        }
+         const mediaName = (node.properties && node.properties["media.name"] || "").toLowerCase()
+         const appName = (node.properties && node.properties["application.name"] || "").toLowerCase()
+         const combined = name + " " + mediaName + " " + appName
