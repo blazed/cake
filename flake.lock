@@ -27,6 +27,28 @@
         "type": "github"
       }
     },
+    "arctis-sound-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "dir": "nix",
+        "lastModified": 1788850508,
+        "narHash": "sha256-V5iU+v2fEUPVS3FuzcdUufXEoFrpvD6SR/cokgFCobE=",
+        "owner": "loteran",
+        "repo": "Arctis-Sound-Manager",
+        "rev": "8ba8c8e3afb37adda26e9f41257b6a12be55dc65",
+        "type": "github"
+      },
+      "original": {
+        "dir": "nix",
+        "owner": "loteran",
+        "repo": "Arctis-Sound-Manager",
+        "type": "github"
+      }
+    },
     "bun2nix": {
       "inputs": {
         "flake-parts": [
@@ -1069,6 +1091,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "arctis-sound-manager": "arctis-sound-manager",
         "cachix": "cachix",
         "cilium-chart": "cilium-chart",
         "claude-code": "claude-code",

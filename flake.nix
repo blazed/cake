@@ -24,6 +24,10 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     agenix.inputs.systems.follows = "systems";
     agenix.url = "github:ryantm/agenix";
+    arctis-sound-manager = {
+      url = "github:loteran/Arctis-Sound-Manager?dir=nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     cachix.url = "github:cachix/cachix";
     cachix.inputs = {
       devenv.follows = "devenv";

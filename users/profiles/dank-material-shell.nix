@@ -6,7 +6,16 @@
   ...
 }:
 let
-  dmsPackage = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
+  dmsPackage = inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (old: {
+    # shortcut-debt: ASM-specific exclusion; remove when upstream handles this filter.
+    # Upstream copies QML from a separate source during postInstall, not src.
+    postInstall = (old.postInstall or "") + ''
+      chmod u+w "$out/share/quickshell/dms/Services" \
+        "$out/share/quickshell/dms/Services/PrivacyService.qml"
+      patch --directory="$out/share/quickshell/dms" --strip=1 \
+        < ${../../patches/dms-sonar-mic-privacy.patch}
+    '';
+  });
   dmsIPC = "${dmsPackage}/bin/dms ipc call";
 
   nordTheme = pkgs.writeText "dms-nord.json" (
