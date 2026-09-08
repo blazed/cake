@@ -46,8 +46,8 @@ let
   themeName = "catppuccin-frappe";
   settings = {
     defaultProvider = "openai-codex";
-    defaultModel = "gpt-5.6-luna";
-    defaultThinkingLevel = "high";
+    defaultModel = "gpt-6-astra";
+    defaultThinkingLevel = "medium";
     enableInstallTelemetry = false;
     enableSkillCommands = true;
     extensions = extraExtensionPaths;
@@ -62,7 +62,7 @@ let
       renderMutationTools = true;
     };
     subagents = {
-      defaultModel = "openai-codex/gpt-5.6-terra";
+      defaultModel = "openai-codex/gpt-5.6-sol";
       defaultThinking = "medium";
       modelScope = {
         enforce = true;
@@ -77,11 +77,11 @@ let
           thinking = "low";
         };
         researcher = {
-          model = "openai-codex/gpt-5.6-terra";
+          model = "openai-codex/gpt-5.6-sol";
           thinking = "high";
         };
         delegate = {
-          model = "openai-codex/gpt-5.6-terra";
+          model = "openai-codex/gpt-5.6-sol";
           thinking = "medium";
         };
         worker = {
@@ -89,30 +89,14 @@ let
           thinking = "xhigh";
         };
         reviewer = {
-          model = "openai-codex/gpt-5.6-sol";
+          model = "openai-codex/gpt-6-astra";
           thinking = "xhigh";
         };
         oracle = {
-          model = "openai-codex/gpt-5.6-sol";
+          model = "openai-codex/gpt-6-astra";
           thinking = "xhigh";
         };
       };
-    };
-    openaiNativeCompaction = {
-      enabled = true;
-      debug = false;
-      logProviderPayloads = false;
-      logCompactResponses = false;
-      redactSensitiveData = true;
-      supportedProviders = [
-        "openai"
-        "openai-codex"
-      ];
-      supportedApis = [
-        "openai-responses"
-        "openai-codex-responses"
-      ];
-      notifyOnLoad = false;
     };
     theme = themeName;
   };
