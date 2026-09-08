@@ -3,6 +3,8 @@ set -euo pipefail
 
 AI_NIX="profiles/ai.nix"
 FAKE_HASH="sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+# Use the same nixpkgs as the host, including updates made by CI just before this script.
+NIXPKGS_PATH=$(nix eval --impure --raw --expr '(builtins.getFlake (toString ./.)).inputs.nixpkgs.outPath')
 
 extract_hash() {
   grep -oP 'got:\s+sha256-[^\s]+' | head -1 | grep -oP 'sha256-[^\s]+'
@@ -12,8 +14,10 @@ nix_build_file() {
   local tmpfile output
   tmpfile=$(mktemp /tmp/update-ai-XXXXXX.nix)
   cat > "$tmpfile"
-  output=$(nix build --no-link --impure --expr "import $tmpfile" 2>&1 || true)
+  output=$(nix build --no-link --impure -I "nixpkgs=$NIXPKGS_PATH" --expr "import $tmpfile" 2>&1 || true)
   rm -f "$tmpfile"
+  # Keep build errors visible even when the caller only extracts the hash.
+  echo "$output" >&2
   echo "$output"
 }
 
@@ -172,7 +176,7 @@ NIX
   vendor_hash=$(cat <<NIX | nix_build_file | extract_hash || true
 let pkgs = import <nixpkgs> {};
     src = ${llama_swap_src_expr//@HASH@/$src_hash};
-in (pkgs.buildGoModule {
+in (pkgs.buildGo127Module {
   pname = "llama-swap-vendor";
   version = "${latest}";
   inherit src;
