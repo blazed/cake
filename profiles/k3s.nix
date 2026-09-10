@@ -8,6 +8,7 @@
 {
   imports = [
     ../profiles/tailscale.nix
+    ./kernel-7_1.nix
   ];
 
   networking.firewall = {

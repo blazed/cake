@@ -68,6 +68,7 @@
     nix2container.url = "github:nlewo/nix2container";
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=v0.7.0";
     nixos-hardware.url = "github:nixos/nixos-hardware";
+    nixpkgs-kernel.url = "github:NixOS/nixpkgs/0968519e14f7aa7d3e9b389682bd74d2b51c8ce8";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nur.url = "github:nix-community/NUR";
     persway.inputs.crane.follows = "crane";
