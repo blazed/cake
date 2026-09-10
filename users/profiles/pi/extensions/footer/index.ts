@@ -96,9 +96,6 @@ export function collectUsage(ctx: Pick<ExtensionContext, "sessionManager">): Usa
         if (message.role === "assistant" || message.role === "toolResult") addUsage(totals, message.usage);
       } else if ((entry.type === "branch_summary" || entry.type === "compaction") && entry.usage) {
         addUsage(totals, entry.usage);
-      } else if (entry.type === "custom" && entry.customType === "subagent-accounting") {
-        const data = entry.data as { usage?: UsageLike } | undefined;
-        addUsage(totals, data?.usage);
       }
     }
   } catch {
