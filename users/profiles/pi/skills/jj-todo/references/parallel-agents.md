@@ -1,6 +1,6 @@
 # Parallel Agents with JJ Workspaces
 
-Target: `jj 0.43.x` and Pi's `subagent_spawn` tool.
+Target: `jj 0.45.x` and the `pi-subagents` package's `subagent` tool.
 
 > **Experimental:** use this workflow only after the user explicitly approves parallel execution and the additional workspace cleanup.
 
@@ -39,39 +39,39 @@ jj workspace add /absolute/path/workspace-feature-c --name feature-c
 jj workspace list
 ```
 
-Record each absolute workspace path, workspace name, and task change ID. In each workspace, run `jj edit <task-id>` before starting its worker.
+`jj workspace list` prints each workspace root by default (0.44+). Record each absolute workspace path, workspace name, and task change ID. In each workspace, run `jj edit <task-id>` before starting its worker.
 
-Before spawning, ensure Pi's persisted project-trust store covers every alternate `working_dir` or a containing directory. Use Pi's normal interactive `/trust` flow and restart as instructed; do not hand-edit `trust.json`. Without persisted trust, subagents fail closed and omit trust-gated project settings, extensions, and resources. Proceed in that degraded mode only when it is intentional and sufficient for the task.
+Before spawning, ensure Pi's persisted project-trust store covers every alternate `cwd` or a containing directory. Use Pi's normal interactive `/trust` flow and restart as instructed; do not hand-edit `trust.json`. Without persisted trust, subagents fail closed and omit trust-gated project settings, extensions, and resources. Proceed in that degraded mode only when it is intentional and sufficient for the task.
 
 ## 3. Spawn One Worker per Workspace
 
-Call `subagent_spawn` separately for each worker. Pi permits at most four concurrent children, so never create more active workers than that limit.
+Launch one async `subagent` call per worker and pass the workspace path as `cwd`. Inspect the installed interface with `subagent({ action: "list" })` when unsure which agents are available.
 
 Each call needs:
 
-- a unique short `name`
-- a deliberate `harness` (`pi` or `claude`)
-- `working_dir` set to the workspace's absolute path
-- a self-contained prompt containing the exact task change ID and specification
+- `agent`: the builtin `worker` for a Pi child, or a deliberate Claude Code agent when a Claude child is required
+- `cwd` set to the workspace's absolute path
+- `task`: a self-contained prompt containing the exact task change ID and specification
 - explicit instructions to inspect the current task, update it to `wip`, implement only that task, validate it, and report completion or blockage
 - a reminder that the child cannot ask the user or orchestrate more agents
+
+Record each run id as it is returned; it identifies the worker for `bg_wait`, `subagent({ action: "status", id })`, and steering.
 
 Example payload shape:
 
 ```json
 {
-  "name": "feature-a",
-  "harness": "pi",
-  "working_dir": "/absolute/path/workspace-feature-a",
-  "prompt": "Implement JJ task <change-id>. Read its full description, confirm this workspace edits that revision, mark it wip, satisfy every acceptance criterion, validate, and report changed files and checks. Stop on ambiguity or conflicts."
+  "agent": "worker",
+  "cwd": "/absolute/path/workspace-feature-a",
+  "task": "Implement JJ task <change-id>. Read its full description, confirm this workspace edits that revision, mark it wip, satisfy every acceptance criterion, validate, and report changed files and checks. Stop on ambiguity or conflicts."
 }
 ```
 
-Do not tell workers to `cd`; `working_dir` establishes their process directory. Do not let the parent or another worker mutate a worker's workspace while it is running.
+Children run async by default and are bounded by pi-subagents concurrency settings; keep the worker count small and justified rather than filling capacity. Do not tell workers to `cd`; `cwd` establishes their process directory. Do not use the package's git-worktree isolation (`worktree: true`) in this repository — JJ workspaces are the isolation mechanism. Do not let the parent or another worker mutate a worker's workspace while it is running.
 
 ## 4. Monitor Without Competing
 
-After spawning, continue only with work that cannot affect worker workspaces or shared task history. Results arrive asynchronously; use `subagent_wait` only when progress genuinely depends on all selected workers settling.
+After spawning, continue only with work that cannot affect worker workspaces or shared task history. Workers notify the parent natively when they settle, so do not call `bg_wait` just because they are running. Use `bg_wait` with the worker's run id only when this turn genuinely cannot proceed without the result, and use `subagent({ action: "status" })` to inspect the fleet.
 
 From the main workspace, use read-only inspection:
 
@@ -105,7 +105,7 @@ Deleting the workspace directories is a separate filesystem operation. Reconfirm
 - **Two tasks touched the same file:** expect an integration conflict and review both intents.
 - **Worker is blocked:** leave an accurate `blocked`, `standby`, `untested`, or `review` flag and report why.
 - **Workspace disappeared:** inspect `jj workspace list` and repository operations before recreating anything.
-- **Agent did not reply:** delivery and subagent completion are separate; inspect its status rather than spawning a duplicate worker immediately.
+- **Agent did not reply:** completion is delivered through Pi's native notifications; inspect run status rather than spawning a duplicate worker immediately.
 
 ## Safety Rules
 
@@ -120,3 +120,4 @@ Deleting the workspace directories is a separate filesystem operation. Reconfirm
 - `jj help workspace`
 - [CLI workflow](cli-workflow.md)
 - The `jj-core` skill for graph inspection and recovery
+- The installed `pi-subagents` skill (`subagent` controls and lane orchestration)

@@ -4,7 +4,7 @@ description: "Runs the structured JJ TODO-commit workflow. MUST be used before m
 metadata:
   keywords: ["jj", "todo", "task", "planning", "commits", "workflow"]
   related: [jj-core, conventional-commits]
-  version_target: "0.43.x"
+  version_target: "0.45.x"
 ---
 
 # JJ TODO Workflow

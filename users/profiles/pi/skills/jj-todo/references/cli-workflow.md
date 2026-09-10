@@ -1,6 +1,6 @@
 # JJ TODO CLI Fallback
 
-Target: `jj 0.43.x` with Nushell helper scripts from `../scripts/`.
+Target: `jj 0.45.x` with Nushell helper scripts from `../scripts/`.
 
 Use this reference only when the `jj_todo` Pi tool is unavailable or when a DAG operation is not supported by the tool. Planning, dependency, validation, and completion rules remain defined by the main skill.
 
