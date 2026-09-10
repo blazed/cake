@@ -29,7 +29,6 @@ let
     "npm:@vanillagreen/pi-tool-renderer@2.0.0"
     "npm:pi-blackhole@0.4.10"
     "npm:pi-commandcode-provider@0.6.4"
-    # "npm:pi-mcp-adapter@2.30.0"
     "npm:pi-quiet-tools@0.2.0"
     {
       source = "npm:pi-subagents@0.63.0";
@@ -39,10 +38,6 @@ let
     "npm:pi-web-access@0.27.0"
   ];
 
-  extraSkillDirs = [ ];
-
-  extraExtensionPaths = [ ];
-
   themeName = "catppuccin-frappe";
   settings = {
     defaultProvider = "openai-codex";
@@ -50,9 +45,7 @@ let
     defaultThinkingLevel = "medium";
     enableInstallTelemetry = false;
     enableSkillCommands = true;
-    extensions = extraExtensionPaths;
     packages = thirdPartyPackages;
-    skills = extraSkillDirs;
     steeringMode = "all";
     followUpMode = "all";
     showCacheMissNotices = true;
@@ -86,7 +79,7 @@ let
         };
         worker = {
           model = "openai-codex/gpt-5.6-luna";
-          thinking = "xhigh";
+          thinking = "max";
         };
         reviewer = {
           model = "openai-codex/gpt-6-astra";
@@ -101,10 +94,6 @@ let
     theme = themeName;
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
-
-  subagents = {
-    claude.permissions = "full";
-  };
 
   mcp = {
     mcpServers = {
@@ -337,7 +326,6 @@ let
     test -e ${localExtensionsCheck}/result
     cp -r ${./extensions}/. $out
     chmod -R u+w $out
-    rm -rf $out/subagents
   '';
 
   piWrapped = pkgs.symlinkJoin {
@@ -380,7 +368,6 @@ in
   home.file.".pi/agent/SYSTEM.md".source = ./SYSTEM.md;
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
-  home.file.".pi/agent/subagents.json".text = builtins.toJSON subagents;
   home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
 
   home.file.".pi/agent/extensions/subagent/config.json".text = builtins.toJSON {

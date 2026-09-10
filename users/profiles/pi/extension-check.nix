@@ -1,7 +1,6 @@
 { pkgs, piNode }:
 let
   piPackageDir = "${piNode}/lib/node_modules/@earendil-works/pi-coding-agent";
-  subagentsCheck = pkgs.callPackage ./subagents-package.nix { inherit piNode; };
   localCheck =
     pkgs.runCommand "pi-local-extensions-check"
       {
@@ -17,7 +16,6 @@ let
         cp -r ${./extensions} "$work/extensions"
         cp -r ${./extension-tests} "$work/extension-tests"
         chmod -R u+w "$work"
-        rm -rf "$work/extensions/subagents"
 
         test -d ${piPackageDir}/node_modules/@earendil-works/pi-agent-core
         test -d ${piPackageDir}/node_modules/@earendil-works/pi-ai
@@ -62,7 +60,6 @@ let
 in
 pkgs.runCommand "pi-extensions-check" { } ''
   test -e ${localCheck}/result
-  test -e ${subagentsCheck}/index.ts
   mkdir -p "$out"
   echo "all local Pi extension checks passed" > "$out/result"
 ''

@@ -126,20 +126,15 @@ test("footer usage includes assistant, tool, compaction, and branch-summary entr
     { type: "message", message: { role: "toolResult", usage: usage(5, 6, 7, 8, 0.2) } },
     { type: "compaction", usage: usage(9, 10, 11, 12, 0.3) },
     { type: "branch_summary", usage: usage(13, 14, 15, 16, 0.4) },
-    {
-      type: "custom",
-      customType: "subagent-accounting",
-      data: { usage: usage(17, 18, 19, 20, 0.5) },
-    },
     { type: "message", message: { role: "user" } },
   ];
   const totals = collectUsage({ sessionManager: { getEntries: () => entries } } as never);
   assert.deepEqual(totals, {
-    input: 45,
-    output: 50,
-    cacheRead: 55,
-    cacheWrite: 60,
-    cost: 1.5,
+    input: 28,
+    output: 32,
+    cacheRead: 36,
+    cacheWrite: 40,
+    cost: 1.0,
   });
 });
 

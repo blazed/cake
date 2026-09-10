@@ -46,9 +46,7 @@ in
       ".nvimlog" # TODO(blazed): find out why this is needed?
       ".pi-subagents/"
       ".pi/quiet-tools/"
-      ".pi/remote-pi/"
       ".pi/subagents/"
-      ".pi/workflows/"
     ];
   };
 
