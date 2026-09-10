@@ -5,6 +5,7 @@
 import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import {
   createQuotaTracker,
+  timeoutSignal,
   type QuotaSnapshot,
   type QuotaTracker,
   type QuotaWindowSnapshot,
@@ -83,21 +84,6 @@ function extractQuotaSnapshot(payload: ChatGptUsageResponse): QuotaSnapshot | nu
     limitName: "OpenAI",
     primary,
     secondary,
-  };
-}
-
-function timeoutSignal(timeoutMs: number, parentSignal: AbortSignal): { signal: AbortSignal; cancel: () => void } {
-  const controller = new AbortController();
-  const onParentAbort = () => controller.abort();
-  if (parentSignal.aborted) controller.abort();
-  else parentSignal.addEventListener("abort", onParentAbort, { once: true });
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  return {
-    signal: controller.signal,
-    cancel: () => {
-      clearTimeout(timeout);
-      parentSignal.removeEventListener("abort", onParentAbort);
-    },
   };
 }
 

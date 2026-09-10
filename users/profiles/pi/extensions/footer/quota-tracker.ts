@@ -9,7 +9,6 @@ export interface QuotaSnapshot {
   limitName: string | null;
   primary: QuotaWindowSnapshot | null;
   secondary: QuotaWindowSnapshot | null;
-  tertiary?: QuotaWindowSnapshot | null;
 }
 
 export interface QuotaTracker {
@@ -23,6 +22,28 @@ export interface QuotaTrackerOptions {
   now?: () => number;
   setInterval?: typeof globalThis.setInterval;
   clearInterval?: typeof globalThis.clearInterval;
+}
+
+/**
+ * Combine a caller's abort signal with a request timeout. The returned signal
+ * aborts on either; call `cancel` in a `finally` block to release the timer.
+ */
+export function timeoutSignal(
+  timeoutMs: number,
+  parentSignal: AbortSignal,
+): { signal: AbortSignal; cancel: () => void } {
+  const controller = new AbortController();
+  const onParentAbort = () => controller.abort();
+  if (parentSignal.aborted) controller.abort();
+  else parentSignal.addEventListener("abort", onParentAbort, { once: true });
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  return {
+    signal: controller.signal,
+    cancel: () => {
+      clearTimeout(timeout);
+      parentSignal.removeEventListener("abort", onParentAbort);
+    },
+  };
 }
 
 export function createQuotaTracker(
