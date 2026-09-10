@@ -60,8 +60,8 @@ let
       modelScope = {
         enforce = true;
         allow = [
+          "commandcode/*"
           "openai-codex/*"
-          "opencode-go/*"
         ];
       };
       agentOverrides = {

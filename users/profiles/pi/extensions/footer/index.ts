@@ -19,7 +19,7 @@ import type {
 } from "@earendil-works/pi-coding-agent";
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { createCodexQuotaTracker, type QuotaTracker } from "./codex-usage.ts";
-import { createOpenCodeGoQuotaTracker } from "./opencode-go-usage.ts";
+import { createCommandCodeQuotaTracker } from "./commandcode-usage.ts";
 import { cacheHitPercent } from "./format.ts";
 import {
   renderCache,
@@ -257,9 +257,9 @@ const KNOWN_PROVIDER_LABELS: Record<string, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
   "openai-codex": "OpenAI Codex",
+  commandcode: "Command Code",
   google: "Google",
   deepseek: "DeepSeek",
-  "opencode-go": "OpenCodeGo",
   xai: "xAI",
   groq: "Groq",
   openrouter: "OpenRouter",
@@ -285,12 +285,18 @@ function isOpenAICodexModel(model: { id?: string; provider?: string } | undefine
   return provider === "openai-codex" || /^openai-codex-\d+$/.test(provider ?? "");
 }
 
-/** Return true when the active model uses the OpenCode Go provider. */
-function isOpenCodeGoModel(model: { id?: string; provider?: string } | undefined): boolean {
-  return getModelProvider(model) === "opencode-go";
+/** Return true when the active model uses the Command Code provider. */
+function isCommandCodeModel(model: { id?: string; provider?: string } | undefined): boolean {
+  return getModelProvider(model) === "commandcode";
 }
 
 // ── Footer line builder ─────────────────────────────────────
+
+/** One provider quota source, enabled only while its provider is the active model. */
+interface QuotaTrackerSelection {
+  tracker: QuotaTracker;
+  isActive: (model: { id?: string; provider?: string } | undefined) => boolean;
+}
 
 function buildLine(
   theme: Theme,
@@ -298,8 +304,7 @@ function buildLine(
   pi: ExtensionAPI,
   footerData: ReadonlyFooterDataProvider,
   vcsCache: VcsCache,
-  codexQuotaTracker: QuotaTracker,
-  openCodeGoQuotaTracker: QuotaTracker,
+  quotaTrackers: readonly QuotaTrackerSelection[],
   width: number,
   requestRender: () => void,
 ): string {
@@ -316,10 +321,12 @@ function buildLine(
   const modelProvider = ctx.model?.provider;
   const thinkingLevel = pi.getThinkingLevel() as string | undefined;
   const typedModel = ctx.model as { id?: string; provider?: string } | undefined;
-  const showCodexQuotaUsage = isOpenAICodexModel(typedModel);
-  const showOpenCodeGoQuotaUsage = isOpenCodeGoModel(typedModel);
-  codexQuotaTracker.setEnabled(showCodexQuotaUsage);
-  openCodeGoQuotaTracker.setEnabled(showOpenCodeGoQuotaUsage);
+  let activeQuotaTracker: QuotaTracker | null = null;
+  for (const selection of quotaTrackers) {
+    const active = selection.isActive(typedModel);
+    selection.tracker.setEnabled(active);
+    if (active) activeQuotaTracker = selection.tracker;
+  }
 
   // ── Left segments ──
   const left: string[] = [];
@@ -352,22 +359,14 @@ function buildLine(
   if (costSeg) right.push(costSeg);
 
   let quotaSeg: string | null = null;
-  if (showCodexQuotaUsage || showOpenCodeGoQuotaUsage) {
-    const quota = showOpenCodeGoQuotaUsage
-      ? openCodeGoQuotaTracker.getSnapshot()
-      : codexQuotaTracker.getSnapshot();
-    quotaSeg = renderQuota(
-      theme,
-      quota
-        ? {
-            limitId: quota.limitId,
-            limitName: quota.limitName,
-            primary: quota.primary,
-            secondary: quota.secondary,
-            tertiary: quota.tertiary ?? null,
-          }
-        : null,
-    );
+  const quota = activeQuotaTracker?.getSnapshot() ?? null;
+  if (quota) {
+    quotaSeg = renderQuota(theme, {
+      limitId: quota.limitId,
+      limitName: quota.limitName,
+      primary: quota.primary,
+      secondary: quota.secondary,
+    });
   }
 
   const pLabel = providerLabel(modelProvider);
@@ -434,17 +433,22 @@ export default function footerExtension(pi: ExtensionAPI): void {
     activeVcsCache = vcsCache;
 
     ctx.ui.setFooter((tui, theme, footerData) => {
+      const requestRender = () => tui.requestRender();
       const unsubscribeBranchChange = footerData.onBranchChange(() => {
         invalidateVcs(vcsCache);
-        tui.requestRender();
+        requestRender();
       });
 
-      const codexQuotaTracker = createCodexQuotaTracker(ctx, () => {
-        tui.requestRender();
-      });
-      const openCodeGoQuotaTracker = createOpenCodeGoQuotaTracker(ctx, () => {
-        tui.requestRender();
-      });
+      const quotaTrackers: QuotaTrackerSelection[] = [
+        {
+          tracker: createCodexQuotaTracker(ctx, requestRender),
+          isActive: isOpenAICodexModel,
+        },
+        {
+          tracker: createCommandCodeQuotaTracker(ctx, requestRender),
+          isActive: isCommandCodeModel,
+        },
+      ];
 
       const component = {
         invalidate() {
@@ -457,10 +461,9 @@ export default function footerExtension(pi: ExtensionAPI): void {
             pi,
             footerData,
             vcsCache,
-            codexQuotaTracker,
-            openCodeGoQuotaTracker,
+            quotaTrackers,
             width,
-            () => tui.requestRender(),
+            requestRender,
           );
           const statusLine = renderExtensionStatuses(
             footerData.getExtensionStatuses(),
@@ -474,8 +477,7 @@ export default function footerExtension(pi: ExtensionAPI): void {
           invalidateVcs(vcsCache);
           if (activeVcsCache === vcsCache) activeVcsCache = undefined;
           unsubscribeBranchChange();
-          codexQuotaTracker.dispose();
-          openCodeGoQuotaTracker.dispose();
+          for (const { tracker } of quotaTrackers) tracker.dispose();
         },
       };
       return component;

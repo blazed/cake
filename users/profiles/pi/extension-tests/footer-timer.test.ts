@@ -8,6 +8,7 @@ import test from "node:test";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { collectUsage, readJjInfo, renderExtensionStatuses } from "../extensions/footer/index.ts";
 import { cacheHitPercent } from "../extensions/footer/format.ts";
+import { parseCommandCodeSnapshot } from "../extensions/footer/commandcode-usage.ts";
 import { createQuotaTracker } from "../extensions/footer/quota-tracker.ts";
 import { createWorkingTimerExtension } from "../extensions/working-timer/index.ts";
 
@@ -144,6 +145,30 @@ test("cache hit rate counts cached reads against the whole prompt", () => {
   assert.equal(cacheHitPercent(0, 40, 28), null);
   assert.equal(cacheHitPercent(10, 0, 0), 100);
   assert.equal(cacheHitPercent(10, 0, 90), 10);
+});
+
+test("Command Code credit windows map onto quota percent", () => {
+  const snapshot = parseCommandCodeSnapshot({
+    credits: { monthlyCredits: 10 },
+    windowLimits: {
+      fiveHour: { used: 2.5, cap: 10, resetAt: 1_700_000_000 },
+      weekly: { used: 30, cap: 100, resetAt: 1_800_000_000 },
+    },
+  });
+
+  assert.equal(snapshot?.limitName, "Command Code");
+  assert.deepEqual(snapshot?.primary, {
+    usedPercent: 25,
+    windowDurationMins: 300,
+    resetsAt: 1_700_000_000_000,
+  });
+  assert.equal(snapshot?.secondary?.usedPercent, 30);
+  assert.equal(snapshot?.secondary?.windowDurationMins, 10_080);
+
+  // Windows without a usable cap carry no percentage, so the segment is hidden.
+  assert.equal(parseCommandCodeSnapshot({ windowLimits: { fiveHour: { used: 1, cap: 0 } } }), null);
+  assert.equal(parseCommandCodeSnapshot({ windowLimits: {} }), null);
+  assert.equal(parseCommandCodeSnapshot(null), null);
 });
 
 test("extension statuses are sorted, sanitized, and width-bounded", () => {

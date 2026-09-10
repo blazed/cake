@@ -36,7 +36,6 @@ export interface QuotaSegmentInput {
   limitName: string | null;
   primary: QuotaWindowInput | null;
   secondary: QuotaWindowInput | null;
-  tertiary?: QuotaWindowInput | null;
 }
 
 // ── Thinking-level maps ─────────────────────────────────────
@@ -189,7 +188,7 @@ function renderQuotaWindow(theme: Theme, window: QuotaWindowInput): string | nul
 export function renderQuota(theme: Theme, input: QuotaSegmentInput | null): string | null {
   if (!input) return null;
 
-  const windows = [input.primary, input.secondary, input.tertiary ?? null].filter(
+  const windows = [input.primary, input.secondary].filter(
     (value): value is QuotaWindowInput => value !== null,
   );
   if (windows.length === 0) return null;
@@ -209,7 +208,7 @@ export function renderQuota(theme: Theme, input: QuotaSegmentInput | null): stri
 
 /**
  * Render provider + context-usage segment.
- * Shows e.g. "OpenCode Go 5h 72% 45k/128k" with color-coded usage.
+ * Shows e.g. "OpenAI Codex 5h 72% 45k/128k" with color-coded usage.
  * Falls back to "Context" label when no provider is known.
  */
 export function renderProviderContext(

@@ -61,9 +61,9 @@ const KNOWN_PROVIDERS: Record<string, string> = {
   anthropic: "Anthropic",
   openai: "OpenAI",
   "openai-codex": "OpenAI Codex",
+  commandcode: "Command Code",
   google: "Google",
   deepseek: "DeepSeek",
-  "opencode-go": "OpenCodeGo",
   xai: "xAI",
   groq: "Groq",
   openrouter: "OpenRouter",
@@ -77,7 +77,7 @@ const ACRONYMS = new Set(["gpt", "ai", "llm", "api", "moe", "ssm", "vl"]);
 /**
  * Set of lowercase words that indicate a model name already implies its
  * provider (e.g. "deepseek" in "deepseek-v4-flash").  Built from provider
- * keys and display names so we don't show "OpenCodeGo DeepSeek V4 Flash".
+ * keys and display names so we don't show "DeepSeek DeepSeek V4 Flash".
  */
 const PROVIDER_INDICATORS = new Set<string>();
 for (const [key, display] of Object.entries(KNOWN_PROVIDERS)) {
