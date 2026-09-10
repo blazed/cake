@@ -135,6 +135,12 @@ export function renderTokens(theme: Theme, totalTokens: number): string | null {
   return `tok ${theme.fg("text", formatTokens(totalTokens))}`;
 }
 
+/** Render prompt-cache hit-rate segment. Returns null when nothing was cached. */
+export function renderCache(theme: Theme, hitPercent: number | null): string | null {
+  if (hitPercent === null) return null;
+  return `${theme.fg("muted", "cache")} ${theme.fg("text", `${hitPercent}%`)}`;
+}
+
 /** Render cost segment — just the dollar amount, no label. Returns null when 0. */
 export function renderCost(theme: Theme, costUsd: number): string | null {
   if (costUsd === 0) return null;

@@ -3,7 +3,7 @@
  *
  * Replaces the built-in footer with a custom layout:
  *   Left:  MODEL | think LEVEL | VCS_BRANCH +add -del
- *   Right: DIRECTORY | tok TOKENS | $COST | PROVIDER quota availability
+ *   Right: DIRECTORY | tok TOKENS | cache HIT% | $COST | PROVIDER quota availability
  *
  * Supports jj (Jujutsu) and git VCS backends (auto-detected).
  */
@@ -20,7 +20,9 @@ import type {
 import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { createCodexQuotaTracker, type QuotaTracker } from "./codex-usage.ts";
 import { createOpenCodeGoQuotaTracker } from "./opencode-go-usage.ts";
+import { cacheHitPercent } from "./format.ts";
 import {
+  renderCache,
   renderCost,
   renderDirectory,
   renderModel,
@@ -339,6 +341,12 @@ function buildLine(
 
   const tokensSeg = renderTokens(theme, totalTokens);
   if (tokensSeg) right.push(tokensSeg);
+
+  const cacheSeg = renderCache(
+    theme,
+    cacheHitPercent(usage.cacheRead, usage.cacheWrite, usage.input),
+  );
+  if (cacheSeg) right.push(cacheSeg);
 
   const costSeg = renderCost(theme, usage.cost);
   if (costSeg) right.push(costSeg);
