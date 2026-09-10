@@ -9,6 +9,8 @@ import { visibleWidth } from "@earendil-works/pi-tui";
 import { collectUsage, readJjInfo, renderExtensionStatuses } from "../extensions/footer/index.ts";
 import { cacheHitPercent } from "../extensions/footer/format.ts";
 import { parseCommandCodeSnapshot } from "../extensions/footer/commandcode-usage.ts";
+import { renderQuota } from "../extensions/footer/segments.ts";
+import type { Theme } from "@earendil-works/pi-coding-agent";
 import { createQuotaTracker } from "../extensions/footer/quota-tracker.ts";
 import { createWorkingTimerExtension } from "../extensions/working-timer/index.ts";
 
@@ -169,6 +171,34 @@ test("Command Code credit windows map onto quota percent", () => {
   assert.equal(parseCommandCodeSnapshot({ windowLimits: { fiveHour: { used: 1, cap: 0 } } }), null);
   assert.equal(parseCommandCodeSnapshot({ windowLimits: {} }), null);
   assert.equal(parseCommandCodeSnapshot(null), null);
+});
+
+test("quota segment prefers the 5h window until it is used up", () => {
+  const identity: Theme = new Proxy({} as Theme, {
+    // Theme.fg(color, text) wraps text; strip it so assertions read the raw segment.
+    get: () => (_color: string, text: string) => text,
+  });
+  const window = (usedPercent: number, windowDurationMins: number) => ({
+    usedPercent,
+    windowDurationMins,
+    resetsAt: null,
+  });
+  const quota = (primary: ReturnType<typeof window>, secondary: ReturnType<typeof window>) => ({
+    limitId: "commandcode",
+    limitName: "Command Code",
+    primary,
+    secondary,
+  });
+
+  // 5h still has allowance even though weekly is closer to its cap.
+  assert.equal(renderQuota(identity, quota(window(0.5, 300), window(6.6, 10_080))), "5h 99.5%");
+  // Weekly takes over once the 5h window is exhausted.
+  assert.equal(renderQuota(identity, quota(window(100, 300), window(6.6, 10_080))), "1w 93.4%");
+  // Both exhausted: the longest window is shown.
+  assert.equal(renderQuota(identity, quota(window(100, 300), window(100, 10_080))), "1w 0%");
+  // A provider reporting only a weekly window still renders.
+  assert.equal(renderQuota(identity, quota(window(0, 10_080), null as never)), "1w 100%");
+  assert.equal(renderQuota(identity, null), null);
 });
 
 test("extension statuses are sorted, sanitized, and width-bounded", () => {
