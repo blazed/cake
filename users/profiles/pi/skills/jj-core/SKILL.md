@@ -4,14 +4,14 @@ description: "Guides safe JJ (Jujutsu) version-control work. MUST be used before
 metadata:
   keywords: ["jj", "jujutsu", "git", "revsets", "bookmarks", "history", "fix", "formatting"]
   related: [jj-todo, conventional-commits]
-  version_target: "0.43.x"
+  version_target: "0.45.x"
 ---
 
 # JJ (Jujutsu) Version Control
 
 JJ has no staging area: the working copy is an editable commit (`@`) that is normally snapshotted before each command. Change IDs remain stable across rewrites; commit IDs change with content.
 
-Tested against `jj 0.43.0`. Prefer canonical command names and short, stable flags in durable instructions.
+Tested against `jj 0.45.1`. Prefer canonical command names and short, stable flags in durable instructions.
 
 ## Mandatory Boundaries
 
@@ -113,6 +113,8 @@ jj bookmark delete <name>
 
 Fetch is routine; pushing, deleting remote-tracked bookmarks, signing, and other externally visible operations require an explicit user request or a clearly established release workflow.
 
+Since 0.44, `jj git fetch` also fetches tags as `<name>@<remote>` and auto-tracks matching local tags, and `jj git push --all` pushes tags too. Fetched tag targets are immutable (0.45 added untracked remote tags to the default `immutable_heads()`); set `remotes.<name>.fetch-tags = '~*'` to skip tag fetching.
+
 ## Helper Scripts
 
 Scripts are under `scripts/` and use Nushell:
@@ -134,9 +136,10 @@ jj op show <op-id>        # inspect what an operation changed
 jj op restore <op-id>     # restore the whole repository to that operation
 jj undo                   # undo the latest operation
 jj redo                   # redo an undone operation
+jj converge               # combine divergent commits for one change (0.45+)
 ```
 
-`jj op restore` changes repository history and working-copy state. Confirm the operation ID and user intent before running it.
+`jj op restore` changes repository history and working-copy state. Confirm the operation ID and user intent before running it. `jj converge` is interactive by default and rewrites divergent commits; inspect `jj log -r 'divergent()'` first.
 
 ## References
 

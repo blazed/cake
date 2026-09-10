@@ -1,6 +1,6 @@
 # JJ Command Syntax Reference
 
-Target: `jj 0.43.x`.
+Target: `jj 0.45.x`.
 
 ## The `-r` Flag
 
@@ -16,9 +16,10 @@ jj rebase -r <revset> -o main
 jj edit <revset>
 ```
 
-As of 0.43, help prose and option tables can still use different long-form
-names for some revision arguments. Avoid the mismatch by using `-r` unless the
-long form is important for readability.
+Long-form revision options vary by command: `--revision` on `split`, `revert`,
+and `file show`; `--revisions` on `diff` and `evolog`; `jj log` accepts both.
+`jj show` has no long form and treats `-r` as an alias for its positional
+argument. Prefer `-r` unless the long form is important for readability.
 
 ## Canonical Command Names
 
@@ -47,11 +48,11 @@ missing from `jj help <alias>` or overridden by config.
 jj rebase -d main           → jj rebase -o main
 jj split -d main            → jj split -o main
 jj revert -d main           → jj revert -o main
-jj describe --edit          → jj describe --editor
+jj describe --edit          → jj describe --editor   # --edit removed in 0.42
 ```
 
-In 0.43, `-d` is still accepted as an alias for `-o` on rebase/split/revert.
-Prefer `-o`/`--onto` in new scripts and docs.
+In 0.45.1, `-d` is still accepted as a deprecated alias for `-o` on
+rebase/split/revert. Prefer `-o`/`--onto` in new scripts and docs.
 
 ## Command Patterns
 
