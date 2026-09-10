@@ -154,6 +154,11 @@
     };
   };
 
+  services.openiscsi = {
+    enable = true;
+    name = "iqn.2013-06.com.exsules:${hostName}";
+  };
+
   services.tailscale.auth = {
     enable = true;
     args.advertise-tags = [ "tag:server" ];
