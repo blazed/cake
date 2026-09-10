@@ -184,6 +184,20 @@ function renderQuotaWindow(theme: Theme, window: QuotaWindowInput): string | nul
   return theme.fg(color, percentText);
 }
 
+/**
+ * Pick the window to display. Prefers the shortest window — the 5h one — while
+ * it still has allowance, falling back to the longest (weekly) once every
+ * shorter window is used up.
+ */
+function selectQuotaWindow(windows: QuotaWindowInput[]): QuotaWindowInput {
+  const byDuration = [...windows].sort(
+    (a, b) =>
+      (a.windowDurationMins ?? Number.MAX_SAFE_INTEGER) -
+      (b.windowDurationMins ?? Number.MAX_SAFE_INTEGER),
+  );
+  return byDuration.find((window) => quotaAvailablePercent(window) > 0) ?? byDuration[byDuration.length - 1]!;
+}
+
 /** Render provider quota usage segment. Returns null if usage is unavailable. */
 export function renderQuota(theme: Theme, input: QuotaSegmentInput | null): string | null {
   if (!input) return null;
@@ -193,17 +207,7 @@ export function renderQuota(theme: Theme, input: QuotaSegmentInput | null): stri
   );
   if (windows.length === 0) return null;
 
-  const tightestWindow = windows.reduce((tightest, window) => {
-    const availableDelta = quotaAvailablePercent(window) - quotaAvailablePercent(tightest);
-    if (availableDelta < 0) return window;
-    if (availableDelta > 0) return tightest;
-
-    const windowDuration = window.windowDurationMins ?? Number.MAX_SAFE_INTEGER;
-    const tightestDuration = tightest.windowDurationMins ?? Number.MAX_SAFE_INTEGER;
-    return windowDuration < tightestDuration ? window : tightest;
-  });
-
-  return renderQuotaWindow(theme, tightestWindow);
+  return renderQuotaWindow(theme, selectQuotaWindow(windows));
 }
 
 /**
