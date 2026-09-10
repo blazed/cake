@@ -31,6 +31,21 @@ export function formatTokens(n: number): string {
   return `${formatted.replace(/\.0$/, "")}M`;
 }
 
+/**
+ * Share of prompt tokens served from the prompt cache, as a whole percent.
+ * Returns null when nothing was served from cache (e.g. providers without
+ * prompt caching), so the segment can be omitted instead of showing 0%.
+ */
+export function cacheHitPercent(
+  cacheRead: number,
+  cacheWrite: number,
+  uncachedInput: number,
+): number | null {
+  const promptTokens = cacheRead + cacheWrite + uncachedInput;
+  if (cacheRead <= 0 || promptTokens <= 0) return null;
+  return Math.round((cacheRead / promptTokens) * 100);
+}
+
 /** Format cost in USD. */
 export function formatCost(usd: number): string {
   if (usd === 0) return "$0";

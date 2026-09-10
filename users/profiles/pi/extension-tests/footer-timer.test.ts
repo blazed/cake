@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { collectUsage, readJjInfo, renderExtensionStatuses } from "../extensions/footer/index.ts";
+import { cacheHitPercent } from "../extensions/footer/format.ts";
 import { createQuotaTracker } from "../extensions/footer/quota-tracker.ts";
 import { createWorkingTimerExtension } from "../extensions/working-timer/index.ts";
 
@@ -136,6 +137,13 @@ test("footer usage includes assistant, tool, compaction, and branch-summary entr
     cacheWrite: 40,
     cost: 1.0,
   });
+});
+
+test("cache hit rate counts cached reads against the whole prompt", () => {
+  assert.equal(cacheHitPercent(36, 40, 28), 35); // 36 / (36 + 40 + 28)
+  assert.equal(cacheHitPercent(0, 40, 28), null);
+  assert.equal(cacheHitPercent(10, 0, 0), 100);
+  assert.equal(cacheHitPercent(10, 0, 90), 10);
 });
 
 test("extension statuses are sorted, sanitized, and width-bounded", () => {
