@@ -43,9 +43,11 @@ in
     };
 
     ignores = [
+      "**/graphify-out/"
       ".nvimlog" # TODO(blazed): find out why this is needed?
       ".pi-subagents/"
       ".pi/quiet-tools/"
+      ".pi/skills/graphify"
       ".pi/subagents/"
     ];
   };
