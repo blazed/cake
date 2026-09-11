@@ -24,6 +24,7 @@ pi.overrideAttrs (_: {
         ]
       } \
       --set PI_PACKAGE_DIR "$out/lib/node_modules/@earendil-works/pi-coding-agent" \
+      --set JJ_EDITOR echo \
       --set PI_SKIP_VERSION_CHECK 1 \
       --set PI_TELEMETRY 0
   '';
