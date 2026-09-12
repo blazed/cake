@@ -25,9 +25,9 @@ let
   };
 
   thirdPartyPackages = [
-    "npm:@juicesharp/rpiv-ask-user-question@2.9.0"
-    "npm:@vanillagreen/pi-tool-renderer@2.0.0"
-    "npm:pi-blackhole@0.4.10"
+    "npm:@juicesharp/rpiv-ask-user-question@2.10.0"
+    "npm:@vanillagreen/pi-tool-renderer@2.0.1"
+    "npm:pi-blackhole@0.5.3"
     "npm:pi-commandcode-provider@0.6.4"
     "npm:pi-quiet-tools@0.2.0"
     {
@@ -35,7 +35,7 @@ let
       skills = [ "skills/pi-subagents/SKILL.md" ];
       prompts = [ "!prompts/council.md" ];
     }
-    "npm:pi-web-access@0.27.0"
+    "npm:pi-web-access@0.29.0"
   ];
 
   themeName = "catppuccin-frappe";
