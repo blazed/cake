@@ -1,12 +1,10 @@
 {
   config,
-  lib,
   pkgs,
   ...
 }:
 let
   port = 5006;
-  service = "svc:budget";
 in
 {
   age.secrets = {
@@ -70,23 +68,8 @@ in
     };
   };
 
-  systemd.services.tailscale-serve-budget = {
-    description = "Expose Actual Budget as a Tailscale Service";
-    after = [
-      "tailscaled.service"
-      "tailscale-auth.service"
-      "actual.service"
-    ];
-    wants = [
-      "tailscaled.service"
-      "actual.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 --yes http://127.0.0.1:${toString port}";
-      ExecStop = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 off";
-    };
+  services.tailscale.serve = {
+    enable = true;
+    services.budget.endpoints."tcp:443" = "http://127.0.0.1:${toString port}";
   };
 }
