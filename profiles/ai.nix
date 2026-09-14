@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   lib,
   ...
@@ -7,7 +6,6 @@
 let
   port = 9292;
   metricsPort = 9293;
-  service = "svc:ai";
 
   llama-swap = pkgs.llama-swap.override { buildGoModule = pkgs.buildGo127Module; };
 
@@ -476,24 +474,9 @@ in
     };
   };
 
-  systemd.services.tailscale-serve-llama-swap = {
-    description = "Expose llama-swap as a Tailscale Service";
-    after = [
-      "tailscaled.service"
-      "tailscale-auth.service"
-      "llama-swap.service"
-    ];
-    wants = [
-      "tailscaled.service"
-      "llama-swap.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 --yes http://127.0.0.1:${toString port}";
-      ExecStop = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 off";
-    };
+  services.tailscale.serve = {
+    enable = true;
+    services.ai.endpoints."tcp:443" = "http://127.0.0.1:${toString port}";
   };
 
   systemd.services.llama-swap.serviceConfig = {

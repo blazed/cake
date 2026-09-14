@@ -1,4 +1,9 @@
 {
+  config,
+  lib,
+  ...
+}:
+{
   services.tailscale = {
     enable = true;
     interfaceName = "tailscale0";
@@ -11,4 +16,15 @@
   # (100.64.0.0/10) point at tailscale0, so replies pass the strict check.
   networking.firewall.trustedInterfaces = [ "tailscale0" ];
   networking.firewall.checkReversePath = "loose";
+
+  systemd.services.tailscale-serve =
+    lib.mkIf (config.services.tailscale.serve.enable && config.services.tailscale.auth.enable)
+      {
+        after = [ "tailscale-auth.service" ];
+        # Retry if tailscaled isn't logged in yet when set-config runs.
+        serviceConfig = {
+          Restart = "on-failure";
+          RestartSec = 10;
+        };
+      };
 }
