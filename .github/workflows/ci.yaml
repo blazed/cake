@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/nix-installer-action@v23
       with:
         extra-conf: |
           accept-flake-config = true
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@v22
+      - uses: DeterminateSystems/nix-installer-action@v23
         with:
           extra-conf: |
             accept-flake-config = true
@@ -45,7 +45,7 @@ jobs:
       matrix: ${{ steps.job-matrix.outputs.matrix }}
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/nix-installer-action@v23
       with:
         extra-conf: |
           accept-flake-config = true
@@ -62,7 +62,7 @@ jobs:
       matrix: ${{ steps.job-matrix.outputs.matrix }}
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/nix-installer-action@v23
       with:
         extra-conf: |
           accept-flake-config = true
@@ -80,7 +80,7 @@ jobs:
       matrix: ${{ fromJson(needs.pkgs_x86_64_linux.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/nix-installer-action@v23
       with:
         extra-conf: |
           accept-flake-config = true
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/nix-installer-action@v23
       with:
         extra-conf: |
           accept-flake-config = true
@@ -122,7 +122,7 @@ jobs:
       matrix: ${{ fromJson(needs.hosts_x86_64_linux.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v22
+    - uses: DeterminateSystems/nix-installer-action@v23
       with:
         extra-conf: |
           accept-flake-config = true
