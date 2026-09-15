@@ -25,10 +25,10 @@ let
   };
 
   thirdPartyPackages = [
-    "npm:@juicesharp/rpiv-ask-user-question@2.10.0"
+    "npm:@juicesharp/rpiv-ask-user-question@2.10.1"
     "npm:@vanillagreen/pi-tool-renderer@2.0.1"
-    "npm:pi-blackhole@0.5.3"
-    "npm:pi-commandcode-provider@0.6.4"
+    "npm:pi-blackhole@0.5.5"
+    "npm:pi-commandcode-provider@0.7.0"
     "npm:pi-quiet-tools@0.2.0"
     {
       source = "npm:pi-subagents@0.63.0";
