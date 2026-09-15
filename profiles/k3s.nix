@@ -179,9 +179,4 @@
       "/var/lib/rancher"
     ];
   };
-
-  fileSystems."/mnt/persistentvolume" = {
-    device = "storage01:/volume1/persistentvolume";
-    fsType = "nfs";
-  };
 }
