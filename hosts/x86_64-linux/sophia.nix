@@ -51,6 +51,12 @@
     wg-private = {
       file = ../../secrets/${hostName}/wg-private.age;
     };
+    sonarr-api-key = {
+      file = ../../secrets/${hostName}/sonarr-api-key.age;
+    };
+    radarr-api-key = {
+      file = ../../secrets/${hostName}/radarr-api-key.age;
+    };
     ts = {
       file = ../../secrets/ts.age;
       owner = "1447";
