@@ -36,6 +36,7 @@
   services.ratbagd.enable = true;
 
   services.arctis-sound-manager.enable = true;
+  security.polkit.enablePkexecWrapper = true;
 
   age.secrets = {
     k3s-token = {

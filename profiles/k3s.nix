@@ -128,7 +128,7 @@
     wants = [ "tailscaled.service" ];
     after = [ "tailscaled.service" ];
     preStart = lib.mkBefore ''
-      until ${pkgs.iproute2}/bin/ip -o -4 addr show scope global dev tailscale0 >/dev/null 2>&1; do
+      until [ -n "$(${pkgs.iproute2}/bin/ip -o -4 addr show scope global dev tailscale0)" ]; do
         sleep 1
       done
     '';
