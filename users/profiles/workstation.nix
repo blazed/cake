@@ -41,14 +41,16 @@ in
   ];
 
   home.packages = with pkgs; [
+    # keep-sorted start
     beekeeper-studio
     bruno
+    kubevirt
     nautilus
     neovide
     persway
+    screenshot
     shotcut
     signal-desktop
-    screenshot
     slack
     spotify
     telegram-desktop
@@ -56,6 +58,7 @@ in
     wl-clipboard
     wl-clipboard-x11
     xdg-utils
+    # keep-sorted end
   ];
 
   xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
