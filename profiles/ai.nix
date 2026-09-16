@@ -148,6 +148,7 @@ in
             batchSize ? 4096,
             ubatchSize ? 2048,
             sampling ? [ ],
+            extraArgs ? [ ],
             mtp ? false,
             flashAttention ? true,
             thinking ? true,
@@ -229,6 +230,7 @@ in
                 "--reasoning-preserve"
                 "--chat-template-kwargs '{\"preserve_thinking\":true}'"
               ]
+              ++ extraArgs
             );
             capabilities = {
               "in" = [ "text" ] ++ lib.optional vision "image";
@@ -365,6 +367,37 @@ in
               "--top-p 0.95"
               "--top-k 20"
               "--min-p 0.0"
+            ];
+          };
+          "qwen3.8-flash-next:q4" = mkModel {
+            hf = "unsloth/Qwen3.8-Flash-Next-GGUF:UD-Q4_K_XL";
+            name = "Qwen3.8 Flash Next Q4";
+            description = "Qwen3.8 Flash Next with lazy n-gram embeddings and ngram speculation.";
+            # llama.cpp auto-loads the matching projector from this HF repo.
+            vision = true;
+            imageMinTokens = 1024;
+            tools = true;
+            kv = "f16";
+            ctx = 131072;
+            batchSize = 2048;
+            ubatchSize = 512;
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+              "--top-k 20"
+              "--min-p 0.0"
+            ];
+            extraArgs = [
+              "--parallel 1"
+              "--cache-ram 2048"
+              # b10989 demand-pages the 28.8 GB PLE table even with --load-mode dio.
+              "--lazy-mode auto"
+              # shortcut-debt: ngram-only until the pinned runtime gains qwen4exp
+              # MTP support (upstream #28243); then add a compatible draft head.
+              "--spec-type ngram-mod"
+              "--spec-ngram-mod-n-match 24"
+              "--spec-ngram-mod-n-min 48"
+              "--spec-ngram-mod-n-max 64"
             ];
           };
           "qwen3-vl-4b:camera-q8" = mkModel {
