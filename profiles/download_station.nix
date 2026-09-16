@@ -1,4 +1,5 @@
 {
+  config,
   pkgs,
   lib,
   ...
@@ -191,6 +192,43 @@ in
     group = mediaGroup;
   };
 
+  services.recyclarr = {
+    enable = true;
+    configuration = {
+      sonarr.series = {
+        base_url = "http://127.0.0.1:8989";
+        api_key._secret = config.age.secrets."sonarr-api-key".path;
+        quality_profiles = [
+          { trash_id = "72dae194fc92bf828f32cde7744e51a1"; } # WEB-1080p
+        ];
+      };
+      radarr.movies = {
+        base_url = "http://127.0.0.1:7878";
+        api_key._secret = config.age.secrets."radarr-api-key".path;
+        quality_profiles = [
+          { trash_id = "d1d67249d3890e49bc12e275d989a7e9"; } # HD Bluray + WEB
+        ];
+      };
+    };
+  };
+
+  systemd.services.recyclarr = {
+    wants = [
+      "network-online.target"
+      "sonarr.service"
+      "radarr.service"
+    ];
+    after = [
+      "network-online.target"
+      "sonarr.service"
+      "radarr.service"
+    ];
+    serviceConfig = {
+      StateDirectoryMode = "0700";
+      UMask = "0077";
+    };
+  };
+
   services.prowlarr = {
     enable = true;
     openFirewall = true;
@@ -215,5 +253,6 @@ in
     "/var/lib/prowlarr"
     "/var/lib/radarr"
     "/var/lib/sonarr"
+    "/var/lib/recyclarr"
   ];
 }
