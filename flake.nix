@@ -34,7 +34,7 @@
       flake-compat.follows = "flake-compat";
       nixpkgs.follows = "nixpkgs";
     };
-    cilium-chart.url = "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.19.8.tgz";
+    cilium-chart.url = "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.20.2.tgz";
     cilium-chart.flake = false;
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-code.inputs.nixpkgs.follows = "nixpkgs";
