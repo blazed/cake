@@ -5,8 +5,6 @@
   ...
 }:
 let
-  service = "svc:frigate";
-
   frigate-deep-describe = pkgs.writeShellApplication {
     name = "frigate-deep-describe";
     runtimeInputs = with pkgs; [
@@ -411,25 +409,13 @@ in
 
   # shortcut-debt: imperative `tailscale serve` instead of services.tailscale.serve
   # (needs the https front-end this format cannot express) — see profiles/tailscale.nix.
-  systemd.services.tailscale-serve-frigate = {
-    description = "Expose Frigate as a Tailscale Service";
-    after = [
-      "tailscaled.service"
-      "tailscale-auth.service"
+  systemd.services.tailscale-serve-frigate = import ./tailscale-serve-service.nix {
+    inherit config lib pkgs;
+    name = "frigate";
+    target = "http://127.0.0.1:80";
+    upstreamUnits = [
       "frigate.service"
       "nginx.service"
     ];
-    wants = [
-      "tailscaled.service"
-      "frigate.service"
-      "nginx.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 --yes http://127.0.0.1:80";
-      ExecStop = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 off";
-    };
   };
 }
