@@ -31,12 +31,12 @@ in
   services.llama-swap = {
     enable = true;
     package = llama-swap.overrideAttrs (oa: rec {
-      version = "255";
+      version = "256";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-+iq41tv9JIqvGeElZnFn7AsrXEA1qUp2fKY+Gojwn5s=";
+        hash = "sha256-midZ5/eq4ULDhCC3wtzman0OdH5bHMIO8FsmzizU8sc=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -45,7 +45,7 @@ in
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-sf3VZ9vJaO8LMrUgWBvw7xfywpzBolLdVb4oMF0nbT8=";
+      vendorHash = "sha256-R9VOAmoRXet7zoEYo7LW/awJludS4AxRlFDR6skPxbo=";
       patches = (oa.patches or [ ]) ++ [ ../patches/llama-swap-v250-shell.patch ];
       tags = (oa.tags or [ ]) ++ [ "embed_ui" ];
       preBuild = ''
@@ -97,12 +97,12 @@ in
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "11009";
+              version = "11044";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-uzkvOwKi29bRc3p9oP0XTbGTFj+aLQ4tbddHHSOCL8o=";
+                hash = "sha256-Ll1MQEU80V7qFu61L4YmfJWxA0b7exMzLSGGtKg8PU4=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
