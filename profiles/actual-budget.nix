@@ -6,7 +6,6 @@
 }:
 let
   port = 5006;
-  service = "svc:budget";
 in
 {
   age.secrets = {
@@ -72,23 +71,10 @@ in
 
   # shortcut-debt: imperative `tailscale serve` instead of services.tailscale.serve
   # (needs the https front-end this format cannot express) — see profiles/tailscale.nix.
-  systemd.services.tailscale-serve-budget = {
-    description = "Expose Actual Budget as a Tailscale Service";
-    after = [
-      "tailscaled.service"
-      "tailscale-auth.service"
-      "actual.service"
-    ];
-    wants = [
-      "tailscaled.service"
-      "actual.service"
-    ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 --yes http://127.0.0.1:${toString port}";
-      ExecStop = "${lib.getExe config.services.tailscale.package} serve --service=${service} --https=443 off";
-    };
+  systemd.services.tailscale-serve-budget = import ./tailscale-serve-service.nix {
+    inherit config lib pkgs;
+    name = "budget";
+    target = "http://127.0.0.1:${toString port}";
+    upstreamUnits = [ "actual.service" ];
   };
 }
