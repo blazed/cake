@@ -57,6 +57,7 @@ in
             --set gatewayAPI.enabled=true \
             --set encryption.enabled=false \
             --set l2announcements.enabled=true \
+            --set MTU=1500 \
             --set k8sClientRateLimit.qps=10 \
             --set k8sClientRateLimit.burst=20 > "$out"/cilium.yaml
         '';
