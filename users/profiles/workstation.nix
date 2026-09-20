@@ -44,7 +44,6 @@ in
     # keep-sorted start
     beekeeper-studio
     bruno
-    kubevirt
     nautilus
     neovide
     persway

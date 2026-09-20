@@ -1,4 +1,3 @@
-{ pkgs, ... }:
 let
   # Shared policy for git forges: key-only auth, no connection multiplexing.
   gitForge = {
@@ -30,11 +29,6 @@ in
         HostName = "github.com";
       };
       "git.exsules.com exsules.dev" = gitForge;
-      "hermes" = {
-        User = "kaziri";
-        ForwardAgent = false;
-        ProxyCommand = "${pkgs.kubevirt}/bin/virtctl -n hermes port-forward --stdio=true vm/hermes 22";
-      };
       "nicolina" = {
         User = "blazed";
         ForwardAgent = true;
