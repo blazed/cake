@@ -37,7 +37,6 @@
   };
 
   services.k3s.serverAddr = "https://10.0.10.10:6443";
-  services.k3s.settings.node-label."exsules.com/kubevirt" = "true";
 
   users.users.${adminUser.name}.shell = lib.mkForce pkgs.bashInteractive;
 
