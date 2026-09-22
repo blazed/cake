@@ -4,15 +4,11 @@
 }:
 let
   system = pkgs.stdenv.hostPlatform.system;
-  pi = inputs.llm-agents.packages.${system}.pi;
+  # Use upstream's Node mode so install hooks and checks match the npm layout.
+  # Some extensions use native Node add-ons that Bun binaries cannot reliably load.
+  pi = inputs.llm-agents.packages.${system}.pi.override { useBun = false; };
 in
-# llm-agents compiles Pi into a standalone Bun binary. Some extensions use
-# native Node add-ons that Bun binaries cannot reliably load.
-# Reuse the same fetched npm source/dependency closure but retain Pi's normal
-# Node entry point instead of compiling and deleting it.
 pi.overrideAttrs (_: {
-  postUnpack = "";
-  preInstall = "";
   postInstall = ''
     wrapProgram $out/bin/pi \
       --prefix PATH : ${
