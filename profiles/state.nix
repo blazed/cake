@@ -61,7 +61,6 @@
         ".config/Signal"
         ".config/Slack"
         ".config/WowUpCf"
-        ".config/beekeeper-studio"
         ".config/bruno"
         ".config/chromium"
         ".config/discord"
