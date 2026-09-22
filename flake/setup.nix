@@ -17,9 +17,7 @@
       _module.args.pkgs = import inputs.nixpkgs {
         inherit system;
         config.allowUnfree = true;
-        config.permittedInsecurePackages = [
-          "beekeeper-studio-6.0.5"
-        ];
+        config.permittedInsecurePackages = [ ];
         overlays = [
           inputs.agenix.overlays.default
           inputs.niri.overlays.niri

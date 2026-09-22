@@ -42,7 +42,6 @@ in
 
   home.packages = with pkgs; [
     # keep-sorted start
-    beekeeper-studio
     bruno
     nautilus
     neovide
