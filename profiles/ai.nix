@@ -47,6 +47,11 @@ in
       };
       vendorHash = "sha256-QidyJnXP4w9yKm2GckaEl4QJZm5vikPYkD4fiysb9x0=";
       patches = (oa.patches or [ ]) ++ [ ../patches/llama-swap-v250-shell.patch ];
+      # shortcut-debt: v257 duplicates x/sync in go.mod; remove once fixed upstream.
+      postPatch = (oa.postPatch or "") + ''
+        substituteInPlace go.mod \
+          --replace-fail $'\tgolang.org/x/sync v0.22.0 // indirect\n' ""
+      '';
       tags = (oa.tags or [ ]) ++ [ "embed_ui" ];
       preBuild = ''
         ldflags+=" -X main.commit=$(cat COMMIT)"
