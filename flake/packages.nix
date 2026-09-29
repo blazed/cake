@@ -41,6 +41,10 @@
           codex = inputs.llm-agents.packages.${system}.codex;
           dms-greeter = inputs.dank-greeter.packages.${system}.default;
           dms = inputs.dms.packages.${system}.default;
+        }
+        // lib.optionalAttrs (system == "x86_64-linux") {
+          llama-swap-patched = pkgs.callPackage ../packages/llama-swap-patched.nix { };
+          llama-cpp-rocm = pkgs.callPackage ../packages/llama-cpp-rocm.nix { };
         };
     };
 }

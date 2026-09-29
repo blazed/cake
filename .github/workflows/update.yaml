@@ -23,8 +23,8 @@ jobs:
         nix shell nixpkgs#git -c git commit -am "chore(flake): update inputs"
     - name: Update llama-swap and llama.cpp
       run: |
-        nix shell nixpkgs#curl nixpkgs#jq nixpkgs#gnused -c bash scripts/update-ai.sh
-        nix shell nixpkgs#git -c git add profiles/ai.nix
+        nix shell nixpkgs#curl nixpkgs#jq nixpkgs#git nixpkgs#nix-update -c bash scripts/update-ai.sh
+        nix shell nixpkgs#git -c git add packages
         nix shell nixpkgs#git -c git diff --cached --quiet || nix shell nixpkgs#git -c git commit -m "chore(ai): update llama-swap and llama.cpp"
 
     - name: Create Pull Request
