@@ -23,7 +23,6 @@ let
     jujutsu
     nodejs
     nushell
-    proton-pass-cli
     ps
     python3
     ripgrep
@@ -145,17 +144,6 @@ let
           RUNTIME_ARGS+=(--setenv TMPDIR "$HOME/.pi/tmp")
         '')
         (c.try-readonly (c.noescape "/run/agenix/exa-api-key"))
-        (c.add-runtime ''
-          RUNTIME_ARGS+=(
-            --setenv PROTON_PASS_KEY_PROVIDER fs
-            --setenv PROTON_PASS_SESSION_DIR /tmp/pass-agent-pi
-          )
-          if [ -r /run/agenix/proton-pass-agent-token ]; then
-            RUNTIME_ARGS+=(
-              --setenv PROTON_PASS_PERSONAL_ACCESS_TOKEN "$(${cu}/cat /run/agenix/proton-pass-agent-token)"
-            )
-          fi
-        '')
       ];
     };
   };

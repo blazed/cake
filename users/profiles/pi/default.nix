@@ -1,5 +1,5 @@
-# Pi coding-agent profile with declarative settings, packages, skills, extensions,
-# themes, and the disk-backed temporary directory used by Pi.
+# Pi coding-agent profile with declarative settings, packages, extensions, themes,
+# and the disk-backed temporary directory used by Pi. Skills and instructions live in ../agents.
 {
   pkgs,
   inputs,
@@ -9,20 +9,8 @@
 }:
 let
   piNode = import ./node-package.nix { inherit pkgs inputs; };
-  piJujutsu = pkgs.writeShellApplication {
-    name = "jj";
-    text = ''
-      for argument in "$@"; do
-        case "$argument" in
-          --allow-private | --allow-private=*)
-            echo "jj: --allow-private is disabled in Pi" >&2
-            exit 2
-            ;;
-        esac
-      done
-      exec ${lib.getExe pkgs.jujutsu} "$@"
-    '';
-  };
+  piJujutsu = import ../agents/jj-guard.nix { inherit pkgs lib; };
+  mergeJson = import ../agents/merge-json.nix { inherit pkgs lib; };
 
   thirdPartyPackages = [
     "npm:@juicesharp/rpiv-ask-user-question@2.11.0"
@@ -339,7 +327,7 @@ let
       rejectionStatus=$?
       set -e
       test "$rejectionStatus" -eq 2
-      test "$rejection" = "jj: --allow-private is disabled in Pi"
+      test "$rejection" = "jj: --allow-private is disabled for agents"
 
       wrapProgram $out/bin/pi \
         --prefix PATH : ${lib.makeBinPath [ piJujutsu ]} \
@@ -355,7 +343,7 @@ in
   ];
 
   home.file.".pi/agent/skills" = {
-    source = ./skills;
+    source = ../agents/skills;
     recursive = true;
   };
 
@@ -364,8 +352,14 @@ in
     recursive = true;
   };
 
-  home.file.".pi/agent/AGENTS.md".source = ./AGENTS.md;
-  home.file.".pi/agent/SYSTEM.md".source = ./SYSTEM.md;
+  home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
+  home.file.".pi/agent/SYSTEM.md".text = ''
+    You are a coding assistant operating inside Pi.
+
+    ${builtins.readFile ../agents/PRINCIPLES.md}
+    For Pi-specific implementation, read the relevant installed docs and examples
+    under `$PI_PACKAGE_DIR` before changing behavior.
+  '';
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
   home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
@@ -387,30 +381,7 @@ in
     run install -D -m0644 ${settingsJson} "${config.home.homeDirectory}/.pi/agent/settings.json"
   '';
 
-  home.activation.piWebSearch = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    target="${config.xdg.configHome}/pi/web-search.json"
-    if [[ -n "''${DRY_RUN:-}" ]]; then
-      echo "Would merge Pi web-search defaults into $target"
-    else
-      ${pkgs.coreutils}/bin/install -d -m0700 "$(${pkgs.coreutils}/bin/dirname "$target")"
-      temporary="$(${pkgs.coreutils}/bin/mktemp "$target.tmp.XXXXXX")"
-      trap '${pkgs.coreutils}/bin/rm -f "$temporary"' EXIT
-      if [ -f "$target" ]; then
-        if ! ${lib.getExe pkgs.jq} -n \
-          --slurpfile current "$target" \
-          --slurpfile declared ${webSearchJson} \
-          'if ($current | length) > 1 then error("multiple JSON documents") else ($current[0] // {}) * $declared[0] end' \
-          > "$temporary"; then
-          echo "warning: invalid existing Pi web-search config; preserving it as $target.invalid" >&2
-          ${pkgs.coreutils}/bin/cp "$target" "$target.invalid"
-          ${pkgs.coreutils}/bin/cp ${webSearchJson} "$temporary"
-        fi
-      else
-        ${pkgs.coreutils}/bin/cp ${webSearchJson} "$temporary"
-      fi
-      ${pkgs.coreutils}/bin/chmod 0600 "$temporary"
-      ${pkgs.coreutils}/bin/mv -f "$temporary" "$target"
-      trap - EXIT
-    fi
-  '';
+  home.activation.piWebSearch = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+    mergeJson "${config.xdg.configHome}/pi/web-search.json" webSearchJson
+  );
 }

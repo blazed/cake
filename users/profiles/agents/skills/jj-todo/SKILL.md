@@ -11,7 +11,7 @@ metadata:
 
 Represent work as empty JJ revisions whose descriptions are executable specifications. Fill each revision only when its dependencies are complete. Read and follow `jj-core` before using JJ directly.
 
-Use the `jj_todo` tool for routine task mechanics. Planning quality, dependency judgment, implementation, and completion decisions remain the agent's responsibility.
+Use the `jj_todo` tool for routine task mechanics when it is available (Pi). Without it (for example in Claude Code), follow the same workflow with the Nushell helpers in [CLI workflow](references/cli-workflow.md). Planning quality, dependency judgment, implementation, and completion decisions remain the agent's responsibility.
 
 ## Status Flags
 
@@ -125,7 +125,7 @@ Use `untested`, `review`, `blocked`, or `standby` instead of `done` whenever the
 - Implement tasks sequentially in a shared workspace.
 - Do not run multiple agents against the same JJ workspace; they compete for `@` and can place changes in the wrong revision.
 - A background subagent may work on one task only if the parent stops mutating that workspace until it settles.
-- Parallel agents require separate JJ workspaces and explicit user approval; see [parallel agents](references/parallel-agents.md).
+- Parallel agents require separate JJ workspaces and explicit user approval; see [parallel agents](references/parallel-agents.md) (Pi only). In agents without a per-worker working directory, such as Claude Code, implement tasks sequentially.
 
 ## Stop and Report
 
@@ -141,10 +141,19 @@ Explain the state and wait for direction. Do not silently rebase, restore, squas
 
 ## CLI Fallback
 
-When `jj_todo` is unavailable, use the Nushell helper scripts documented in [CLI workflow](references/cli-workflow.md). Invoke scripts by absolute path; do not assume they are on `PATH`. The helpers remain secondary to the Pi tool.
+When `jj_todo` is unavailable, use the Nushell helper scripts documented in [CLI workflow](references/cli-workflow.md). Invoke scripts by absolute path; do not assume they are on `PATH`. Prefer the tool whenever it is available.
+
+## Landing Task Revisions
+
+`[task:*]` subjects are private: `git.private-commits` blocks them from being pushed. When the work is done and is being pushed or opened as a PR, rewrite each task revision's description:
+
+- Subject: a Conventional Commit header (`feat(scope): …`, `refactor(scope): …`); see `conventional-commits`.
+- Body: drop the task specification (context, requirements, implementation notes, acceptance criteria); it is a planning artifact. Keep any `Signed-off-by` trailer.
+
+Use `jj describe <rev> -m "…"`, or `jj describe <rev> --stdin` for multi-line messages. Never bypass the check with `--allow-private`.
 
 ## References
 
 - [CLI workflow](references/cli-workflow.md) — helper scripts, linear transitions, and DAG construction
-- [Parallel agents](references/parallel-agents.md) — experimental workspace-isolated subagents, explicit opt-in only
+- [Parallel agents](references/parallel-agents.md) — Pi only: experimental workspace-isolated subagents, explicit opt-in only
 - `jj-core` — JJ graph inspection, syntax, recovery, and Git interop

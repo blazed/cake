@@ -137,6 +137,22 @@
         "type": "github"
       }
     },
+    "claude-plugins-official": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790601278,
+        "narHash": "sha256-i2EhIqcQeI14woehjudzQQF3ue3ViZd6MwggRA4C5j0=",
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
+        "rev": "fbe07fb6ce7d51d8e86ca6efdf050059894cdb80",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
+        "type": "github"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1789760033,
@@ -1066,6 +1082,7 @@
         "cachix": "cachix",
         "cilium-chart": "cilium-chart",
         "claude-code": "claude-code",
+        "claude-plugins-official": "claude-plugins-official",
         "crane": "crane",
         "dank-greeter": "dank-greeter",
         "devenv": "devenv",

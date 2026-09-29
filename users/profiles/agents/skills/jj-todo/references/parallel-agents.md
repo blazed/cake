@@ -2,6 +2,8 @@
 
 Target: `jj 0.45.x` and the `pi-subagents` package's `subagent` tool.
 
+> **Pi only.** This relies on `subagent`'s per-worker `cwd`. Other agents (such as Claude Code) have no equivalent and their worktree isolation is Git-based; implement tasks sequentially there instead.
+
 > **Experimental:** use this workflow only after the user explicitly approves parallel execution and the additional workspace cleanup.
 
 ## When Parallelism Is Justified

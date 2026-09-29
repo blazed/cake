@@ -20,7 +20,7 @@ nix run nixpkgs#cowsay -- "Hello!"    # Run with arguments
 nix run nixpkgs#hello                  # Simple command
 ```
 
-For long-running services, wrap in tmux: `tmux new -d 'nix run nixpkgs#some-server'`.
+For long-running services, run the command in the background instead of blocking the session.
 
 ## Shell Environments
 
@@ -38,7 +38,7 @@ Debug and inspect Nix expressions in headless environments:
 nix eval --expr '1 + 2'              # Simple expression
 nix eval nixpkgs#hello.name          # Inspect an attribute
 nix eval --file ./default.nix        # Evaluate a local file
-nix eval --expr 'builtins.attrNames (import <nixpkgs> {})'  # List keys
+nix eval nixpkgs#python3Packages --apply builtins.attrNames  # List attribute names
 ```
 
 ## Searching Packages
