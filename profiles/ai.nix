@@ -7,7 +7,6 @@
 let
   port = 9292;
   metricsPort = 9293;
-  llama-swap = pkgs.llama-swap.override { buildGoModule = pkgs.buildGo127Module; };
 
   llama-swap-exporter = pkgs.buildGoModule {
     pname = "llama-swap-exporter";
@@ -30,48 +29,7 @@ in
 {
   services.llama-swap = {
     enable = true;
-    package = llama-swap.overrideAttrs (oa: rec {
-      version = "260";
-      src = pkgs.fetchFromGitHub {
-        owner = "mostlygeek";
-        repo = "llama-swap";
-        tag = "v${version}";
-        hash = "sha256-W5JJW1/qQm39U/g42jseRmGQobqqWRfVsJ2lT/7K9P8=";
-        leaveDotGit = true;
-        postFetch = ''
-          cd "$out"
-          git rev-parse HEAD > $out/COMMIT
-          date -u -d "@$(git log -1 --pretty=%ct)" "+'%Y-%m-%dT%H:%M:%SZ'" > $out/SOURCE_DATE_EPOCH
-          find "$out" -name .git -print0 | xargs -0 rm -rf
-        '';
-      };
-      vendorHash = "sha256-yelob7FlaGymASUP0DAUkALQm5vnXZnN5ThbnSkH2Ak=";
-      patches = (oa.patches or [ ]) ++ [ ../patches/llama-swap-v250-shell.patch ];
-      tags = (oa.tags or [ ]) ++ [ "embed_ui" ];
-      preBuild = ''
-        ldflags+=" -X main.commit=$(cat COMMIT)"
-        ldflags+=" -X main.date=$(cat SOURCE_DATE_EPOCH)"
-
-        rm -rf proxy/ui_dist internal/server/ui_dist
-        cp -r ${passthru.ui}/ui_dist proxy/
-        cp -r ${passthru.ui}/ui_dist internal/server/
-      '';
-      passthru = oa.passthru // {
-        ui = pkgs.buildNpmPackage {
-          pname = "llama-swap-ui";
-          inherit version src;
-          sourceRoot = "${src.name}/ui";
-          npmDepsHash = "sha256-lmhRJ8275PIQ+7vHdr9aZ31lYeXUkXrWnlvuwOadjRQ=";
-          postPatch = ''
-            substituteInPlace vite.config.ts \
-              --replace-fail "../internal/server/ui_dist" "${placeholder "out"}/ui_dist"
-          '';
-          postInstall = ''
-            rm -rf $out/lib
-          '';
-        };
-      };
-    });
+    package = pkgs.llama-swap-patched;
     inherit port;
     listenAddress = "0.0.0.0";
     openFirewall = true;
@@ -89,44 +47,7 @@ in
           url = "https://huggingface.co/MoriNoNushi/DeepSeek-V4-Flash-0731-heretic-abliterated-v2-GGUF-lora/resolve/main/ds4-flash-heretic-f4-t265-lora.gguf";
           hash = "sha256-NkI/bWN/zO5tDACkpPJcJV+1OCVFt2ASM0qW4hzU3lI=";
         };
-        llama-cpp =
-          (pkgs.llama-cpp.override {
-            rocmSupport = true;
-            blasSupport = true;
-            cudaSupport = false;
-            rocmGpuTargets = [ "gfx1151" ];
-          }).overrideAttrs
-            (oa: rec {
-              version = "11254";
-              src = pkgs.fetchFromGitHub {
-                owner = "ggml-org";
-                repo = "llama.cpp";
-                tag = "b${version}";
-                hash = "sha256-13WW45yaY2UZ6e8ezQeBzmzQG/JJtwQWLDBoPDZX8CI=";
-                leaveDotGit = true;
-                postFetch = ''
-                  git -C "$out" rev-parse --short HEAD > $out/COMMIT
-                  find "$out" -name .git -print0 | xargs -0 rm -rf
-                '';
-              };
-              npmRoot = "tools/ui";
-              npmDepsHash = "sha256-2Q7XhaLAArmviOLdQsNbYTfdyDE5pW9lR26cRHEVl9k=";
-              patches = (oa.patches or [ ]) ++ [ ../patches/llama-cpp-amd-mmvf-odd-cols.patch ];
-
-              cmakeFlags = (oa.cmakeFlags or [ ]) ++ [
-                "-DGGML_NATIVE=ON"
-                "-DGGML_HIP_ROCWMMA_FATTN=ON"
-                "-DGGML_HIP_NO_VMM=ON"
-                "-DGGML_HIP_MMQ_MFMA=ON"
-                "-DCMAKE_HIP_FLAGS=-I${pkgs.rocmPackages.rocwmma}/include"
-              ];
-
-              preConfigure = ''
-                export NIX_ENFORCE_NO_NATIVE=0
-                ${oa.preConfigure or ""}
-              '';
-            });
-        llama-server = lib.getExe' llama-cpp "llama-server";
+        llama-server = lib.getExe' pkgs.llama-cpp-rocm "llama-server";
         deepseekSampling = [
           "--temp 1.0"
           "--top-p 0.95"
