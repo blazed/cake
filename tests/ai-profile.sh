@@ -40,6 +40,15 @@ nix eval --json --no-write-lock-file \
       and ($settings.groups.camera.exclusive == false)
       and ($settings.hooks.on_startup.preload == ["qwen3-vl-4b:camera-q8"])
       and ($settings.selectors["camera-vlm-deep"].targets == ["qwen3.8-27b:q8"])
+      # Chat-only models: text capabilities without the tools key (no agentic use).
+      and ($settings.models["gemma-4-12b:q8"].capabilities == {in: ["text"], out: ["text"], context: 131072})
+      and ($settings.models["qwen3.5-9b:q8"].capabilities == {in: ["text"], out: ["text"], context: 131072})
+      and ($settings.models["eurollm-9b-2512:q8"].capabilities == {in: ["text"], out: ["text"], context: 32768})
+      and ($settings.models["gemma-4-12b:q8"].cmd | contains("--hf-repo unsloth/gemma-4-12b-it-GGUF:Q8_0"))
+      and ($settings.models["qwen3.5-9b:q8"].cmd | contains("--hf-repo unsloth/Qwen3.5-9B-GGUF:Q8_0"))
+      and ($settings.models["eurollm-9b-2512:q8"].cmd | contains("--hf-repo mradermacher/EuroLLM-9B-Instruct-2512-GGUF:Q8_0"))
+      and ([ $settings.models["gemma-4-12b:q8"].cmd, $settings.models["qwen3.5-9b:q8"].cmd, $settings.models["eurollm-9b-2512:q8"].cmd ]
+        | all(.[]; contains("--reasoning-preserve") | not))
   ' > /dev/null
 
 echo 'AI profile checks passed'
