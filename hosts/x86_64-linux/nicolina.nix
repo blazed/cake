@@ -34,6 +34,8 @@
   };
 
   services.ratbagd.enable = true;
+  services.lact.enable = true;
+  hardware.amdgpu.overdrive.enable = true;
 
   services.arctis-sound-manager.enable = true;
   security.polkit.enablePkexecWrapper = true;
