@@ -18,12 +18,13 @@
         "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIH8FItRsdPvpg8mTCF7gsKQJ4ABaOCE8a6PzamumRWe3AAAABHNzaDo="
       ];
       extraGroups = [
-        "wheel"
-        "video"
         "audio"
+        "docker"
         "kvm"
         "libvirtd"
         "podman"
+        "video"
+        "wheel"
       ];
     };
   };
