@@ -19,7 +19,7 @@ let
     "npm:pi-commandcode-provider@0.7.6"
     "npm:pi-quiet-tools@0.2.0"
     {
-      source = "npm:pi-subagents@0.63.0";
+      source = "npm:pi-subagents@0.73.1";
       skills = [ "skills/pi-subagents/SKILL.md" ];
       prompts = [ "!prompts/council.md" ];
     }
@@ -28,6 +28,9 @@ let
 
   themeName = "catppuccin-frappe";
   settings = {
+    defaultTools = [
+      "codemode"
+    ];
     defaultProvider = "openai-codex";
     defaultModel = "gpt-6-astra";
     defaultThinkingLevel = "medium";
@@ -39,6 +42,7 @@ let
     showCacheMissNotices = true;
     kendex.extensionManager.config."@vanillagreen/pi-tool-renderer" = {
       commandPreviewChars = 1000;
+      registerBatchTool = false;
       renderBashDiffs = true;
       renderMutationTools = true;
     };
@@ -83,15 +87,7 @@ let
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
 
-  mcp = {
-    mcpServers = {
-      trakkt = {
-        url = "https://trakkt.exsules.dev/mcp";
-        auth = "oauth";
-        oauth.scope = "mcp";
-      };
-    };
-  };
+  mcp = { };
 
   models = {
     providers = {
