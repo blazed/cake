@@ -31,12 +31,12 @@ in
   services.llama-swap = {
     enable = true;
     package = llama-swap.overrideAttrs (oa: rec {
-      version = "257";
+      version = "260";
       src = pkgs.fetchFromGitHub {
         owner = "mostlygeek";
         repo = "llama-swap";
         tag = "v${version}";
-        hash = "sha256-Z2f2qHkt8l2TKjhJ4nk2k/rrhYFFyIr2VzSxf1Dudh0=";
+        hash = "sha256-W5JJW1/qQm39U/g42jseRmGQobqqWRfVsJ2lT/7K9P8=";
         leaveDotGit = true;
         postFetch = ''
           cd "$out"
@@ -45,7 +45,7 @@ in
           find "$out" -name .git -print0 | xargs -0 rm -rf
         '';
       };
-      vendorHash = "sha256-QidyJnXP4w9yKm2GckaEl4QJZm5vikPYkD4fiysb9x0=";
+      vendorHash = "sha256-yelob7FlaGymASUP0DAUkALQm5vnXZnN5ThbnSkH2Ak=";
       patches = (oa.patches or [ ]) ++ [ ../patches/llama-swap-v250-shell.patch ];
       # shortcut-debt: v257 duplicates x/sync in go.mod; remove once fixed upstream.
       postPatch = (oa.postPatch or "") + ''
@@ -102,12 +102,12 @@ in
             rocmGpuTargets = [ "gfx1151" ];
           }).overrideAttrs
             (oa: rec {
-              version = "11169";
+              version = "11254";
               src = pkgs.fetchFromGitHub {
                 owner = "ggml-org";
                 repo = "llama.cpp";
                 tag = "b${version}";
-                hash = "sha256-elNJw7AY4nNy7TlDp/Y8A3dgGwqsTerKp9jRuUk2T5Y=";
+                hash = "sha256-13WW45yaY2UZ6e8ezQeBzmzQG/JJtwQWLDBoPDZX8CI=";
                 leaveDotGit = true;
                 postFetch = ''
                   git -C "$out" rev-parse --short HEAD > $out/COMMIT
