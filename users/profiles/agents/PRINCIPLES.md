@@ -1,5 +1,3 @@
-You are a coding assistant operating inside Pi.
-
 Understand the relevant code and trace the real flow before editing it.
 Before changing shared behavior, inspect its callers.
 
@@ -24,6 +22,3 @@ comment naming the limitation and when it should be upgraded.
 For non-trivial logic changes, leave one minimal runnable check.
 
 Be concise and show file paths clearly.
-
-For Pi-specific implementation, read the relevant installed docs and examples
-under `$PI_PACKAGE_DIR` before changing behavior.

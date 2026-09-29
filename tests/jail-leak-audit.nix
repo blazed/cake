@@ -63,24 +63,7 @@ let
     exit "$rc"
   '';
 
-  passAuditScript = pkgs.writeShellScript "pass-audit" ''
-    set -eu
-    command -v pass-cli >/dev/null
-    [ "$PROTON_PASS_KEY_PROVIDER" = fs ]
-    [ "$PROTON_PASS_SESSION_DIR" = /tmp/pass-agent-pi ]
-    [ "$PROTON_PASS_PERSONAL_ACCESS_TOKEN" = TEST_AGENT_TOKEN ]
-    mkdir -p "$PROTON_PASS_SESSION_DIR"
-    [ -w "$PROTON_PASS_SESSION_DIR" ]
-    if cat /run/agenix/proton-pass-agent-token >/dev/null 2>&1; then
-      echo "LEAK: Proton Pass token file reachable" >&2
-      exit 1
-    fi
-    echo "RESULT: PASS CLI ISOLATED"
-  '';
   auditJail = builders.jail "leak-audit" "${auditScript}" (builders.permsFor builders.agents.claude);
-  passAuditJail = builders.jail "pass-audit" "${passAuditScript}" (
-    builders.permsFor builders.agents.pi
-  );
 in
 pkgs.testers.runNixOSTest {
   name = "jail-leak-audit";
@@ -88,7 +71,6 @@ pkgs.testers.runNixOSTest {
   nodes.machine = {
     environment.systemPackages = [
       auditJail
-      passAuditJail
       pkgs.bubblewrap
     ];
     users.users.tester = {
@@ -100,15 +82,11 @@ pkgs.testers.runNixOSTest {
   testScript = ''
     machine.wait_for_unit("multi-user.target")
 
-    # Secrets remain outside the sandbox. Pi receives only the explicitly injected
-    # Proton Pass token value, while Claude receives neither file nor environment value.
+    # Secrets remain outside the sandbox.
     machine.succeed(
         "mkdir -p /run/agenix; "
         "echo SENTINEL > /run/agenix/fake-key; "
-        "echo -n TEST_AGENT_TOKEN > /run/agenix/proton-pass-agent-token; "
-        "chmod 644 /run/agenix/fake-key; "
-        "chown tester:users /run/agenix/proton-pass-agent-token; "
-        "chmod 600 /run/agenix/proton-pass-agent-token"
+        "chmod 644 /run/agenix/fake-key"
     )
 
     # Plant real secrets + the allowed config dirs as the tester user.
@@ -139,10 +117,5 @@ pkgs.testers.runNixOSTest {
         )
         print(out)
         assert "RESULT: NO LEAKS" in out, out
-
-    with subtest("jailed Pi receives only isolated Proton Pass configuration"):
-        out = machine.succeed("su - tester -c 'cd ~/work && TERM=xterm pass-audit'")
-        print(out)
-        assert "RESULT: PASS CLI ISOLATED" in out, out
   '';
 }

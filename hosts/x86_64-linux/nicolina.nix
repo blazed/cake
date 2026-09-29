@@ -63,10 +63,6 @@
       file = ../../secrets/exa-api-key.age;
       owner = "${toString adminUser.uid}";
     };
-    proton-pass-agent-token = {
-      file = ../../secrets/proton-pass-agent-token.age;
-      owner = "${toString adminUser.uid}";
-    };
   };
 
   networking.firewall = {

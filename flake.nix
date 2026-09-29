@@ -38,6 +38,8 @@
     cilium-chart.flake = false;
     claude-code.url = "github:sadjow/claude-code-nix";
     claude-code.inputs.nixpkgs.follows = "nixpkgs";
+    claude-plugins-official.url = "github:anthropics/claude-plugins-official";
+    claude-plugins-official.flake = false;
     crane.url = "github:ipetkov/crane";
     dank-greeter.url = "github:AvengeMedia/dank-greeter";
     dank-greeter.inputs.nixpkgs.follows = "nixpkgs";

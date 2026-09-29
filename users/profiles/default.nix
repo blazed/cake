@@ -12,7 +12,7 @@ in
     ./backlog-md.nix
     ./bat.nix
     ./chromium.nix
-    ./claude.nix
+    ./claude/default.nix
     ./codex.nix
     ./firefox.nix
     ./git.nix
