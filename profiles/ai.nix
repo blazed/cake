@@ -47,11 +47,6 @@ in
       };
       vendorHash = "sha256-yelob7FlaGymASUP0DAUkALQm5vnXZnN5ThbnSkH2Ak=";
       patches = (oa.patches or [ ]) ++ [ ../patches/llama-swap-v250-shell.patch ];
-      # shortcut-debt: v257 duplicates x/sync in go.mod; remove once fixed upstream.
-      postPatch = (oa.postPatch or "") + ''
-        substituteInPlace go.mod \
-          --replace-fail $'\tgolang.org/x/sync v0.22.0 // indirect\n' ""
-      '';
       tags = (oa.tags or [ ]) ++ [ "embed_ui" ];
       preBuild = ''
         ldflags+=" -X main.commit=$(cat COMMIT)"
@@ -65,7 +60,7 @@ in
         ui = pkgs.buildNpmPackage {
           pname = "llama-swap-ui";
           inherit version src;
-          sourceRoot = "${src.name}/${if lib.versionAtLeast version "251" then "ui" else "ui-svelte"}";
+          sourceRoot = "${src.name}/ui";
           npmDepsHash = "sha256-lmhRJ8275PIQ+7vHdr9aZ31lYeXUkXrWnlvuwOadjRQ=";
           postPatch = ''
             substituteInPlace vite.config.ts \
