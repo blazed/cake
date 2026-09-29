@@ -349,6 +349,23 @@ in
               "--min-p 0.0"
             ];
           };
+          "gemma-4-12b:q8" = mkModel {
+            hf = "unsloth/gemma-4-12b-it-GGUF:Q8_0";
+            name = "Gemma 4 12B Q8";
+            description = "Gemma 4 12B for general chat.";
+            tools = false;
+            # Thinking is opt-in via a <|think|> token in the system prompt, so there is
+            # no reasoning to preserve between turns.
+            thinking = false;
+            kv = "q8_0";
+            ctx = 131072;
+            # Gemma 4 card: temperature=1.0, top_p=0.95, top_k=64 for all use cases.
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+              "--top-k 64"
+            ];
+          };
         };
 
         healthCheckTimeout = 7200;
