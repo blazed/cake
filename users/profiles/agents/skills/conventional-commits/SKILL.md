@@ -95,4 +95,9 @@ another convention. Do not apply it to JJ TODO descriptions using `[task:*]`
 flags unless explicitly requested.
 
 Collect what changed, the scope/module, whether it is user-facing, and any
-issue IDs. Then produce a conventional header with optional body and footers.
+issue IDs. Default to a header-only message. Add a body only when essential
+context cannot fit in the header, such as a non-obvious rationale, a significant
+trade-off, or migration instructions. Keep it brief; do not restate the header
+or summarize the diff. Always include a `Signed-off-by: Name <email>` footer
+using the user's configured commit identity, even when there is no body. Preserve
+existing sign-offs and include other footers when required.
