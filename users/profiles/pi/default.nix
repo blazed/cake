@@ -14,16 +14,16 @@ let
 
   thirdPartyPackages = [
     "npm:@juicesharp/rpiv-ask-user-question@2.11.0"
-    "npm:@vanillagreen/pi-tool-renderer@2.0.2"
-    "npm:pi-blackhole@0.5.7"
-    "npm:pi-commandcode-provider@0.7.1"
+    "npm:@vanillagreen/pi-tool-renderer@2.0.3"
+    "npm:pi-blackhole@0.5.10"
+    "npm:pi-commandcode-provider@0.7.3"
     "npm:pi-quiet-tools@0.2.0"
     {
       source = "npm:pi-subagents@0.63.0";
       skills = [ "skills/pi-subagents/SKILL.md" ];
       prompts = [ "!prompts/council.md" ];
     }
-    "npm:pi-web-access@0.30.0"
+    "npm:pi-web-access@0.33.0"
   ];
 
   themeName = "catppuccin-frappe";
