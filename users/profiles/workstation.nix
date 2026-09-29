@@ -1,6 +1,7 @@
 {
   pkgs,
   config,
+  inputs,
   ...
 }:
 let
@@ -40,7 +41,7 @@ in
     ./vesktop.nix
   ];
 
-  home.packages = with pkgs; [
+  home.packages = (with pkgs; [
     # keep-sorted start
     bruno
     nautilus
@@ -57,7 +58,7 @@ in
     wl-clipboard-x11
     xdg-utils
     # keep-sorted end
-  ];
+  ]) ++ [ inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr ];
 
   xdg.configFile."wpaperd/wallpaper.toml".source = pkgs.writeText "wallpaper.toml" ''
     [default]
