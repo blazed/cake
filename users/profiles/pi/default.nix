@@ -14,7 +14,7 @@ let
 
   thirdPartyPackages = [
     "npm:@juicesharp/rpiv-ask-user-question@2.12.0"
-    "npm:@vanillagreen/pi-tool-renderer@2.0.9"
+    "npm:@vanillagreen/pi-tool-renderer@2.0.10"
     "npm:pi-blackhole@0.5.10"
     "npm:pi-commandcode-provider@0.7.3"
     "npm:pi-quiet-tools@0.2.0"
