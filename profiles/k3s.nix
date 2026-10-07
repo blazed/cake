@@ -10,6 +10,14 @@
     ../profiles/tailscale.nix
   ];
 
+  # Preload Kata's QEMU host modules: its job-mode loader cannot find NixOS's
+  # modprobe. The CPU-specific KVM module already comes from the hardware profile.
+  boot.kernelModules = [
+    "vhost"
+    "vhost_net"
+    "vhost_vsock"
+  ];
+
   networking.firewall = {
     trustedInterfaces = [
       "lo"
