@@ -37,7 +37,15 @@
   services.lact.enable = true;
   hardware.amdgpu.overdrive.enable = true;
 
-  services.arctis-sound-manager.enable = true;
+  services.arctis-sound-manager = {
+    enable = true;
+    # shortcut-debt: remove when upstream includes the generator in its source fileset.
+    package = inputs.arctis-sound-manager.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (old: {
+      postPatch = (old.postPatch or "") + ''
+        cp ${inputs.arctis-sound-manager.outPath}/../scripts/generate_plasmoid_i18n.py scripts/
+      '';
+    });
+  };
   security.polkit.enablePkexecWrapper = true;
 
   age.secrets = {
