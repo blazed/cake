@@ -287,12 +287,12 @@ export default function jjContextExtension(pi: ExtensionAPI) {
     description: "Inspect compact JJ repository context: status, current change, recent log, and recovery info. Prefer this over shelling out for routine JJ inspection. Call directly or as a sibling tool call; never include it in tool_batch, which only accepts read, grep, find, ls, and bash. Not for mutations; a fresh read may perform JJ's normal working-copy snapshot.",
     parameters: jjContextParams,
     renderShell: "self",
-    renderCall(args, theme) {
+    renderCall(args, theme, context) {
       const mode = args.mode ?? "summary";
       const revset = args.revset ? ` ${theme.fg("dim", args.revset)}` : "";
       return new Text(
         theme.fg("toolTitle", theme.bold("JJ Context")) + ` ${theme.fg("accent", mode)}` + revset,
-        0,
+        context.outputPad,
         0,
       );
     },
@@ -317,7 +317,7 @@ export default function jjContextExtension(pi: ExtensionAPI) {
       const color = context.isError ? "error" : "success";
       let text = theme.fg(color, `${context.isError ? "x" : "✓"} ${summary}`);
       if (options.expanded && raw && raw !== summary) text += `\n${raw}`;
-      return new Text(text, 0, 0);
+      return new Text(text, context.outputPad, 0);
     },
 
     async execute(_toolCallId, params: JjContextParams, signal, _onUpdate, ctx) {
