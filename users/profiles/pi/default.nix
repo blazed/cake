@@ -40,6 +40,7 @@ let
     steeringMode = "all";
     followUpMode = "all";
     showCacheMissNotices = true;
+    tuiMode = "regular";
     kendex.extensionManager.config."@vanillagreen/pi-tool-renderer" = {
       commandPreviewChars = 1000;
       registerBatchTool = false;

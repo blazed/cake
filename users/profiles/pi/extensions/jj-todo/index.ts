@@ -612,12 +612,12 @@ export default function jjTodoExtension(pi: ExtensionAPI) {
     description: "Perform mechanical JJ TODO workflow operations. Planning stays with the agent. Create/update preview by default; applying requires dryRun:false and the previewToken from that exact preview. Use direct JJ commands for graph edits or unusual mutations.",
     parameters: jjTodoParams,
     renderShell: "self",
-    renderCall(args, theme) {
+    renderCall(args, theme, context) {
       const target = args.rev ?? args.parent;
       const detail = [args.action, args.flag, target].filter(Boolean).join(" ");
       return new Text(
         theme.fg("toolTitle", theme.bold("JJ TODO")) + ` ${theme.fg("accent", detail)}`,
-        0,
+        context.outputPad,
         0,
       );
     },
@@ -644,7 +644,7 @@ export default function jjTodoExtension(pi: ExtensionAPI) {
       const color = context.isError ? "error" : "success";
       let text = theme.fg(color, `${context.isError ? "x" : "✓"} ${summary}`);
       if (options.expanded && raw && raw !== summary) text += `\n${raw}`;
-      return new Text(text, 0, 0);
+      return new Text(text, context.outputPad, 0);
     },
 
     async execute(_toolCallId, params: JjTodoParams, signal, _onUpdate, ctx) {
