@@ -101,6 +101,7 @@ wezterm.on(
 )
 
 config.enable_wayland = true
+config.enable_kitty_keyboard = true
 config.enable_tab_bar = true
 config.use_fancy_tab_bar = false
 config.show_tabs_in_tab_bar = true
@@ -128,6 +129,8 @@ config.keys = {
   { key = "n", mods = "LEADER|CTRL", action = act.EmitEvent "NewProjectWindow" },
   { key = "t", mods = "LEADER|CTRL", action = act.EmitEvent "NewProjectTab" },
   { key = "f", mods = "LEADER|CTRL", action = act.ShowLauncherArgs { flags = "FUZZY|WORKSPACES" } },
+  { key = "P", mods = "CTRL|SHIFT", action = act.DisableDefaultAssignment },
+  { key = "Space", mods = "CTRL|SHIFT", action = act.ActivateCommandPalette },
 }
 
 return config

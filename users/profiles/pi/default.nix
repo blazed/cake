@@ -34,6 +34,18 @@ let
     defaultProvider = "openai-codex";
     defaultModel = "gpt-6-astra";
     defaultThinkingLevel = "medium";
+    enabledModels = [
+      "openai-codex/gpt-6-astra"
+      "openai-codex/gpt-6-luna"
+      "openai-codex/gpt-6.1-sol"
+      "commandcode/deepseek/deepseek-v4.1-flash"
+      "commandcode/claude-sonnet-5-5"
+      "commandcode/Qwen/Qwen3.8-Max-0902"
+      "commandcode/Qwen/Qwen3.8-Flash"
+      "commandcode/moonshotai/Kimi-K3"
+      "commandcode/z-ai/glm-5.3-flash"
+      "commandcode/zai-org/GLM-5.3"
+    ];
     enableInstallTelemetry = false;
     enableSkillCommands = true;
     packages = thirdPartyPackages;
@@ -48,7 +60,7 @@ let
       renderMutationTools = true;
     };
     subagents = {
-      defaultModel = "openai-codex/gpt-5.6-sol";
+      defaultModel = "openai-codex/gpt-6.1-sol";
       defaultThinking = "medium";
       modelScope = {
         enforce = true;
@@ -59,19 +71,19 @@ let
       };
       agentOverrides = {
         scout = {
-          model = "openai-codex/gpt-5.6-luna";
+          model = "openai-codex/gpt-6-luna";
           thinking = "low";
         };
         researcher = {
-          model = "openai-codex/gpt-5.6-sol";
+          model = "openai-codex/gpt-6.1-sol";
           thinking = "high";
         };
         delegate = {
-          model = "openai-codex/gpt-5.6-sol";
+          model = "openai-codex/gpt-6.1-sol";
           thinking = "medium";
         };
         worker = {
-          model = "openai-codex/gpt-5.6-luna";
+          model = "openai-codex/gpt-6-luna";
           thinking = "max";
         };
         reviewer = {
