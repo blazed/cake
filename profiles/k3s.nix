@@ -179,6 +179,7 @@
     directories = [
       "/etc/cni"
       "/etc/rancher"
+      "/opt/kata"
       "/var/lib/cni"
       "/var/lib/containerd"
       "/var/lib/dockershim"
