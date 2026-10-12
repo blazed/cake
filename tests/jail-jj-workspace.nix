@@ -25,6 +25,7 @@ pkgs.testers.runNixOSTest {
   nodes.machine = {
     environment.systemPackages = [
       probe
+      pkgs.git
       pkgs.jujutsu
     ];
     users.users.tester = {
