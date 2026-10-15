@@ -20,7 +20,7 @@ let
     "npm:pi-commandcode-provider@0.7.8"
     "npm:pi-quiet-tools@0.2.0"
     {
-      source = "npm:pi-subagents@0.73.1";
+      source = "npm:pi-subagents@0.78.0";
       skills = [ "skills/pi-subagents/SKILL.md" ];
       prompts = [ "!prompts/council.md" ];
     }
@@ -36,16 +36,20 @@ let
     defaultModel = "gpt-6-astra";
     defaultThinkingLevel = "medium";
     enabledModels = [
-      "openai-codex/gpt-6-astra"
-      "openai-codex/gpt-6-luna"
-      "openai-codex/gpt-6.1-sol"
-      "commandcode/deepseek/deepseek-v4.1-flash"
-      "commandcode/claude-sonnet-5-5"
-      "commandcode/Qwen/Qwen3.8-Max-0902"
+      "claude-bridge/claude-fable-5-1"
+      "claude-bridge/claude-haiku-5-5"
+      "claude-bridge/claude-opus-5-5"
+      "claude-bridge/claude-sonnet-5-5"
       "commandcode/Qwen/Qwen3.8-Flash"
+      "commandcode/Qwen/Qwen3.8-Max-0902"
+      "commandcode/claude-sonnet-5-5"
+      "commandcode/deepseek/deepseek-v4.1-flash"
       "commandcode/moonshotai/Kimi-K3"
       "commandcode/z-ai/glm-5.3-flash"
       "commandcode/zai-org/GLM-5.3"
+      "openai-codex/gpt-6-astra"
+      "openai-codex/gpt-6-luna"
+      "openai-codex/gpt-6.1-sol"
     ];
     enableInstallTelemetry = false;
     enableSkillCommands = true;
@@ -66,10 +70,7 @@ let
       modelScope = {
         enforce = true;
         allow = [
-          "claude-bridge/claude-fable-5-1"
-          "claude-bridge/claude-haiku-5-5"
-          "claude-bridge/claude-opus-5-5"
-          "claude-bridge/claude-sonnet-5-5"
+          "claude-bridge/*"
           "commandcode/*"
           "openai-codex/*"
         ];
@@ -330,6 +331,14 @@ let
     chmod -R u+w $out
   '';
 
+  piMemoryInit = pkgs.writeShellApplication {
+    name = "pi-memory-init";
+    runtimeInputs = [ pkgs.git ];
+    text = ''
+      exec ${lib.getExe pkgs.nushell} --no-config-file ${./memory-init.nu} "$@"
+    '';
+  };
+
   piWrapped = pkgs.symlinkJoin {
     name = "pi-wrapped";
     paths = [ piNode ];
@@ -350,7 +359,10 @@ let
   };
 in
 {
-  home.packages = [ piWrapped ];
+  home.packages = [
+    piWrapped
+    piMemoryInit
+  ];
 
   systemd.user.tmpfiles.rules = [
     "d %h/.pi/tmp 0700 - - 7d"
@@ -377,7 +389,10 @@ in
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
   home.file.".pi/agent/claude-bridge.json".text = builtins.toJSON {
-    provider.plan = "max";
+    provider = {
+      plan = "max";
+      pathToClaudeCodeExecutable = lib.getExe config.programs.claude-code.package;
+    };
   };
   home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
 
