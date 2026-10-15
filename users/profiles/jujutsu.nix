@@ -148,12 +148,7 @@ in
         editor = "nvim";
         default-command = "status";
         pager = "${pkgs.delta}/bin/delta";
-        diff-formatter = [
-          "difft"
-          "--color=always"
-          "$left"
-          "$right"
-        ];
+        diff-formatter = "difft";
         graph-style = "curved";
         should-sign-off = false;
         show-cryptographic-signatures = true;
