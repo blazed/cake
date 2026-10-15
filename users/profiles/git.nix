@@ -46,6 +46,8 @@ in
       "**/graphify-out/"
       ".nvimlog" # TODO(blazed): find out why this is needed?
       ".pi-subagents/"
+      ".pi/APPEND_SYSTEM.md"
+      ".pi/mcp.json"
       ".pi/quiet-tools/"
       ".pi/skills/graphify"
       ".pi/subagents/"
