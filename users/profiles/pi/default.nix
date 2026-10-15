@@ -16,6 +16,7 @@ let
     "npm:@juicesharp/rpiv-ask-user-question@2.13.8"
     "npm:@vanillagreen/pi-tool-renderer@2.0.10"
     "npm:pi-blackhole@0.5.12"
+    "npm:pi-claude-bridge@0.9.3"
     "npm:pi-commandcode-provider@0.7.7"
     "npm:pi-quiet-tools@0.2.0"
     {
@@ -65,6 +66,10 @@ let
       modelScope = {
         enforce = true;
         allow = [
+          "claude-bridge/claude-fable-5-1"
+          "claude-bridge/claude-haiku-5-5"
+          "claude-bridge/claude-opus-5-5"
+          "claude-bridge/claude-sonnet-5-5"
           "commandcode/*"
           "openai-codex/*"
         ];
@@ -371,6 +376,9 @@ in
   '';
   home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
   home.file.".pi/agent/models.json".text = builtins.toJSON models;
+  home.file.".pi/agent/claude-bridge.json".text = builtins.toJSON {
+    provider.plan = "max";
+  };
   home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
 
   home.file.".pi/agent/extensions/subagent/config.json".text = builtins.toJSON {
