@@ -40,11 +40,13 @@
   services.arctis-sound-manager = {
     enable = true;
     # shortcut-debt: remove when upstream includes the generator in its source fileset.
-    package = inputs.arctis-sound-manager.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (old: {
-      postPatch = (old.postPatch or "") + ''
-        cp ${inputs.arctis-sound-manager.outPath}/../scripts/generate_plasmoid_i18n.py scripts/
-      '';
-    });
+    package =
+      inputs.arctis-sound-manager.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
+        (old: {
+          postPatch = (old.postPatch or "") + ''
+            cp ${inputs.arctis-sound-manager.outPath}/../scripts/generate_plasmoid_i18n.py scripts/
+          '';
+        });
   };
   security.polkit.enablePkexecWrapper = true;
 
@@ -170,7 +172,9 @@
 
   programs.virt-manager.enable = true;
   users.groups.libvirtd.members = [ adminUser.name ];
-  users.users.${adminUser.name}.extraGroups = [ "libvirtd" ];
+  users.users.${adminUser.name}.extraGroups = [
+    "libvirtd"
+  ];
   virtualisation.libvirtd.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
 
