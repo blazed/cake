@@ -39,13 +39,12 @@
 
   services.arctis-sound-manager = {
     enable = true;
-    # shortcut-debt: remove when upstream includes the generator in its source fileset.
+    # shortcut-debt: upstream passes "--flag VAR : value" as single makeWrapperArgs
+    # elements, which break under structuredAttrs. Remove when upstream splits them.
     package =
       inputs.arctis-sound-manager.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
         (old: {
-          postPatch = (old.postPatch or "") + ''
-            cp ${inputs.arctis-sound-manager.outPath}/../scripts/generate_plasmoid_i18n.py scripts/
-          '';
+          makeWrapperArgs = lib.concatMap (lib.splitString " ") old.makeWrapperArgs;
         });
   };
   security.polkit.enablePkexecWrapper = true;

@@ -28,12 +28,6 @@
       url = "github:loteran/Arctis-Sound-Manager?dir=nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    cachix.url = "github:cachix/cachix";
-    cachix.inputs = {
-      devenv.follows = "devenv";
-      flake-compat.follows = "flake-compat";
-      nixpkgs.follows = "nixpkgs";
-    };
     cilium-chart.url = "https://github.com/cilium/charts/raw/refs/heads/master/cilium-1.20.2.tgz";
     cilium-chart.flake = false;
     claude-code.url = "github:sadjow/claude-code-nix";
@@ -45,7 +39,6 @@
     dank-greeter.inputs.nixpkgs.follows = "nixpkgs";
     devenv.inputs.flake-compat.follows = "flake-compat";
     devenv.inputs.nixpkgs.follows = "nixpkgs";
-    devenv.inputs.cachix.follows = "cachix";
     devenv.url = "github:cachix/devenv";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
