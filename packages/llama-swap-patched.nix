@@ -1,10 +1,9 @@
 {
   llama-swap,
-  buildGo127Module,
   buildNpmPackage,
   fetchFromGitHub,
 }:
-(llama-swap.override { buildGoModule = buildGo127Module; }).overrideAttrs (oa: rec {
+llama-swap.overrideAttrs (oa: rec {
   version = "260";
   src = fetchFromGitHub {
     owner = "mostlygeek";

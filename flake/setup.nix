@@ -32,23 +32,45 @@
             openldap = prev.openldap.overrideAttrs {
               doCheck = !prev.stdenv.hostPlatform.isi686;
             };
+            # With structuredAttrs, sphinxHook only reads the first sphinxBuilders
+            # element, so khal's man output is never built. Backport the nixpkgs
+            # master fix (pulled in by DMS calendar events).
+            # TODO: remove once nixpkgs#576662 reaches nixos-unstable.
+            khal = prev.khal.overrideAttrs { sphinxBuilders = [ "html man" ]; };
+            # Kernel module aggregation now expects a kmodigest .ko.cer next to
+            # every external module, which only modules_install produces.
+            # Backport the nixpkgs master fix (pulled in by nixos-hardware).
+            # TODO: remove once nixpkgs#575818 reaches nixos-unstable.
+            kernelPackagesExtensions = prev.kernelPackagesExtensions ++ [
+              (_kfinal: kprev: {
+                framework-laptop-kmod = kprev.framework-laptop-kmod.overrideAttrs (old: {
+                  makeFlags = old.makeFlags ++ [
+                    "INSTALL_MOD_PATH=${placeholder "out"}"
+                    "INSTALL_MOD_DIR=extra"
+                    "DEPMOD=true"
+                  ];
+                  installTargets = [ "modules_install" ];
+                  installPhase = null;
+                });
+              })
+            ];
           })
-          # cantarell-fonts-0.311 fails to build with afdko 5.0.1: otfautohint
-          # aborts with an AssertionError when a glyph's first stem is a high
-          # ghost (NixOS/nixpkgs#535887). Backport the upstream fix
-          # (adobe-type-tools/afdko#1844, packaged in NixOS/nixpkgs#536673) and
-          # drop afdko's mypy test_type_hints gate, which over-narrows `lo`
-          # after the assertion change.
-          # TODO: remove once nixpkgs#536673 lands and we flake-update past it.
+          # diff-cover-10.5.1's HTML golden-file tests fail with pygments 2.21,
+          # which escapes quotes in highlighted output as &quot;. Only the test
+          # fixtures are stale; it breaks sqlfluff (pulled in by neovim).
+          # TODO: remove once nixpkgs#576855 (10.6.0) reaches nixos-unstable.
           (_final: prev: {
             pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
               (_pyfinal: pyprev: {
-                afdko = pyprev.afdko.overrideAttrs (old: {
-                  postPatch = (old.postPatch or "") + ''
-                    substituteInPlace python/afdko/otfautohint/hinter.py \
-                      --replace-fail "assert lo is not None and hi is not None" "assert hi is not None"
-                  '';
-                  disabledTests = (old.disabledTests or [ ]) ++ [ "test_type_hints" ];
+                diff-cover = pyprev.diff-cover.overrideAttrs (old: {
+                  disabledTests = (old.disabledTests or [ ]) ++ [
+                    "test_added_file_pycodestyle_html"
+                    "test_added_file_pyflakes_html"
+                    "test_added_file_pylint_html"
+                    "test_all_reports"
+                    "test_fail_under_html"
+                    "test_fail_under_pass_html"
+                  ];
                 });
               })
             ];

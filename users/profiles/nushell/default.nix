@@ -19,6 +19,8 @@ in
     package = pkgs.nushell;
     configFile.source = ./config.nu;
     envFile.source = ./env.nu;
+    # home.nu below already exports home.sessionVariables.
+    loadSessionVariables = false;
     extraConfig = ''
       source ~/.config/nushell/home.nu
       source ~/.config/nushell/starship.nu
