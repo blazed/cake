@@ -144,7 +144,7 @@
 
   services.k3s = {
     enable = true;
-    package = pkgs.k3s_1_36;
+    package = pkgs.k3s_1_37;
     tokenFile = "/run/agenix/k3s-token";
     after = [
       "tailscale-auth.service"
