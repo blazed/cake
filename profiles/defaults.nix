@@ -144,6 +144,11 @@ in
 
   programs.command-not-found.dbPath = lib.mkForce "${./..}/programs.sqlite";
 
+  security.pki.caCertificateBlacklist = [
+    "Comodo AAA Services root"
+    "emSign ECC Root CA - G3"
+  ];
+
   security.sudo.extraConfig = ''
     Defaults  lecture="never"
   '';
