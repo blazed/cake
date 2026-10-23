@@ -22,6 +22,11 @@ upgrade flake="github:blazed/cake":
 switch-remote host="":
   nh os switch --ask --no-write-lock-file --target-host '{{host}}' --hostname '{{host}}' --elevation-strategy passwordless '.#{{host}}' -L
 
+# Prepare the remote boot generation; activate it or signal that a reboot is needed.
+upgrade-remote host:
+  nh os boot --ask --no-write-lock-file --target-host '{{host}}' --hostname '{{host}}' --elevation-strategy passwordless '.#{{host}}' -L
+  @open --raw '{{justfile_directory()}}/scripts/activate-or-signal-reboot.sh' | ssh -- '{{host}}' 'bash -se'
+
 build flake="github:blazed/cake":
   @nh os build --no-write-lock-file '{{flake}}' -L
 
