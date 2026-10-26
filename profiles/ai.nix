@@ -47,6 +47,24 @@ in
           url = "https://huggingface.co/MoriNoNushi/DeepSeek-V4-Flash-0731-heretic-abliterated-v2-GGUF-lora/resolve/main/ds4-flash-heretic-f4-t265-lora.gguf";
           hash = "sha256-NkI/bWN/zO5tDACkpPJcJV+1OCVFt2ASM0qW4hzU3lI=";
         };
+        # Pin both revisions and upstream LFS SHA-256s; these enter the system
+        # closure on deployment, but are only loaded into RAM on demand.
+        qwenImageDenoiser = pkgs.fetchurl {
+          url = "https://huggingface.co/unsloth/Qwen-Image-2.1-GGUF/resolve/2c31ccd392b367a6637841a143813320a02dff55/qwen-image-2.1-Q4_K_M.gguf";
+          hash = "sha256-Yx1TLnynHo2QqHxx02mXYagSA50i4zcOh0mNh3VGYP4=";
+        };
+        qwenImageEncoder = pkgs.fetchurl {
+          url = "https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF/resolve/b93a7ee713758252c555be4210c00540df954dc2/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf";
+          hash = "sha256-49Gm6Hxcsx4FTyw7wN2C/94FL2E95e7zZlt70zybcD4=";
+        };
+        qwenImageVision = pkgs.fetchurl {
+          url = "https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF/resolve/b93a7ee713758252c555be4210c00540df954dc2/mmproj-F16.gguf";
+          hash = "sha256-1AbQPrq+/e+Goshr8MG2X54Eb3qBwhjyXeSTG0agf8Q=";
+        };
+        qwenImageVae = pkgs.fetchurl {
+          url = "https://huggingface.co/unsloth/Qwen-Image-2.1-FP8/resolve/bb21a8ba7f0371c19ad1f72c82a5e8fc10f39939/vae/qwen_image_2.1_vae_bf16.safetensors";
+          hash = "sha256-cYef/VMh5tEMPIdRPitHSxJS76fz3sKWkhSpvwam3Vw=";
+        };
         llama-server = lib.getExe' pkgs.llama-cpp-rocm "llama-server";
         deepseekSampling = [
           "--temp 1.0"
@@ -167,6 +185,47 @@ in
       in
       {
         models = {
+          # Keep diffusion in the default swap group: interactive LLMs unload,
+          # while the persistent camera group stays resident. Usage: ./ai.md.
+          "qwen-image-2.1:q4" = {
+            name = "Qwen Image 2.1 Q4";
+            description = "On-demand image generation and editing; unloads after five idle minutes.";
+            cmd = lib.concatStringsSep "\n" [
+              (lib.getExe pkgs.stable-diffusion-cpp-rocm)
+              "--listen-ip 127.0.0.1"
+              "--listen-port \${PORT}"
+              "--diffusion-model ${qwenImageDenoiser}"
+              "--llm ${qwenImageEncoder}"
+              "--llm_vision ${qwenImageVision}"
+              "--vae ${qwenImageVae}"
+              # Budget managed GPU allocations, not total process/shared RAM.
+              "--max-vram 24"
+              "--vae-tiling"
+              "--threads 8"
+              "--width 1024"
+              "--height 1024"
+              "--batch-count 1"
+              "--steps 20"
+              "--cfg-scale 6.0"
+              "--sampling-method euler"
+              "--seed -1"
+            ];
+            proxy = "http://127.0.0.1:\${PORT}";
+            # sd-server has no /health; it starts listening after model loading.
+            checkEndpoint = "/v1/models";
+            ttl = 300;
+            concurrencyLimit = 1;
+            sendLoadingState = false;
+            # JSON generation filter; multipart editing uses the backend default.
+            filters.setParams.n = 1;
+            capabilities = {
+              "in" = [
+                "text"
+                "image"
+              ];
+              out = [ "image" ];
+            };
+          };
           "deepseek-v4-flash-0731:iq3" = mkModel {
             hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
             name = "DeepSeek V4 Flash IQ3";
