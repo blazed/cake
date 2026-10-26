@@ -45,6 +45,7 @@
         // lib.optionalAttrs (system == "x86_64-linux") {
           llama-swap-patched = pkgs.callPackage ../packages/llama-swap-patched.nix { };
           llama-cpp-rocm = pkgs.callPackage ../packages/llama-cpp-rocm.nix { };
+          stable-diffusion-cpp-rocm = pkgs.callPackage ../packages/stable-diffusion-cpp-rocm.nix { };
         };
     };
 }
