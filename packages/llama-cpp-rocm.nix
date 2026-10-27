@@ -10,12 +10,12 @@
   rocmGpuTargets = [ "gfx1151" ];
 }).overrideAttrs
   (oa: rec {
-    version = "11827";
+    version = "11935";
     src = fetchFromGitHub {
       owner = "ggml-org";
       repo = "llama.cpp";
       tag = "b${version}";
-      hash = "sha256-tZfHReRv3AbVV+PbTMYfI23tI2w/N+gPiqAT98kvfeA=";
+      hash = "sha256-PAAOOHKz0SZFgCodE2IQKYhbIBysrYr0Yesnw+xXy/I=";
       leaveDotGit = true;
       postFetch = ''
         git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -23,7 +23,7 @@
       '';
     };
     npmRoot = "tools/ui";
-    npmDepsHash = "sha256-hqYzdp1FwPhYkBP278fQXgY9NCKB6Q3P6Gko7BfP0m0=";
+    npmDepsHash = "sha256-XLtEZsSFdk+2SyfXzBp8HQ2e27PQPpDCn1YjePU1/9w=";
     # nixpkgs' backports target its older release and are already in ours.
     patches = [ ../patches/llama-cpp-amd-mmvf-odd-cols.patch ];
     # Needs a downloaded model; its fixture would re-enable test-download-model.

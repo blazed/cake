@@ -4,12 +4,12 @@
   fetchFromGitHub,
 }:
 llama-swap.overrideAttrs (oa: rec {
-  version = "266";
+  version = "267";
   src = fetchFromGitHub {
     owner = "mostlygeek";
     repo = "llama-swap";
     tag = "v${version}";
-    hash = "sha256-qyLb0UcAdv7BnBCiHtoQL4HOCBPbZHqAD7u5vLXhJYs=";
+    hash = "sha256-NR9XO/RyzxOzSODNe42VqevmXw/TchrLFJr4iqbbGIM=";
     leaveDotGit = true;
     postFetch = ''
       cd "$out"
