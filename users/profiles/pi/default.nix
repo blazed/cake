@@ -13,18 +13,18 @@ let
   mergeJson = import ../agents/merge-json.nix { inherit pkgs lib; };
 
   thirdPartyPackages = [
-    "npm:@juicesharp/rpiv-ask-user-question@2.13.9"
-    "npm:@vanillagreen/pi-tool-renderer@2.0.10"
-    "npm:pi-blackhole@0.5.13"
+    "npm:@juicesharp/rpiv-ask-user-question@2.15.0"
+    "npm:@vanillagreen/pi-tool-renderer@2.0.11"
+    "npm:pi-blackhole@0.5.16"
     "npm:pi-claude-bridge@0.9.3"
-    "npm:pi-commandcode-provider@0.7.8"
+    "npm:pi-commandcode-provider@0.7.11"
     "npm:pi-quiet-tools@0.2.0"
     {
       source = "npm:pi-subagents@0.78.0";
       skills = [ "skills/pi-subagents/SKILL.md" ];
       prompts = [ "!prompts/council.md" ];
     }
-    "npm:pi-web-access@0.42.0"
+    "npm:pi-web-access@0.46.0"
   ];
 
   themeName = "catppuccin-frappe";
