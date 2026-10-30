@@ -17,11 +17,9 @@
 let
   # Mirror of the rule shipped by profiles/disk/btrfs-on-luks.nix. Keep in
   # sync: if the override condition or filename changes there, change here.
-  cryptkeySystemdReadyOverride =
-    pkgs.writeTextDir "lib/udev/rules.d/999-cryptkey-systemd-ready.rules"
-      ''
-        SUBSYSTEM=="block", ENV{DM_NAME}=="cryptkey", ENV{SYSTEMD_READY}="1"
-      '';
+  cryptkeySystemdReadyOverride = pkgs.writeTextDir "lib/udev/rules.d/999-cryptkey-systemd-ready.rules" ''
+    SUBSYSTEM=="block", ENV{DM_NAME}=="cryptkey", ENV{SYSTEMD_READY}="1"
+  '';
 in
 pkgs.testers.runNixOSTest {
   name = "btrfs-on-luks-cryptchain";
@@ -30,7 +28,6 @@ pkgs.testers.runNixOSTest {
     { pkgs, ... }:
     {
       boot.kernelPackages = pkgs.linuxPackages_latest;
-      boot.initrd.systemd.enable = true;
 
       services.udev.packages = [ cryptkeySystemdReadyOverride ];
 

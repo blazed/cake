@@ -21,10 +21,6 @@
     ../../profiles/zram.nix
   ];
 
-  boot.initrd = {
-    systemd.enable = true;
-  };
-
   age.secrets = {
     id_ed25519 = {
       file = ../../secrets/id_ed25519.age;

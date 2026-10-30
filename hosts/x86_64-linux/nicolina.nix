@@ -29,10 +29,6 @@
 
   boot.loader.systemd-boot.memtest86.enable = true;
 
-  boot.initrd = {
-    systemd.enable = true;
-  };
-
   services.ratbagd.enable = true;
   services.lact.enable = true;
   hardware.amdgpu.overdrive.enable = true;
