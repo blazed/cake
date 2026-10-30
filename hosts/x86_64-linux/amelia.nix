@@ -25,10 +25,6 @@
 
   boot.loader.systemd-boot.memtest86.enable = true;
 
-  boot.initrd = {
-    systemd.enable = true;
-  };
-
   age.secrets = {
     id_ed25519 = {
       file = ../../secrets/id_ed25519.age;
