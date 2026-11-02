@@ -6,7 +6,6 @@
  */
 
 import { randomUUID } from "node:crypto";
-import { StringEnum } from "@earendil-works/pi-ai";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
 import { Type } from "typebox";
@@ -83,10 +82,14 @@ const previews = new Map<string, PreviewRecord>();
 let toolQueue: Promise<void> = Promise.resolve();
 
 const jjTodoParams = Type.Object({
-  action: StringEnum(ACTIONS, {
+  action: Type.Unsafe<JjTodoAction>({
+    type: "string",
+    enum: ACTIONS,
     description: "Operation to perform: list tasks, find next child tasks, create a task, update a task flag, or check task state.",
   }),
-  flag: Type.Optional(StringEnum(TASK_FLAGS, {
+  flag: Type.Optional(Type.Unsafe<TaskFlag>({
+    type: "string",
+    enum: TASK_FLAGS,
     description: "Task flag for list/update. Create accepts only draft or todo.",
   })),
   rev: Type.Optional(Type.String({

@@ -50,6 +50,7 @@ let
       "openai-codex/gpt-6-astra"
       "openai-codex/gpt-6-luna"
       "openai-codex/gpt-6.1-sol"
+      "openai-codex/gpt-6.1-terra"
     ];
     enableInstallTelemetry = false;
     enableSkillCommands = true;
