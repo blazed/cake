@@ -33,16 +33,7 @@
   services.lact.enable = true;
   hardware.amdgpu.overdrive.enable = true;
 
-  services.arctis-sound-manager = {
-    enable = true;
-    # shortcut-debt: upstream passes "--flag VAR : value" as single makeWrapperArgs
-    # elements, which break under structuredAttrs. Remove when upstream splits them.
-    package =
-      inputs.arctis-sound-manager.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs
-        (old: {
-          makeWrapperArgs = lib.concatMap (lib.splitString " ") old.makeWrapperArgs;
-        });
-  };
+  services.arctis-sound-manager.enable = true;
   security.polkit.enablePkexecWrapper = true;
 
   age.secrets = {
