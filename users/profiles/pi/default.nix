@@ -19,11 +19,8 @@ let
     "npm:pi-claude-bridge@0.11.0"
     "npm:pi-commandcode-provider@0.8.1"
     "npm:pi-quiet-tools@0.2.0"
-    {
-      source = "npm:pi-subagents@0.78.0";
-      skills = [ "skills/pi-subagents/SKILL.md" ];
-      prompts = [ "!prompts/council.md" ];
-    }
+    # Edxeth v2.9.2; the npm package named pi-subagents belongs to Nico.
+    "git:github.com/edxeth/pi-subagents@cf6dbf41c17986f3882e6804a68e8fb8282d25e6"
     "npm:pi-web-access@0.47.0"
   ];
 
@@ -65,47 +62,48 @@ let
       renderBashDiffs = true;
       renderMutationTools = true;
     };
-    subagents = {
-      defaultModel = "openai-codex/gpt-6.1-sol";
-      defaultThinking = "medium";
-      modelScope = {
-        enforce = true;
-        allow = [
-          "claude-bridge/*"
-          "commandcode/*"
-          "openai-codex/*"
-        ];
-      };
-      agentOverrides = {
-        scout = {
-          model = "openai-codex/gpt-6-luna";
-          thinking = "low";
-        };
-        researcher = {
-          model = "openai-codex/gpt-6.1-sol";
-          thinking = "high";
-        };
-        delegate = {
-          model = "openai-codex/gpt-6.1-sol";
-          thinking = "medium";
-        };
-        worker = {
-          model = "openai-codex/gpt-6-luna";
-          thinking = "max";
-        };
-        reviewer = {
-          model = "openai-codex/gpt-6-astra";
-          thinking = "xhigh";
-        };
-        oracle = {
-          model = "openai-codex/gpt-6-astra";
-          thinking = "xhigh";
-        };
-      };
-    };
     theme = themeName;
   };
   settingsJson = pkgs.writeText "pi-settings.json" (builtins.toJSON settings);
+
+  subagents = {
+    scout = {
+      tools = "read,grep,find,ls,bash,caller_ping";
+      description = "Inspect the codebase and report relevant files and execution paths. Do not edit files.";
+      model = "openai-codex/gpt-6-luna";
+      thinking = "low";
+    };
+    researcher = {
+      tools = "read,web_enable,web_search,fetch_content,get_search_content,source_check,caller_ping";
+      description = "Research the assigned question, cite sources, and distinguish verified findings from uncertainty. Do not edit files.";
+      model = "openai-codex/gpt-6.1-sol";
+      thinking = "high";
+    };
+    delegate = {
+      tools = "all";
+      description = "Complete a bounded delegated task and report results and validation.";
+      model = "openai-codex/gpt-6.1-sol";
+      thinking = "medium";
+    };
+    worker = {
+      tools = "all";
+      description = "Implement the assigned change, run focused validation, and report changed files and remaining risks.";
+      model = "openai-codex/gpt-6-luna";
+      thinking = "max";
+    };
+    reviewer = {
+      tools = "read,grep,find,ls,caller_ping";
+      description = "Review the assigned changes for concrete defects with source evidence. Do not edit files.";
+      model = "openai-codex/gpt-6-astra";
+      thinking = "xhigh";
+    };
+    oracle = {
+      tools = "read,grep,find,ls,bash,caller_ping";
+      description = "Analyze a difficult design or debugging question and recommend an evidence-based approach. Do not edit files.";
+      model = "openai-codex/gpt-6-astra";
+      thinking = "xhigh";
+    };
+  };
 
   mcp = { };
 
@@ -369,37 +367,65 @@ in
     "d %h/.pi/tmp 0700 - - 7d"
   ];
 
-  home.file.".pi/agent/skills" = {
-    source = ../agents/skills;
-    recursive = true;
-  };
-
-  home.file.".pi/agent/extensions" = {
-    source = piExtensions;
-    recursive = true;
-  };
-
-  home.file.".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
-  home.file.".pi/agent/SYSTEM.md".text = ''
-    You are a coding assistant operating inside Pi.
-
-    ${builtins.readFile ../agents/PRINCIPLES.md}
-    For Pi-specific implementation, read the relevant installed docs and examples
-    under `$PI_PACKAGE_DIR` before changing behavior.
-  '';
-  home.file.".pi/agent/mcp.json".text = builtins.toJSON mcp;
-  home.file.".pi/agent/models.json".text = builtins.toJSON models;
-  home.file.".pi/agent/claude-bridge.json".text = builtins.toJSON {
-    provider = {
-      plan = "max";
-      pathToClaudeCodeExecutable = lib.getExe config.programs.claude-code.package;
+  home.file = {
+    ".pi/agent/skills" = {
+      source = ../agents/skills;
+      recursive = true;
     };
-  };
-  home.file.".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
 
-  home.file.".pi/agent/extensions/subagent/config.json".text = builtins.toJSON {
-    toolDescriptionMode = "compact";
-  };
+    ".pi/agent/extensions" = {
+      source = piExtensions;
+      recursive = true;
+    };
+
+    ".pi/agent/AGENTS.md".source = ../agents/AGENTS.md;
+    ".pi/agent/SYSTEM.md".text = ''
+      You are a coding assistant operating inside Pi.
+
+      ${builtins.readFile ../agents/PRINCIPLES.md}
+      For Pi-specific implementation, read the relevant installed docs and examples
+      under `$PI_PACKAGE_DIR` before changing behavior.
+
+      Delegate only when the user explicitly authorizes subagents; task complexity
+      alone is not authorization. Use Edxeth's named agents, not Nico's subagent API.
+      Agent files define launch mode and working directory; tool calls cannot override
+      them. Keep JJ workers in separate, explicitly prepared workspaces.
+    '';
+    ".pi/agent/mcp.json".text = builtins.toJSON mcp;
+    ".pi/agent/models.json".text = builtins.toJSON models;
+    ".pi/agent/claude-bridge.json".text = builtins.toJSON {
+      provider = {
+        plan = "max";
+        pathToClaudeCodeExecutable = lib.getExe config.programs.claude-code.package;
+      };
+    };
+    ".pi/agent/themes/${themeName}.json".source = ./themes/${themeName}.json;
+
+  }
+  // lib.mapAttrs' (
+    name: agent:
+    lib.nameValuePair ".pi/agent/agents/${name}.md" {
+      text = ''
+        ---
+        name: ${name}
+        description: ${agent.description}
+        model: ${agent.model}
+        thinking: ${agent.thinking}
+        tools: ${agent.tools}
+        allowed-models: ${lib.concatStringsSep "," settings.enabledModels}
+        mode: background
+        system-prompt: append
+        inherit-append-system: true
+        spawning: false
+        ---
+
+        ${agent.description}
+        Follow the applicable project instructions. Stay within the assigned task.
+        Do not publish, retain memories, or launch further agents. Ask the parent via
+        caller_ping when blocked; report findings and checks to the parent.
+      '';
+    }
+  ) subagents;
 
   xdg.configFile."rpiv-ask-user-question/config.json".text = builtins.toJSON {
     guidance.description = ''
