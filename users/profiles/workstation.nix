@@ -46,6 +46,7 @@ in
     bruno
     nautilus
     neovide
+    paseo
     persway
     screenshot
     shotcut

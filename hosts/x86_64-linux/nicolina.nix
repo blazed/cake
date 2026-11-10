@@ -87,6 +87,10 @@
         ".config/arctis_manager"
         ".config/input-remapper-2"
         ".local/share/pipewire/hrir_hesuvi"
+        {
+          directory = ".paseo";
+          mode = "0700";
+        }
       ];
     };
   };
@@ -94,6 +98,26 @@
   home-manager = {
     users.${adminUser.name} = { lib, ... }: {
       imports = [ ../../users/profiles/workstation.nix ];
+      systemd.user.services.paseo = {
+        Unit.Description = "Paseo agent workspace";
+        Service = {
+          ExecStart = "${pkgs.paseo}/bin/paseo daemon run";
+          WorkingDirectory = "%h";
+          Environment = [
+            "PATH=%h/.nix-profile/bin:%h/.local/state/nix/profile/bin:/etc/profiles/per-user/${adminUser.name}/bin:/run/wrappers/bin:/run/current-system/sw/bin"
+            "PASEO_HOME=%h/.paseo"
+            "PASEO_LISTEN=127.0.0.1:6767"
+            "PASEO_RELAY_ENABLED=false"
+            "PASEO_SERVICE_PROXY_ENABLED=false"
+            "PASEO_WEB_UI_ENABLED=true"
+          ];
+          Restart = "on-failure";
+          RestartSec = 5;
+          TimeoutStopSec = 30;
+          UMask = "0077";
+        };
+        Install.WantedBy = [ "default.target" ];
+      };
       home.activation.arctisRouting = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         run ${
           (pkgs.python3.withPackages (ps: [ ps.ruamel-yaml ]))
@@ -158,9 +182,12 @@
 
   programs.virt-manager.enable = true;
   users.groups.libvirtd.members = [ adminUser.name ];
-  users.users.${adminUser.name}.extraGroups = [
-    "libvirtd"
-  ];
+  users.users.${adminUser.name} = {
+    linger = true;
+    extraGroups = [
+      "libvirtd"
+    ];
+  };
   virtualisation.libvirtd.enable = true;
   virtualisation.spiceUSBRedirection.enable = true;
 
