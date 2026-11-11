@@ -15,8 +15,8 @@ let
   thirdPartyPackages = [
     "npm:@juicesharp/rpiv-ask-user-question@2.15.0"
     "npm:@vanillagreen/pi-tool-renderer@2.0.12"
-    "npm:pi-blackhole@0.5.17"
-    "npm:pi-claude-bridge@0.11.0"
+    "npm:pi-blackhole@0.5.18"
+    "npm:pi-claude-bridge@0.12.0"
     "npm:pi-commandcode-provider@0.8.1"
     "npm:pi-quiet-tools@0.2.0"
     # Edxeth v2.9.2; the npm package named pi-subagents belongs to Nico.
