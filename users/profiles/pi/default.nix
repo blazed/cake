@@ -26,20 +26,16 @@ let
 
   themeName = "catppuccin-frappe";
   settings = {
-    defaultTools = [
-      "codemode"
-    ];
     defaultProvider = "openai-codex";
     defaultModel = "gpt-6-astra";
     defaultThinkingLevel = "medium";
     enabledModels = [
-      "claude-bridge/claude-fable-5-1"
+      "claude-bridge/claude-fable-5-2"
       "claude-bridge/claude-haiku-5-5"
       "claude-bridge/claude-opus-5-5"
       "claude-bridge/claude-sonnet-5-5"
       "commandcode/Qwen/Qwen3.8-Flash"
       "commandcode/Qwen/Qwen3.8-Max-0902"
-      "commandcode/claude-sonnet-5-5"
       "commandcode/deepseek/deepseek-v4.1-flash"
       "commandcode/moonshotai/Kimi-K3"
       "commandcode/z-ai/glm-5.3-flash"
