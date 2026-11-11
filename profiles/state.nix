@@ -67,6 +67,7 @@
         ".config/discord"
         ".config/faugus-launcher"
         ".config/gcloud"
+        ".config/gcx"
         ".config/gh"
         ".config/github-copilot"
         ".config/lutris"
