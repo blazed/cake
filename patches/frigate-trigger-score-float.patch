@@ -1,0 +1,12 @@
+--- a/frigate/data_processing/post/semantic_trigger.py
++++ b/frigate/data_processing/post/semantic_trigger.py
+@@ -156,7 +156,8 @@
+             else:
+                 continue
+ 
+-            similarity = 1 - normalized_distance
++            # numpy float32 (GenAI embeddings) is not JSON serializable.
++            similarity = float(1 - normalized_distance)
+ 
+             logger.debug(
+                 f"Trigger {trigger['name']} ({trigger['data'] if trigger['type'] == 'text' or trigger['type'] == 'description' else 'image'}): "
