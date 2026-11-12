@@ -190,9 +190,20 @@ in
       # ponytail: CPU detection is enough for one 4 FPS substream; use ONNX/ROCm if measured load warrants it.
       detectors.cpu.type = "cpu";
 
-      # One provider per role. Both use the openai provider: the llamacpp one
-      # probes /props at startup, which makes llama-swap load the model.
+      # One provider per role. Chat and descriptions use the openai provider:
+      # the llamacpp one probes /props at startup, which makes llama-swap load
+      # the model. Only llamacpp supports multimodal embeddings.
       genai = {
+        # Resident EmbeddingGemma 2 for semantic search. llama-swap's versionless
+        # /v/ prefix forwards /v/embeddings as llama.cpp's native /embeddings,
+        # the endpoint and format Frigate uses. The /v/ base also means Frigate's
+        # startup /props probe 404s, so it cannot trigger a model load.
+        embeddings = {
+          provider = "llamacpp";
+          base_url = "http://127.0.0.1:9292/v";
+          model = "embeddinggemma-2:q8";
+          roles = [ "embeddings" ];
+        };
         # Always-resident VLM for per-event descriptions.
         default = {
           provider = "openai";
@@ -214,7 +225,11 @@ in
         enabled = true;
         model_size = "large";
       };
-      semantic_search.enabled = true;
+      # Switching embedding backends requires a reindex (Enrichments settings).
+      semantic_search = {
+        enabled = true;
+        model = "embeddings";
+      };
 
       objects = {
         track = [ "person" ];
