@@ -173,6 +173,21 @@ in
 {
   services.frigate = {
     enable = true;
+    # shortcut-debt: local fix for semantic triggers crashing on a numpy
+    # float32 score (json.dumps) before publishing, which drops their
+    # notifications; unfixed upstream as of v0.18.2. Drop once upstreamed.
+    package = pkgs.frigate.overrideAttrs (
+      final: oa: {
+        patches = (oa.patches or [ ]) ++ [ ../patches/frigate-trigger-score-float.patch ];
+        # nixpkgs builds pythonPath from the unoverridden `frigate` argument,
+        # and the module runs the service from pythonPath, so repoint it.
+        passthru = oa.passthru // {
+          pythonPath =
+            oa.passthru.python3Packages.makePythonPath final.finalPackage.dependencies
+            + ":${final.finalPackage}/${oa.passthru.python.sitePackages}";
+        };
+      }
+    );
     hostname = "localhost";
     vaapiDriver = "radeonsi";
     # The build-sandbox config check runs Frigate's real {FRIGATE_*} env
@@ -190,9 +205,9 @@ in
       # ponytail: CPU detection is enough for one 4 FPS substream; use ONNX/ROCm if measured load warrants it.
       detectors.cpu.type = "cpu";
 
-      # One provider per role. Chat and descriptions use the openai provider:
-      # the llamacpp one probes /props at startup, which makes llama-swap load
-      # the model. Only llamacpp supports multimodal embeddings.
+      # One provider per role. The llamacpp provider probes /props at startup,
+      # which makes llama-swap load the model, so it is only used for resident
+      # models; on-demand chat uses the openai provider.
       genai = {
         # Resident EmbeddingGemma 2 for semantic search. llama-swap's versionless
         # /v/ prefix forwards /v/embeddings as llama.cpp's native /embeddings,
@@ -204,13 +219,15 @@ in
           model = "embeddinggemma-2:q8";
           roles = [ "embeddings" ];
         };
-        # Always-resident VLM for per-event descriptions.
+        # Always-resident VLM for object descriptions and review summaries.
+        # llamacpp (unlike openai) measures the real per-image token cost and
+        # reads the context size from the server, so review summaries budget
+        # frames correctly instead of overflowing the 32k context.
         default = {
-          provider = "openai";
-          api_key = "local";
+          provider = "llamacpp";
+          base_url = "http://127.0.0.1:9292";
           model = "camera-vlm";
           roles = [ "descriptions" ];
-          provider_options.context_size = 32768;
         };
         # Tool-calling chat; loads on demand (~1 min, within Frigate's 120 s timeout).
         chat = {
@@ -314,7 +331,9 @@ in
         };
         review.alerts.required_zones = [ "doorway" ];
         zones.doorway = {
-          coordinates = "0.369,0.103,0.445,0.111,0.452,0.466,0.38,0.498";
+          # Zones test the bounding box's bottom centre (feet), so cover the
+          # floor just inside the doorway, not only the opening above it.
+          coordinates = "0.369,0.103,0.445,0.111,0.452,0.466,0.47,0.6,0.395,0.6,0.38,0.498";
           loitering_time = 0;
           friendly_name = "Doorway";
         };
