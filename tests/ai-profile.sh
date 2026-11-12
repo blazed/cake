@@ -15,9 +15,18 @@ nix eval --json --no-write-lock-file \
       and ($settings.models["qwen3.5-4b:camera-q8"].cmd | contains("--reasoning off"))
       and ($settings.models["qwen3.5-4b:camera-q8"].capabilities.in == ["text", "image"])
       and ($settings.groups.camera.persistent == true)
-      and ($settings.groups.camera.members == ["qwen3.5-4b:camera-q8"])
+      and ($settings.groups.camera.members == ["qwen3.5-4b:camera-q8", "embeddinggemma-2:q8"])
+      # Frigate semantic search embeddings: resident, multimodal, with the media
+      # marker pinned to the default Frigate falls back to.
+      and ($settings.models["embeddinggemma-2:q8"] as $e
+        | ($e.cmd | contains("--hf-repo ggml-org/embeddinggemma-2-GGUF:Q8_0"))
+          and ($e.cmd | contains("--embeddings"))
+          and ($e.cmd | contains("--reasoning-preserve") | not)
+          and ($e.ttl == 0)
+          and ($e.env == ["LLAMA_MEDIA_MARKER=<__media__>"])
+          and ($e.capabilities == {in: ["text", "image"], context: 8192}))
       and ($settings.groups.camera.exclusive == false)
-      and ($settings.hooks.on_startup.preload == ["qwen3.5-4b:camera-q8"])
+      and ($settings.hooks.on_startup.preload == ["qwen3.5-4b:camera-q8", "embeddinggemma-2:q8"])
       and ($settings.selectors["camera-vlm-deep"].targets == ["qwen3.8-27b:q8"])
       # Chat-only models: text capabilities without the tools key (no agentic use).
       and ($settings.models["gemma-4-12b:q8"].capabilities == {in: ["text"], out: ["text"], context: 131072})

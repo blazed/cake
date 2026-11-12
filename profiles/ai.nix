@@ -363,6 +363,35 @@ in
             # Qwen3.5 thinks by default; keep the camera worker low-latency.
             extraArgs = [ "--reasoning off" ];
           };
+          # Multimodal embeddings for Frigate semantic search (768-d, text + image).
+          "embeddinggemma-2:q8" =
+            mkModel {
+              # llama.cpp auto-loads the matching projector from this HF repo.
+              hf = "ggml-org/embeddinggemma-2-GGUF:Q8_0";
+              name = "EmbeddingGemma 2 Q8";
+              description = "Always-resident multimodal embeddings for Frigate semantic search.";
+              thinking = false;
+              kv = "q8_0";
+              ctx = 8192;
+              # Pooled embeddings need each input in a single ubatch.
+              batchSize = 4096;
+              ubatchSize = 4096;
+              ttl = 0;
+              extraArgs = [ "--embeddings" ];
+            }
+            // {
+              # No embedding output modality exists in llama-swap; leave `out` unset.
+              capabilities = {
+                "in" = [
+                  "text"
+                  "image"
+                ];
+                context = 8192;
+              };
+              # Frigate cannot read the per-startup random marker through
+              # llama-swap's /v/ route, so pin the default it falls back to.
+              env = [ "LLAMA_MEDIA_MARKER=<__media__>" ];
+            };
           "gemma-4-12b:q8" = mkModel {
             hf = "unsloth/gemma-4-12b-it-GGUF:Q8_0";
             name = "Gemma 4 12B Q8";
@@ -395,6 +424,7 @@ in
             persistent = true;
             members = [
               "qwen3.5-4b:camera-q8"
+              "embeddinggemma-2:q8"
             ];
           };
         };
@@ -403,6 +433,7 @@ in
           on_startup = {
             preload = [
               "qwen3.5-4b:camera-q8"
+              "embeddinggemma-2:q8"
             ];
           };
         };
