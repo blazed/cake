@@ -221,6 +221,14 @@ in
           provider_options.context_size = 131072;
         };
       };
+      # Web push to devices registered via https://frigate.tailef5cf.ts.net
+      # (authenticated nginx; register under Settings > Notifications).
+      notifications = {
+        enabled = true;
+        # VAPID contact sent to the browser push services.
+        email = "blazed@darkstar.se";
+        cooldown = 60;
+      };
       face_recognition = {
         enabled = true;
         model_size = "large";
@@ -283,6 +291,26 @@ in
           # Frigate substitutes {FRIGATE_*} placeholders from its environment.
           user = "{FRIGATE_E1_USER}";
           password = "{FRIGATE_E1_PASSWORD}";
+        };
+        # Match person descriptions (from camera-vlm) against these phrases.
+        # Thresholds are z-score similarities against Frigate's running stats,
+        # not raw cosine. No sub_label action: scene-journal treats a null
+        # sub_label as an unrecognized face.
+        semantic_search.triggers = {
+          unusual_activity = {
+            friendly_name = "Unusual activity";
+            type = "description";
+            data = "A person searching through belongings, opening drawers or acting suspiciously.";
+            threshold = 0.8;
+            actions = [ "notification" ];
+          };
+          night_person = {
+            friendly_name = "Person at night";
+            type = "description";
+            data = "A person moving around in a dark room at night.";
+            threshold = 0.8;
+            actions = [ "notification" ];
+          };
         };
         review.alerts.required_zones = [ "doorway" ];
         zones.doorway = {
