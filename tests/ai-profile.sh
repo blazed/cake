@@ -7,43 +7,39 @@ nix eval --json --no-write-lock-file \
   "path:$repo#nixosConfigurations.margot.config.services.llama-swap.settings" \
   | jq -e '
     . as $settings
-    | .models["qwen3.8-flash-next:q4"] as $model
-    | ($model.cmd | split("\n")) as $args
-    | ([
-        "--hf-repo unsloth/Qwen3.8-Flash-Next-GGUF:UD-Q4_K_XL",
-        "--ctx-size 131072",
-        "--batch-size 2048",
-        "--ubatch-size 512",
-        "--parallel 1",
-        "--cache-ram 2048",
-        "--cache-type-k f16",
-        "--cache-type-v f16",
-        "--load-mode dio",
-        "--lazy-mode auto",
-        "--spec-type ngram-mod",
-        "--spec-ngram-mod-n-match 24",
-        "--spec-ngram-mod-n-min 48",
-        "--spec-ngram-mod-n-max 64",
-        "--temp 1.0",
-        "--top-p 0.95",
-        "--top-k 20",
-        "--min-p 0.0",
-        "--reasoning-preserve"
-      ] - $args == [])
-      and ($model.capabilities == {in: ["text", "image"], out: ["text"], context: 131072, tools: true})
-      and (all($args[]; startswith("--spec-draft") | not))
-      and ($args | index("--spec-type draft-mtp") | not)
-      and (all($args[]; startswith("--mmproj") or startswith("--chat-template-file") | not))
+    # Removed as unused; guard against accidental reintroduction.
+    | ([.models | keys[] | select(test("^(deepseek-|qwen3\\.8-flash-next|qwen3-14b|qwen3-vl-)"))] == [])
       and ($settings.models["qwen3.8-27b:q8"].cmd | contains("--spec-type draft-mtp"))
-      and ($settings.models["qwen3-vl-4b:camera-q8"].ttl == 0)
+      and ($settings.models["qwen3.5-4b:camera-q8"].ttl == 0)
+      and ($settings.models["qwen3.5-4b:camera-q8"].cmd | contains("--hf-repo unsloth/Qwen3.5-4B-GGUF:Q8_0"))
+      and ($settings.models["qwen3.5-4b:camera-q8"].cmd | contains("--reasoning off"))
+      and ($settings.models["qwen3.5-4b:camera-q8"].capabilities.in == ["text", "image"])
       and ($settings.groups.camera.persistent == true)
+      and ($settings.groups.camera.members == ["qwen3.5-4b:camera-q8"])
       and ($settings.groups.camera.exclusive == false)
-      and ($settings.hooks.on_startup.preload == ["qwen3-vl-4b:camera-q8"])
+      and ($settings.hooks.on_startup.preload == ["qwen3.5-4b:camera-q8"])
       and ($settings.selectors["camera-vlm-deep"].targets == ["qwen3.8-27b:q8"])
       # Chat-only models: text capabilities without the tools key (no agentic use).
       and ($settings.models["gemma-4-12b:q8"].capabilities == {in: ["text"], out: ["text"], context: 131072})
       and ($settings.models["gemma-4-12b:q8"].cmd | contains("--hf-repo unsloth/gemma-4-12b-it-GGUF:Q8_0"))
       and ($settings.models["gemma-4-12b:q8"].cmd | contains("--reasoning-preserve") | not)
+      # Nemotron 3.5 Bolt replaces Nemotron 3; Bolt E4B is text-only.
+      and ([$settings.models | keys[] | select(startswith("nemotron-3-"))] == [])
+      and ($settings.models["nemotron-3.5-bolt-e4b:q8"] as $m
+        | ($m.capabilities == {in: ["text"], out: ["text"], context: 65536, tools: true})
+          and ($m.cmd | contains("--hf-repo unsloth/NVIDIA-Nemotron-3.5-Bolt-E4B-GGUF:UD-Q8_K_XL"))
+          and ($m.cmd | contains("--no-mmproj"))
+          and ($m.cmd | contains("--spec-type draft-dflash")))
+      and all(
+        ["nemotron-3.5-bolt-74b-a9b:q4", "unsloth/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-GGUF:UD-Q4_K_XL"],
+        ["muse-glimmer-30b:q8", "unsloth/Muse-Glimmer-30B-GGUF:Q8_0"];
+        .[1] as $repo
+        | $settings.models[.[0]]
+        | (.capabilities.in == ["text", "image"])
+          and (.capabilities.tools == true)
+          and (.cmd | contains("--hf-repo \($repo)"))
+          and (.cmd | contains("--spec-type draft-dflash"))
+          and (.cmd | contains("--no-mmproj") | not))
       # Diffusion uses its own backend, shares the interactive swap group,
       # and must not disturb the persistent camera worker.
       and (

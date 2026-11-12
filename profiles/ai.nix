@@ -43,10 +43,6 @@ in
           url = "https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates/resolve/855bffc49448e299789730ff92c9b8d834d6cc14/chat_template.jinja";
           hash = "sha256-5XaEuuQVYhGlVHPFpjvpdqQFo3q1vlrg5avx31NJxLI=";
         };
-        deepseekHereticLora = pkgs.fetchurl {
-          url = "https://huggingface.co/MoriNoNushi/DeepSeek-V4-Flash-0731-heretic-abliterated-v2-GGUF-lora/resolve/main/ds4-flash-heretic-f4-t265-lora.gguf";
-          hash = "sha256-NkI/bWN/zO5tDACkpPJcJV+1OCVFt2ASM0qW4hzU3lI=";
-        };
         # Pin both revisions and upstream LFS SHA-256s; these enter the system
         # closure on deployment, but are only loaded into RAM on demand.
         qwenImageDenoiser = pkgs.fetchurl {
@@ -66,11 +62,6 @@ in
           hash = "sha256-cYef/VMh5tEMPIdRPitHSxJS76fz3sKWkhSpvwam3Vw=";
         };
         llama-server = lib.getExe' pkgs.llama-cpp-rocm "llama-server";
-        deepseekSampling = [
-          "--temp 1.0"
-          "--top-p 0.95"
-          "--min-p 0.0"
-        ];
 
         # KV dtype convention: q8 weights keep q8_0/q8_0 (max-context memory saving);
         # q4/q6 weights use f16/f16 (f16 avoids the severe long-context slowdown that
@@ -226,66 +217,57 @@ in
               out = [ "image" ];
             };
           };
-          "deepseek-v4-flash-0731:iq3" = mkModel {
-            hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
-            name = "DeepSeek V4 Flash IQ3";
-            description = "Stock DeepSeek V4 Flash at IQ3 quality.";
+          "nemotron-3.5-bolt-e4b:q8" = mkModel {
+            # Unsloth ships no plain Q8_0 for E4B.
+            hf = "unsloth/NVIDIA-Nemotron-3.5-Bolt-E4B-GGUF:UD-Q8_K_XL";
+            name = "Nemotron 3.5 Bolt E4B Q8";
+            description = "Nemotron 3.5 Bolt E4B for fast tool calling and agentic workloads.";
+            tools = true;
+            kv = "q8_0";
+            ctx = 65536;
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+            ];
+            extraArgs = [
+              # Text-only per the model card; the repo's inherited Gemma 4
+              # projector would otherwise auto-load.
+              "--no-mmproj"
+              # llama.cpp auto-fetches the dflash drafter from the HF repo.
+              "--spec-type draft-dflash"
+              "--spec-draft-n-max 7"
+            ];
+          };
+          "nemotron-3.5-bolt-74b-a9b:q4" = mkModel {
+            hf = "unsloth/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-GGUF:UD-Q4_K_XL";
+            name = "Nemotron 3.5 Bolt 74B A9B Q4";
+            description = "Nemotron 3.5 Bolt 74B A9B hybrid-reasoning MoE with image input.";
+            # llama.cpp auto-loads the matching projector and dflash drafter from this HF repo.
+            vision = true;
             tools = true;
             kv = "f16";
             ctx = 131072;
-            sampling = deepseekSampling;
-            # The GGUF chat template enables thinking by default; avoid passing the
-            thinking = false;
+            sampling = [
+              "--temp 1.0"
+              "--top-p 0.95"
+            ];
+            extraArgs = [ "--spec-type draft-dflash" ];
           };
-          "deepseek-v4-flash-0731-heretic:iq3" = mkModel {
-            hf = "unsloth/DeepSeek-V4-Flash-0731-GGUF:UD-IQ3_XXS";
-            name = "DeepSeek V4 Flash Heretic v2 IQ3";
-            description = "DeepSeek V4 Flash with the conservative Heretic v2 LoRA.";
-            lora = deepseekHereticLora;
+          "muse-glimmer-30b:q8" = mkModel {
+            hf = "unsloth/Muse-Glimmer-30B-GGUF:Q8_0";
+            name = "Muse Glimmer 30B Q8";
+            description = "Muse Glimmer 30B dense agentic model with image input.";
+            # llama.cpp auto-loads the matching projector and dflash drafter from this HF repo.
+            vision = true;
             tools = true;
-            kv = "f16";
+            kv = "q8_0";
             ctx = 131072;
-            sampling = deepseekSampling;
-            # The embedded template supports enable_thinking but enables no mode by default.
-            thinking = false;
-          };
-          "nemotron-3-nano-4b:q4" = mkModel {
-            hf = "unsloth/NVIDIA-Nemotron-3-Nano-4B-GGUF:UD-Q4_K_XL";
-            name = "Nemotron 3 Nano 4B Q4";
-            description = "Nemotron 3 Nano 4B for tool calling and agentic workloads.";
-            tools = true;
-            kv = "f16";
-            ctx = 32768;
             sampling = [
-              "--temp 0.6"
+              "--temp 1.0"
               "--top-p 0.95"
+              "--top-k 64"
             ];
-          };
-          "nemotron-3-nano-30b-a3b:q4" = mkModel {
-            hf = "unsloth/Nemotron-3-Nano-30B-A3B-GGUF:UD-Q4_K_XL";
-            name = "Nemotron 3 Nano 30B A3B Q4";
-            description = "Nemotron 3 Nano 30B A3B for tool calling and agentic workloads.";
-            tools = true;
-            kv = "f16";
-            ctx = 32768;
-            sampling = [
-              "--temp 0.6"
-              "--top-p 0.95"
-            ];
-          };
-          "qwen3-14b:q4" = mkModel {
-            hf = "Qwen/Qwen3-14B-GGUF:Q4_K_M";
-            name = "Qwen3 14B Q4_K_M";
-            description = "Qwen3 14B at Q4_K_M quality.";
-            tools = true;
-            kv = "f16";
-            ctx = 40960;
-            sampling = [
-              "--temp 0.6"
-              "--top-p 0.95"
-              "--top-k 20"
-              "--min-p 0.0"
-            ];
+            extraArgs = [ "--spec-type draft-dflash" ];
           };
           "qwen3.8-27b:q8" = mkModel {
             hf = "unsloth/Qwen3.8-27B-GGUF:Q8_0";
@@ -347,45 +329,16 @@ in
               "--min-p 0.0"
             ];
           };
-          "qwen3.8-flash-next:q4" = mkModel {
-            hf = "unsloth/Qwen3.8-Flash-Next-GGUF:UD-Q4_K_XL";
-            name = "Qwen3.8 Flash Next Q4";
-            description = "Qwen3.8 Flash Next with lazy n-gram embeddings and ngram speculation.";
+          "qwen3.5-4b:camera-q8" = mkModel {
             # llama.cpp auto-loads the matching projector from this HF repo.
-            vision = true;
-            imageMinTokens = 1024;
-            tools = true;
-            kv = "f16";
-            ctx = 131072;
-            batchSize = 2048;
-            ubatchSize = 512;
-            sampling = [
-              "--temp 1.0"
-              "--top-p 0.95"
-              "--top-k 20"
-              "--min-p 0.0"
-            ];
-            extraArgs = [
-              "--parallel 1"
-              "--cache-ram 2048"
-              # b10989 demand-pages the 28.8 GB PLE table even with --load-mode dio.
-              "--lazy-mode auto"
-              # shortcut-debt: ngram-only until the pinned runtime gains qwen4exp
-              # MTP support (upstream #28243); then add a compatible draft head.
-              "--spec-type ngram-mod"
-              "--spec-ngram-mod-n-match 24"
-              "--spec-ngram-mod-n-min 48"
-              "--spec-ngram-mod-n-max 64"
-            ];
-          };
-          "qwen3-vl-4b:camera-q8" = mkModel {
-            hf = "Qwen/Qwen3-VL-4B-Instruct-GGUF:Q8_0";
+            hf = "unsloth/Qwen3.5-4B-GGUF:Q8_0";
 
-            name = "Qwen3-VL 4B Camera Q8";
+            name = "Qwen3.5 4B Camera Q8";
             description = "Always-resident fast VLM for security camera event analysis.";
 
             vision = true;
-            tools = false;
+            # Frigate's chat sends tool definitions to this model.
+            tools = true;
             thinking = false;
 
             kv = "q8_0";
@@ -407,6 +360,8 @@ in
               "--top-k 20"
               "--min-p 0.0"
             ];
+            # Qwen3.5 thinks by default; keep the camera worker low-latency.
+            extraArgs = [ "--reasoning off" ];
           };
           "gemma-4-12b:q8" = mkModel {
             hf = "unsloth/gemma-4-12b-it-GGUF:Q8_0";
@@ -439,7 +394,7 @@ in
             exclusive = false;
             persistent = true;
             members = [
-              "qwen3-vl-4b:camera-q8"
+              "qwen3.5-4b:camera-q8"
             ];
           };
         };
@@ -447,7 +402,7 @@ in
         hooks = {
           on_startup = {
             preload = [
-              "qwen3-vl-4b:camera-q8"
+              "qwen3.5-4b:camera-q8"
             ];
           };
         };
@@ -456,7 +411,7 @@ in
           "camera-vlm" = {
             strategy = "pin";
             targets = [
-              "qwen3-vl-4b:camera-q8"
+              "qwen3.5-4b:camera-q8"
             ];
             name = "Camera VLM";
             description = "Fast always-resident security camera vision model.";
