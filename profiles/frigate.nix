@@ -190,11 +190,25 @@ in
       # ponytail: CPU detection is enough for one 4 FPS substream; use ONNX/ROCm if measured load warrants it.
       detectors.cpu.type = "cpu";
 
+      # One provider per role. Both use the openai provider: the llamacpp one
+      # probes /props at startup, which makes llama-swap load the model.
       genai = {
-        provider = "openai";
-        api_key = "local";
-        model = "camera-vlm";
-        provider_options.context_size = 32768;
+        # Always-resident VLM for per-event descriptions.
+        default = {
+          provider = "openai";
+          api_key = "local";
+          model = "camera-vlm";
+          roles = [ "descriptions" ];
+          provider_options.context_size = 32768;
+        };
+        # Tool-calling chat; loads on demand (~1 min, within Frigate's 120 s timeout).
+        chat = {
+          provider = "openai";
+          api_key = "local";
+          model = "nemotron-3.5-bolt-74b-a9b:q4";
+          roles = [ "chat" ];
+          provider_options.context_size = 131072;
+        };
       };
       face_recognition = {
         enabled = true;

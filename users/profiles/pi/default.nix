@@ -123,67 +123,6 @@ let
         };
         models = [
           {
-            id = "deepseek-v4-flash-0731:iq3";
-            name = "DeepSeek V4 Flash 0731 IQ3";
-            reasoning = true;
-            thinkingLevelMap = {
-              minimal = null;
-              low = null;
-              medium = null;
-              high = "high";
-              xhigh = null;
-              max = "max";
-            };
-            input = [ "text" ];
-            contextWindow = 131072;
-            maxTokens = 32768;
-            cost = {
-              input = 0;
-              output = 0;
-              cacheRead = 0;
-              cacheWrite = 0;
-            };
-            compat = {
-              thinkingFormat = "chat-template";
-              chatTemplateKwargs = {
-                enable_thinking = {
-                  "$var" = "thinking.enabled";
-                };
-                reasoning_effort = {
-                  "$var" = "thinking.effort";
-                };
-              };
-            };
-          }
-          {
-            id = "deepseek-v4-flash-0731-heretic:iq3";
-            name = "DeepSeek V4 Flash 0731 Heretic v2 IQ3";
-            reasoning = true;
-            thinkingLevelMap = {
-              minimal = null;
-              low = null;
-              medium = null;
-              high = "high";
-              xhigh = null;
-              max = "max";
-            };
-            input = [ "text" ];
-            contextWindow = 131072;
-            maxTokens = 32768;
-            cost = {
-              input = 0;
-              output = 0;
-              cacheRead = 0;
-              cacheWrite = 0;
-            };
-            compat = {
-              thinkingFormat = "chat-template";
-              chatTemplateKwargs.enable_thinking = {
-                "$var" = "thinking.enabled";
-              };
-            };
-          }
-          {
             id = "qwen3.8-27b:q8";
             name = "Qwen3.8 27B Q8";
             reasoning = true;
