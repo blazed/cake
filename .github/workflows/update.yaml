@@ -16,11 +16,14 @@ jobs:
           accept-flake-config = true
     - name: Run the Magic Nix Cache
       uses: DeterminateSystems/magic-nix-cache-action@v15
-    - run: |
+    - name: Update flake inputs
+      id: flake
+      run: |
         nix shell nixpkgs#git -c git config user.name 'Boberg'
         nix shell nixpkgs#git -c git config user.email '1823919+blazed@users.noreply.github.com'
-        nix flake update
-        nix shell nixpkgs#git -c git commit -am "chore(flake): update inputs"
+        nix shell nixpkgs#jq -c bash scripts/update-flake.sh
+        nix shell nixpkgs#git -c git add flake.lock
+        nix shell nixpkgs#git -c git diff --cached --quiet || nix shell nixpkgs#git -c git commit -m "chore(flake): update inputs"
     - name: Update llama-swap and llama.cpp
       run: |
         nix shell nixpkgs#curl nixpkgs#jq nixpkgs#git nixpkgs#nix-update -c bash scripts/update-ai.sh
@@ -39,7 +42,8 @@ jobs:
         branch: package-auto-updates
         delete-branch: true
         title: 'chore: update packages'
-        body: ''
+        body: >-
+          ${{ steps.flake.outputs.held && format('Held back, update fails verification - `{0}`', steps.flake.outputs.held) || '' }}
         labels: |
           packages
         assignees: blazed
@@ -51,3 +55,13 @@ jobs:
         token: ${{ secrets.GH_ACCESS_TOKEN }}
         pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
         merge-method: rebase
+
+    # The PR above still lands the inputs that verify. Fail the run so the
+    # held-back ones are noticed instead of going stale silently.
+    - name: Report held-back inputs
+      if: steps.flake.outputs.held != ''
+      env:
+        HELD: ${{ steps.flake.outputs.held }}
+      run: |
+        echo "::error::Held back (update fails verification): $HELD"
+        exit 1
