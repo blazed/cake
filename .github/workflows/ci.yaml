@@ -13,146 +13,147 @@ concurrency:
 jobs:
   nix_lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v23
-      with:
-        extra-conf: |
-          accept-flake-config = true
-    - uses: cachix/cachix-action@v17
-      with:
-        name: blazed
+    - uses: ./.github/actions/setup-nix
     - run: |
         nix run .#cake -- lint
 
+  # Evaluation only; the checks themselves are built by check_x86_64_linux
+  # and router_test so each one fails (and is retried) on its own.
   nix_check:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: DeterminateSystems/nix-installer-action@v23
-        with:
-          extra-conf: |
-            accept-flake-config = true
-      - uses: cachix/cachix-action@v17
-        with:
-          name: blazed
-      - run: |
-          nix run .#cake -- check
-
-  pkgs_x86_64_linux:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.job-matrix.outputs.matrix }}
+    timeout-minutes: 30
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v23
-      with:
-        extra-conf: |
-          accept-flake-config = true
-    - uses: cachix/cachix-action@v17
-      with:
-        name: blazed
-    - id: job-matrix
-      run: |
-        echo "matrix=$(nix eval .#github-actions-package-matrix-x86-64-linux --json)" >> "$GITHUB_OUTPUT"
+    - uses: ./.github/actions/setup-nix
+    - run: |
+        nix flake check --no-build --impure # impure because of devenv
 
-  hosts_x86_64_linux:
+  matrices_x86_64_linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     outputs:
-      matrix: ${{ steps.job-matrix.outputs.matrix }}
+      pkgs: ${{ steps.job-matrix.outputs.pkgs }}
+      hosts: ${{ steps.job-matrix.outputs.hosts }}
+      checks: ${{ steps.job-matrix.outputs.checks }}
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v23
-      with:
-        extra-conf: |
-          accept-flake-config = true
-    - uses: cachix/cachix-action@v17
-      with:
-        name: blazed
+    - uses: ./.github/actions/setup-nix
     - id: job-matrix
       run: |
-        echo "matrix=$(nix eval .#github-actions-host-matrix-x86-64-linux --json)" >> "$GITHUB_OUTPUT"
+        set -euo pipefail
+        for kind in package:pkgs host:hosts check:checks; do
+          matrix=$(nix eval ".#github-actions-${kind%%:*}-matrix-x86-64-linux" --json)
+          echo "${kind##*:}=$matrix" >> "$GITHUB_OUTPUT"
+        done
 
   pkg_x86_64_linux:
-    needs: pkgs_x86_64_linux
+    needs: matrices_x86_64_linux
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
     strategy:
-      matrix: ${{ fromJson(needs.pkgs_x86_64_linux.outputs.matrix) }}
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrices_x86_64_linux.outputs.pkgs) }}
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v23
-      with:
-        extra-conf: |
-          accept-flake-config = true
-    - uses: cachix/cachix-action@v17
-      if: ${{ matrix.pkg != 'pxebooter' }}
-      with:
-        name: blazed
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - uses: ./.github/actions/setup-nix
     - env:
         PKG: ${{ matrix.pkg }}
       run: |
         nix build ".#packages.x86_64-linux.$PKG" -L
+    - uses: ./.github/actions/cachix-push
+      if: ${{ matrix.pkg != 'pxebooter' }}
+      continue-on-error: true
+      with:
+        auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+  check_x86_64_linux:
+    needs: matrices_x86_64_linux
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrices_x86_64_linux.outputs.checks) }}
+    steps:
+    - uses: actions/checkout@v7
+    - uses: ./.github/actions/setup-nix
+    - env:
+        CHECK: ${{ matrix.check }}
+      run: |
+        nix build ".#checks.x86_64-linux.$CHECK" -L
+    - uses: ./.github/actions/cachix-push
+      continue-on-error: true
+      with:
+        auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   router_test:
     runs-on: ubuntu-latest
+    # Worst case is two attempts of two 10-minute (globalTimeout) passes.
+    timeout-minutes: 60
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v23
-      with:
-        extra-conf: |
-          accept-flake-config = true
-    - uses: cachix/cachix-action@v17
-      with:
-        name: blazed
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - uses: ./.github/actions/setup-nix
     - run: |
-        # First pass: substitute the cached result (or build fresh if absent).
-        # --rebuild requires the output to already be in the store, so we
-        # must seed it before asking nix to re-execute and bit-compare.
-        nix build .#checks.x86_64-linux.router -L
-        # Second pass: actually run the VMs on this runner and bit-compare
-        # against the seeded output, instead of just trusting the cache.
-        nix build .#checks.x86_64-linux.router -L --rebuild
+        # The seven-VM start occasionally hangs on hosted runners (some VMs
+        # never launch), so a failed attempt is retried once.
+        for attempt in 1 2; do
+          # First pass: substitute the cached result (or build fresh if absent).
+          # --rebuild requires the output to already be in the store, so we
+          # must seed it before asking nix to re-execute and bit-compare.
+          # Second pass: actually run the VMs on this runner and bit-compare
+          # against the seeded output, instead of just trusting the cache.
+          if nix build .#checks.x86_64-linux.router -L &&
+            nix build .#checks.x86_64-linux.router -L --rebuild; then
+            exit 0
+          fi
+          echo "::warning::router test attempt $attempt failed"
+        done
+        exit 1
+    - uses: ./.github/actions/cachix-push
+      continue-on-error: true
+      with:
+        auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   host_x86_64_linux:
-    needs: hosts_x86_64_linux
+    needs: matrices_x86_64_linux
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
-      matrix: ${{ fromJson(needs.hosts_x86_64_linux.outputs.matrix) }}
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrices_x86_64_linux.outputs.hosts) }}
     steps:
     - uses: actions/checkout@v7
-    - uses: DeterminateSystems/nix-installer-action@v23
-      with:
-        extra-conf: |
-          accept-flake-config = true
-    - uses: cachix/cachix-action@v17
-      with:
-        name: blazed
-        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - uses: ./.github/actions/setup-nix
     - env:
         HOST: ${{ matrix.host }}
       run: |
         nix build ".#nixosConfigurations.$HOST.config.system.build.toplevel"
+    - uses: ./.github/actions/cachix-push
+      continue-on-error: true
+      with:
+        auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
   summarize:
     if: ${{ always() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     name: Build (matrix)
-    needs: [pkg_x86_64_linux, host_x86_64_linux, nix_lint, nix_check, router_test]
+    needs:
+    - nix_lint
+    - nix_check
+    - pkg_x86_64_linux
+    - check_x86_64_linux
+    - router_test
+    - host_x86_64_linux
     steps:
-      - name: Check linting status
-        if: ${{ needs.nix_lint.result != 'success' }}
-        run: exit 1
-      - name: Check flake check status
-        if: ${{ needs.nix_check.result != 'success' }}
-        run: exit 1
-      - name: Check router test status
-        if: ${{ needs.router_test.result != 'success' }}
-        run: exit 1
-      - name: Check x86_64-linux host build matrix status
-        if: ${{ needs.host_x86_64_linux.result != 'success' }}
-        run: exit 1
-      - name: Check x86_64-linux package build matrix status
-        if: ${{ needs.pkg_x86_64_linux.result != 'success' }}
-        run: exit 1
+    - name: Report failed jobs
+      env:
+        NEEDS: ${{ toJSON(needs) }}
+      run: |
+        failed=$(jq -r 'to_entries[] | select(.value.result != "success") | "::error::\(.key): \(.value.result)"' <<<"$NEEDS")
+        if [ -n "$failed" ]; then
+          echo "$failed"
+          exit 1
+        fi
