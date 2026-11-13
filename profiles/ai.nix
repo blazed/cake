@@ -36,7 +36,7 @@ in
     settings =
       let
         qwenMmproj = pkgs.fetchurl {
-          url = "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/resolve/main/mmproj-Qwen3.8-27B-Q8_0.gguf";
+          url = "https://huggingface.co/ggml-org/Qwen3.8-27B-GGUF/resolve/c1869413dece09109e55b7dcc2c77ef382b0d0bd/mmproj-Qwen3.8-27B-Q8_0.gguf";
           hash = "sha256-LpaKavl8412JcYkLJXubftq/IK2RRQUB+lMWKhnuM+s=";
         };
         qwenChatTemplate = pkgs.fetchurl {
