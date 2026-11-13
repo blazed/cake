@@ -1,0 +1,23 @@
+name: Push to Cachix
+description: >-
+  Push ./result to the blazed cache. Call with continue-on-error so a cache
+  outage cannot fail a build that succeeded.
+
+inputs:
+  auth-token:
+    description: Cachix auth token. Empty (e.g. fork PRs) skips the push.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        CACHIX_AUTH_TOKEN: ${{ inputs.auth-token }}
+      run: |
+        if [ -z "$CACHIX_AUTH_TOKEN" ]; then
+          echo "No Cachix token; skipping push."
+          exit 0
+        fi
+        timeout 15m cachix push blazed ./result

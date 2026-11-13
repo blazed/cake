@@ -1,0 +1,20 @@
+name: Set up Nix
+description: Install Nix and add the blazed Cachix cache as a substituter.
+
+runs:
+  using: composite
+  steps:
+    - uses: DeterminateSystems/nix-installer-action@v23
+      with:
+        # fallback: build locally when a substituter errors mid-download
+        # instead of failing the job.
+        extra-conf: |
+          accept-flake-config = true
+          fallback = true
+          connect-timeout = 15
+    # Pull only. The action's own push runs in a post step whose failure
+    # fails an otherwise green job; pushing is done by ../cachix-push.
+    - uses: cachix/cachix-action@v17
+      with:
+        name: blazed
+        skipPush: true

@@ -6,6 +6,7 @@
 }:
 let
   inherit (lib)
+    attrNames
     mapAttrsToList
     filterAttrs
     hasPrefix
@@ -57,6 +58,12 @@ in
         pkg = filter (item: !(elem item skip)) (mapAttrsToList (name: _: name) ctx.config.packages);
       }
     );
+
+    # The router test has its own job, which retries it.
+    github-actions-check-matrix-x86-64-linux = withSystem "x86_64-linux" (ctx: {
+      os = [ "ubuntu-latest" ];
+      check = filter (name: name != "router") (attrNames ctx.config.checks);
+    });
 
     github-actions-host-matrix-x86-64-linux = {
       os = [ "ubuntu-latest" ];

@@ -2,6 +2,10 @@
 pkgs.testers.runNixOSTest {
   name = "router";
 
+  # A normal run takes a few minutes; fail a hung run well before the
+  # default one-hour timeout so CI can retry it.
+  globalTimeout = 600;
+
   nodes = {
     router =
       { lib, ... }:
