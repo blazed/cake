@@ -17,7 +17,7 @@ let
     "npm:@vanillagreen/pi-tool-renderer@2.0.13"
     "npm:pi-blackhole@0.5.18"
     "npm:pi-claude-bridge@0.12.0"
-    "npm:pi-commandcode-provider@0.8.2"
+    "npm:pi-commandcode-provider@0.8.3"
     "npm:pi-quiet-tools@0.2.0"
     # Edxeth v2.9.2; the npm package named pi-subagents belongs to Nico.
     "git:github.com/edxeth/pi-subagents@cf6dbf41c17986f3882e6804a68e8fb8282d25e6"
