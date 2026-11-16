@@ -8,7 +8,7 @@ nix eval --json --no-write-lock-file \
   | jq -e '
     . as $settings
     # Removed as unused; guard against accidental reintroduction.
-    | ([.models | keys[] | select(test("^(deepseek-|qwen3\\.8-flash-next|qwen3-14b|qwen3-vl-)"))] == [])
+    | ([.models | keys[] | select(test("^(deepseek-|qwen3-14b|qwen3-vl-)"))] == [])
       and ($settings.models["qwen3.8-27b:q8"].cmd | contains("--spec-type draft-mtp"))
       and ($settings.models["qwen3.5-4b:camera-q8"].ttl == 0)
       and ($settings.models["qwen3.5-4b:camera-q8"].cmd | contains("--hf-repo unsloth/Qwen3.5-4B-GGUF:Q8_0"))
@@ -28,6 +28,21 @@ nix eval --json --no-write-lock-file \
       and ($settings.groups.camera.exclusive == false)
       and ($settings.hooks.on_startup.preload == ["qwen3.5-4b:camera-q8", "embeddinggemma-2:q8"])
       and ($settings.selectors["camera-vlm-deep"].targets == ["qwen3.8-27b:q8"])
+      # Flash-Next runs on the Strata engine as regular swappable models, not as a
+      # proxied peer; both variants share one config shape and differ in pack and files.
+      and ($settings.peers == null)
+      and all(
+        ["qwen3.8-flash-next:ud-iq4-xs", "unsloth-ud-iq4_xs"],
+        ["qwen3.8-flash-next:huihui-ud-iq4-xs", "huihui-abliterated-v2-ud-iq4_xs"];
+        .[0] as $id | .[1] as $pack
+        | $settings.models[$id]
+        | (.cmd | split("\n")) as $args
+        | ($args[0] | endswith("/bin/strata-server"))
+          and (["--engine strata", "--port ${PORT}", "--no-api-key"] - $args == [])
+          and (.cmd | contains("-strata-\($pack).json"))
+          and (.proxy == "http://127.0.0.1:${PORT}")
+          and (.capabilities == {in: ["text", "image"], out: ["text"], context: 131072, tools: true})
+          and (all($settings.groups[]; .members | index($id) | not)))
       # Chat-only models: text capabilities without the tools key (no agentic use).
       and ($settings.models["gemma-4-12b:q8"].capabilities == {in: ["text"], out: ["text"], context: 131072})
       and ($settings.models["gemma-4-12b:q8"].cmd | contains("--hf-repo unsloth/gemma-4-12b-it-GGUF:Q8_0"))
