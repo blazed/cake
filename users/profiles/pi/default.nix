@@ -233,6 +233,104 @@ let
               };
             };
           }
+          {
+            # Served by the Strata engine behind llama-swap (see profiles/ai.nix).
+            id = "qwen3.8-flash-next:ud-iq4-xs";
+            name = "Qwen3.8 Flash Next UD-IQ4_XS (Strata)";
+            reasoning = true;
+            # Strata takes none/low/medium/high; it accepts "minimal" but then does not think.
+            thinkingLevelMap.minimal = "low";
+            input = [
+              "text"
+              "image"
+            ];
+            contextWindow = 131072;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+          }
+          {
+            id = "qwen3.8-flash-next:huihui-ud-iq4-xs";
+            name = "Qwen3.8 Flash Next Huihui Abliterated UD-IQ4_XS (Strata)";
+            reasoning = true;
+            thinkingLevelMap.minimal = "low";
+            input = [
+              "text"
+              "image"
+            ];
+            contextWindow = 131072;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+          }
+          {
+            id = "nemotron-3.5-bolt-74b-a9b:q4";
+            name = "Nemotron 3.5 Bolt 74B A9B Q4";
+            reasoning = true;
+            # Thinking is on or off only; the lower levels clamp up to high.
+            thinkingLevelMap = {
+              minimal = null;
+              low = null;
+              medium = null;
+            };
+            input = [
+              "text"
+              "image"
+            ];
+            contextWindow = 131072;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+          }
+          {
+            id = "nemotron-3.5-bolt-e4b:q8";
+            name = "Nemotron 3.5 Bolt E4B Q8";
+            reasoning = true;
+            # Thinking is on or off only; the lower levels clamp up to high.
+            thinkingLevelMap = {
+              minimal = null;
+              low = null;
+              medium = null;
+            };
+            contextWindow = 65536;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+          }
+          {
+            id = "muse-glimmer-30b:q8";
+            name = "Muse Glimmer 30B Q8";
+            reasoning = true;
+            # Thinking cannot be switched off: effort "none" still reasons.
+            thinkingLevelMap.off = null;
+            input = [
+              "text"
+              "image"
+            ];
+            contextWindow = 131072;
+            maxTokens = 32768;
+            cost = {
+              input = 0;
+              output = 0;
+              cacheRead = 0;
+              cacheWrite = 0;
+            };
+          }
         ];
       };
     };
