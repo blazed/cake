@@ -2,11 +2,108 @@
   config,
   pkgs,
   lib,
+  tailnet,
   ...
 }:
 let
   port = 9292;
   metricsPort = 9293;
+
+  # Strata serves Qwen3.8-Flash-Next with its experts split between the GPU cache and RAM.
+  # Model files, packs and the DFlash2 drafter live in llama-swap's cache directory and are
+  # prepared by hand: download the GGUF shards under models/, then build the pack with the
+  # package's tools/iq_pack.py --compat-bf16.
+  strataData = "/var/cache/llama-swap/strata";
+  # Engine flags as planned by upstream's launcher for this machine. With the drafter pack
+  # present under ${strataData}/dflash2 the server switches drafting to DFlash2 by itself.
+  mkStrataModel =
+    {
+      pack,
+      model,
+      name,
+      description,
+    }:
+    let
+      packDir = "${strataData}/packs/${pack}";
+      modelPath = "${strataData}/models/${model}";
+      runConfig = pkgs.writeText "strata-${pack}.json" (
+        builtins.toJSON {
+          exe = lib.getExe' pkgs.strata "strata";
+          cwd = "${pkgs.strata}/share/strata";
+          args = [
+            "--pack"
+            packDir
+            "--native"
+            modelPath
+            "--expert-profile"
+            "${pkgs.strata}/share/strata/data/expert-profile.bin"
+            "--expert-cache"
+            "17772"
+            "--prefill"
+            "auto"
+            "--spec"
+            "4"
+            "--spec-min-p"
+            "0.5"
+            "--mtp"
+            "${strataData}/mtp/rt"
+            "--max-context"
+            "131072"
+            "--kv"
+            "int8"
+            "--ple-io"
+            "ram"
+            "--kv-resident"
+            "32768"
+            "--resident-budget-gib"
+            "55"
+            "--vision"
+            "--vram-reserve-mib"
+            "700"
+          ];
+          tokenizer = "${packDir}/tokenizer";
+          # Strata picks its drafter from this name: only sets it has measured get DFlash2,
+          # anything else falls back to the MTP layer, which is not prepared here. Every
+          # model below is an Unsloth UD-IQ4_XS quant.
+          model_name = "qwen3.8-flash-next-unsloth-ud-iq4_xs";
+          backend = "hip";
+          # Strata rejects unknown Host names (DNS rebinding protection); these are the
+          # names clients reach llama-swap under. IP addresses and localhost always pass.
+          allowed_hosts = [
+            "ai.${tailnet}.ts.net"
+            config.networking.hostName
+          ];
+          vision = {
+            exe = lib.getExe' pkgs.strata "strata-vision";
+            mmproj = "${strataData}/models/mmproj-Qwen3.8-Flash-Next-BF16.gguf";
+            model = modelPath;
+            max_tokens = 1024;
+          };
+        }
+      );
+    in
+    {
+      inherit name description;
+      cmd = lib.concatStringsSep "\n" [
+        (lib.getExe pkgs.strata)
+        "--engine strata"
+        "--config ${runConfig}"
+        "--port \${PORT}"
+        # Access control is llama-swap's, as for the llama.cpp models.
+        "--no-api-key"
+      ];
+      # strata-server listens on IPv4 loopback only.
+      proxy = "http://127.0.0.1:\${PORT}";
+      capabilities = {
+        "in" = [
+          "text"
+          "image"
+        ];
+        out = [ "text" ];
+        context = 131072;
+        tools = true;
+      };
+    };
 
   llama-swap-exporter = pkgs.buildGoModule {
     pname = "llama-swap-exporter";
@@ -392,6 +489,18 @@ in
               # llama-swap's /v/ route, so pin the default it falls back to.
               env = [ "LLAMA_MEDIA_MARKER=<__media__>" ];
             };
+          "qwen3.8-flash-next:ud-iq4-xs" = mkStrataModel {
+            pack = "unsloth-ud-iq4_xs";
+            model = "unsloth-UD-IQ4_XS/Qwen3.8-Flash-Next-UD-IQ4_XS-00001-of-00003.gguf";
+            name = "Qwen3.8 Flash Next UD-IQ4_XS";
+            description = "Qwen3.8 Flash Next 125B MoE on the Strata engine, with image input.";
+          };
+          "qwen3.8-flash-next:huihui-ud-iq4-xs" = mkStrataModel {
+            pack = "huihui-abliterated-v2-ud-iq4_xs";
+            model = "huihui-abliterated-v2-UD-IQ4_XS/Qwen3.8-Flash-Next-UD-IQ4_XS-00001-of-00003.gguf";
+            name = "Qwen3.8 Flash Next Huihui Abliterated UD-IQ4_XS";
+            description = "Huihui abliterated v2 Qwen3.8 Flash Next on the Strata engine, with image input.";
+          };
           "gemma-4-12b:q8" = mkModel {
             hf = "unsloth/gemma-4-12b-it-GGUF:Q8_0";
             name = "Gemma 4 12B Q8";
