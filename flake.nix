@@ -59,6 +59,9 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
     mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     niri.url = "github:sodiboo/niri-flake";
+    # Source only: we build its pkgs/strata recipe with our nixpkgs.
+    nix-amd-ai.flake = false;
+    nix-amd-ai.url = "github:noamsto/nix-amd-ai";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
     nix2container.url = "github:nlewo/nix2container";
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=v0.7.0";

@@ -35,7 +35,9 @@ in
       let
         skip =
           (mapAttrsToList (name: _: name) (filterAttrs (name: _: hasPrefix "images/" name) pkgs))
-          ++ defaultSkip;
+          ++ defaultSkip
+          # Host-CPU specific and never substituted; see flake/packages.nix.
+          ++ [ "strata" ];
       in
       {
         os = [ "ubuntu-latest" ];
