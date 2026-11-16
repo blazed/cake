@@ -62,6 +62,11 @@
           llama-swap-patched = pkgs.callPackage ../packages/llama-swap-patched.nix { };
           llama-cpp-rocm = pkgs.callPackage ../packages/llama-cpp-rocm.nix { };
           stable-diffusion-cpp-rocm = pkgs.callPackage ../packages/stable-diffusion-cpp-rocm.nix { };
+          # gfx1151 only, and compiled with -march=native, so the output is specific to the
+          # building CPU: never substitute it, margot compiles its own (about two minutes).
+          strata = (pkgs.callPackage "${inputs.nix-amd-ai}/pkgs/strata" { }).overrideAttrs {
+            allowSubstitutes = false;
+          };
         };
     };
 }

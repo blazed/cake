@@ -762,6 +762,22 @@
         "type": "github"
       }
     },
+    "nix-amd-ai": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794844439,
+        "narHash": "sha256-7UjvOV4O5JEXijXHOGB7S6sB3Ztn6jiuAIldCIuo4pM=",
+        "owner": "noamsto",
+        "repo": "nix-amd-ai",
+        "rev": "60c8916014fa80740506385851fa9cbca8af7a69",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noamsto",
+        "repo": "nix-amd-ai",
+        "type": "github"
+      }
+    },
     "nix-flatpak": {
       "locked": {
         "lastModified": 1767983141,
@@ -1066,6 +1082,7 @@
         "llm-agents": "llm-agents",
         "mk-shell-bin": "mk-shell-bin",
         "niri": "niri",
+        "nix-amd-ai": "nix-amd-ai",
         "nix-flatpak": "nix-flatpak",
         "nix2container": "nix2container",
         "nixos-hardware": "nixos-hardware",
