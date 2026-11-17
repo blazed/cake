@@ -41,7 +41,7 @@ nix eval --json --no-write-lock-file \
           and (["--engine strata", "--port ${PORT}", "--no-api-key"] - $args == [])
           and (.cmd | contains("-strata-\($pack).json"))
           and (.proxy == "http://127.0.0.1:${PORT}")
-          and (.capabilities == {in: ["text", "image"], out: ["text"], context: 131072, tools: true})
+          and (.capabilities == {in: ["text", "image"], out: ["text"], context: 262144, tools: true})
           and (all($settings.groups[]; .members | index($id) | not)))
       # Chat-only models: text capabilities without the tools key (no agentic use).
       and ($settings.models["gemma-4-12b:q8"].capabilities == {in: ["text"], out: ["text"], context: 131072})
