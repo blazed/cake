@@ -150,11 +150,11 @@
               "Firefox": "Arctis_Media",
               "spotify": "Arctis_Media",
           }, json.loads, lambda data, stream: json.dump(data, stream, indent=2))
-          # ASM selects Media on connect and a non-Arctis sink on disconnect.
+          # ASM selects Media on connect; keep audio on the headset when it disconnects.
           # Its router already recognizes browsers, common chat apps and Wine/Proton.
           merge("settings/general_settings.yaml", {
               "redirect_audio_on_connect": True,
-              "redirect_audio_on_disconnect": True,
+              "redirect_audio_on_disconnect": False,
           }, yaml.load, yaml.dump)
         ''}
       '';
