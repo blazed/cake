@@ -48,7 +48,7 @@ let
             "--mtp"
             "${strataData}/mtp/rt"
             "--max-context"
-            "131072"
+            "262144"
             "--kv"
             "int8"
             "--ple-io"
@@ -100,7 +100,7 @@ let
           "image"
         ];
         out = [ "text" ];
-        context = 131072;
+        context = 262144;
         tools = true;
       };
     };

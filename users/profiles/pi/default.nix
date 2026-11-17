@@ -244,7 +244,7 @@ let
               "text"
               "image"
             ];
-            contextWindow = 131072;
+            contextWindow = 262144;
             maxTokens = 32768;
             cost = {
               input = 0;
@@ -262,7 +262,7 @@ let
               "text"
               "image"
             ];
-            contextWindow = 131072;
+            contextWindow = 262144;
             maxTokens = 32768;
             cost = {
               input = 0;
